@@ -1,0 +1,10 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+includedir=${prefix}/include
+libdir=${exec_prefix}/lib
+
+Name: dsl
+Description: Dynamic D*-Lite Graph Search Library
+Version: 1.0.0
+Cflags: -I${includedir}/dsl
+Libs: -L${libdir} -ldsl

@@ -1,0 +1,12 @@
+Import('env install_prefix staticObjs sharedObjs headers')
+
+conf = Configure(env)
+
+env.Append(CCFLAGS = Split('-Wall -I/usr/local/include'),
+  LIBS = Split('dsl'))
+
+if env['m32'] == 'yes':
+   conf.env.Append(LIBPATH = '/usr/lib32')
+   conf.env.Append(LINKFLAGS = '-m32')
+
+env.Program('test','test.cc')
