@@ -1,0 +1,97 @@
+\section{dsl\-:\-:Cost Class Reference}
+\label{classdsl_1_1Cost}\index{dsl\-::\-Cost@{dsl\-::\-Cost}}
+
+
+{\ttfamily \#include $<$cost.\-h$>$}
+
+Inheritance diagram for dsl\-:\-:Cost\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classdsl_1_1Cost}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+virtual double {\bf Heur} (const {\bf Vertex} \&va, const {\bf Vertex} \&vb) const =0
+\item 
+virtual double {\bf Real} (const {\bf Vertex} \&va, const {\bf Vertex} \&vb) const 
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Interface defining the cost b/n two vertices. \doxyref{Graph}{p.}{classdsl_1_1Graph} search algorithms often require two types of cost\-:
+
+
+\begin{DoxyItemize}
+\item the best possible real cost that a path b/n two vertices can have
+\item a heuristic cost that is an underestimate of that real cost but is useful during path searching.
+\end{DoxyItemize}
+
+This interface defines the two types of costs. The heuristic function is more important and subclasses of this interface are required to provide it. The real function is used only for tie-\/breaking and is not crucial but could change performance in certain cases.
+
+Author\-: Marin Kobilarov -- Copyright (C) 2004 
+
+\subsection{Member Function Documentation}
+\index{dsl\-::\-Cost@{dsl\-::\-Cost}!Heur@{Heur}}
+\index{Heur@{Heur}!dsl::Cost@{dsl\-::\-Cost}}
+\subsubsection[{Heur}]{\setlength{\rightskip}{0pt plus 5cm}virtual double dsl\-::\-Cost\-::\-Heur (
+\begin{DoxyParamCaption}
+\item[{const {\bf Vertex} \&}]{va, }
+\item[{const {\bf Vertex} \&}]{vb}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily [pure virtual]}}\label{classdsl_1_1Cost_a585a274e68a75de0c9ede55864d6e845}
+Heuristic distance (should be admissible, i.\-e. less than the real minimum distance) b/n two vertices. Subclasses must provide this function 
+\begin{DoxyParams}{Parameters}
+{\em va} & first vertex \\
+\hline
+{\em vb} & second vertex \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+heuristic distance (optimal cost) 
+\end{DoxyReturn}
+
+
+Implemented in {\bf dsl\-::\-Grid\-Cost} \doxyref{}{p.}{classdsl_1_1GridCost_a5bb94399b682367c5134a8780adf6598}.
+
+
+
+Referenced by dsl\-::\-Search\-::\-Calculate\-Ext\-Key(), dsl\-::\-Search\-::\-Plan(), Real(), and dsl\-::\-Search\-::\-Set\-Goal().
+
+\index{dsl\-::\-Cost@{dsl\-::\-Cost}!Real@{Real}}
+\index{Real@{Real}!dsl::Cost@{dsl\-::\-Cost}}
+\subsubsection[{Real}]{\setlength{\rightskip}{0pt plus 5cm}double Cost\-::\-Real (
+\begin{DoxyParamCaption}
+\item[{const {\bf Vertex} \&}]{va, }
+\item[{const {\bf Vertex} \&}]{vb}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily [virtual]}}\label{classdsl_1_1Cost_a92a686af3e0d416d6f3b03eb1fa1c570}
+Real best possible distance b/n two vertices. Subclasses should optionally provide this function. By default it is the heuristic function + epsilon 
+\begin{DoxyParams}{Parameters}
+{\em va} & first vertex \\
+\hline
+{\em vb} & second vertex \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+real minimum possible cost b/n va and vb 
+\end{DoxyReturn}
+
+
+Reimplemented in {\bf dsl\-::\-Grid\-Cost} \doxyref{}{p.}{classdsl_1_1GridCost_aeca4afaa0d40c6489791fed0b26c2b55}.
+
+
+
+References Heur().
+
+
+
+Referenced by dsl\-::\-Search\-::\-Min\-Succ().
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+lib/{\bf cost.\-h}\item 
+lib/{\bf cost.\-cc}\end{DoxyCompactItemize}

@@ -1,0 +1,403 @@
+\section{dsl\-:\-:Grid\-Search Class Reference}
+\label{classdsl_1_1GridSearch}\index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}}
+
+
+{\ttfamily \#include $<$gridsearch.\-h$>$}
+
+Inheritance diagram for dsl\-:\-:Grid\-Search\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classdsl_1_1GridSearch}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+{\bf Grid\-Search} (int {\bf width}, int {\bf height}, const double $\ast${\bf map}=0, double {\bf scale}=1.\-0)
+\item 
+virtual {\bf $\sim$\-Grid\-Search} ()
+\item 
+void {\bf Set\-Cost} (int x, int y, double {\bf cost})
+\item 
+double {\bf Get\-Cost} (int x, int y) const 
+\item 
+void {\bf Set\-Map} (const double $\ast${\bf map})
+\item 
+void {\bf Set\-Start} (int x, int y)
+\item 
+void {\bf Set\-Goal} (int x, int y)
+\item 
+void {\bf Plan} ({\bf Grid\-Path} \&path)
+\item 
+void {\bf Opt\-Path} (const {\bf Grid\-Path} \&path, {\bf Grid\-Path} \&opt\-Path) const 
+\item 
+{\bf Vertex} $\ast$ {\bf Get\-Vertex} (int x, int y) const 
+\item 
+void {\bf Remove\-Vertex} (int x, int y)
+\item 
+void {\bf Add\-Edge} (int x1, int y1, int x2, int y2)
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int {\bf width}
+\begin{DoxyCompactList}\small\item\em width of cost grid \end{DoxyCompactList}\item 
+int {\bf height}
+\begin{DoxyCompactList}\small\item\em height of cost grid \end{DoxyCompactList}\item 
+double {\bf scale}
+\begin{DoxyCompactList}\small\item\em scale of each cell cost and each transition cost \end{DoxyCompactList}\item 
+double $\ast$ {\bf map}
+\begin{DoxyCompactList}\small\item\em cost grid array of size width$\ast$height \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+{\bf Graph} {\bf graph}
+\item 
+{\bf Grid\-Cost} {\bf cost}
+\item 
+{\bf Vertex} $\ast$$\ast$ {\bf vertex\-Map}
+\begin{DoxyCompactList}\small\item\em vertex grid array of size width$\ast$height \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Additional Inherited Members}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!Grid\-Search@{Grid\-Search}}
+\index{Grid\-Search@{Grid\-Search}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
+\subsubsection[{Grid\-Search}]{\setlength{\rightskip}{0pt plus 5cm}Grid\-Search\-::\-Grid\-Search (
+\begin{DoxyParamCaption}
+\item[{int}]{width, }
+\item[{int}]{height, }
+\item[{const double $\ast$}]{map = {\ttfamily 0}, }
+\item[{double}]{scale = {\ttfamily 1.0}}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1GridSearch_a088e396ffe2bc21376375bb5932d578f}
+The planner allocates all states in the beginning a valid map of size width$\ast$height should be provided scale is used to multiply each cell value and each neighbor transition value before they are used for planning 
+\begin{DoxyParams}{Parameters}
+{\em width} & width \\
+\hline
+{\em height} & height \\
+\hline
+{\em map} & a double array of size width$\ast$height containing occupancy info (optional) \\
+\hline
+{\em scale} & the size of each cell (default is 1.\-0) \\
+\hline
+\end{DoxyParams}
+
+
+References dsl\-::\-Graph\-::\-Add\-Edge(), dsl\-::\-Graph\-::\-Add\-Vertex(), graph, height, M\-A\-X, N\-B\-R\-\_\-\-C\-O\-U\-N\-T, vertex\-Map, and width.
+
+\index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!$\sim$\-Grid\-Search@{$\sim$\-Grid\-Search}}
+\index{$\sim$\-Grid\-Search@{$\sim$\-Grid\-Search}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
+\subsubsection[{$\sim$\-Grid\-Search}]{\setlength{\rightskip}{0pt plus 5cm}Grid\-Search\-::$\sim$\-Grid\-Search (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [virtual]}}\label{classdsl_1_1GridSearch_a7c319016f2d53252109857aaca2b09d3}
+
+
+References dsl\-::\-Vertex\-::data, height, map, vertex\-Map, and width.
+
+
+
+\subsection{Member Function Documentation}
+\index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!Add\-Edge@{Add\-Edge}}
+\index{Add\-Edge@{Add\-Edge}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
+\subsubsection[{Add\-Edge}]{\setlength{\rightskip}{0pt plus 5cm}void Grid\-Search\-::\-Add\-Edge (
+\begin{DoxyParamCaption}
+\item[{int}]{x1, }
+\item[{int}]{y1, }
+\item[{int}]{x2, }
+\item[{int}]{y2}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1GridSearch_a38bcbd68f597eda0a051f765e03b02fa}
+Useful method for adding edges b/n vertices 
+\begin{DoxyParams}{Parameters}
+{\em x1} & from x-\/coordiante \\
+\hline
+{\em y1} & from y-\/coordiante \\
+\hline
+{\em x2} & to x-\/coordiante \\
+\hline
+{\em y2} & to y-\/coordiante \\
+\hline
+\end{DoxyParams}
+
+
+References dsl\-::\-Graph\-::\-Add\-Edge(), Get\-Vertex(), and graph.
+
+\index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!Get\-Cost@{Get\-Cost}}
+\index{Get\-Cost@{Get\-Cost}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
+\subsubsection[{Get\-Cost}]{\setlength{\rightskip}{0pt plus 5cm}double Grid\-Search\-::\-Get\-Cost (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y}
+\end{DoxyParamCaption}
+) const}\label{classdsl_1_1GridSearch_ac0f102bbb9cb82d6cc7c0b1760f7edca}
+Get the cost of an individual cell 
+\begin{DoxyParams}{Parameters}
+{\em x} & x \\
+\hline
+{\em y} & y \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+cost 
+\end{DoxyReturn}
+
+
+References map, and width.
+
+\index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!Get\-Vertex@{Get\-Vertex}}
+\index{Get\-Vertex@{Get\-Vertex}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
+\subsubsection[{Get\-Vertex}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Vertex} $\ast$ Grid\-Search\-::\-Get\-Vertex (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y}
+\end{DoxyParamCaption}
+) const}\label{classdsl_1_1GridSearch_a5ab3dea36f27a7d2c7ca4383e1e1b8e6}
+Useful method to get the graph vertex at position (x,y) 
+\begin{DoxyParams}{Parameters}
+{\em x} & x-\/coordiante \\
+\hline
+{\em y} & y-\/coordiante \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+corresponding vertex or 0 if none there 
+\end{DoxyReturn}
+
+
+References height, vertex\-Map, and width.
+
+
+
+Referenced by Add\-Edge(), and Remove\-Vertex().
+
+\index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!Opt\-Path@{Opt\-Path}}
+\index{Opt\-Path@{Opt\-Path}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
+\subsubsection[{Opt\-Path}]{\setlength{\rightskip}{0pt plus 5cm}void Grid\-Search\-::\-Opt\-Path (
+\begin{DoxyParamCaption}
+\item[{const {\bf Grid\-Path} \&}]{path, }
+\item[{{\bf Grid\-Path} \&}]{opt\-Path}
+\end{DoxyParamCaption}
+) const}\label{classdsl_1_1GridSearch_a8487c49c0c2a674a1b9fbe5fbdff643c}
+Optimize the path produces by Plan 
+\begin{DoxyParams}{Parameters}
+{\em path} & an initial obstacle-\/free path (e.\-g. one produced by calling Plan(path)) \\
+\hline
+{\em opt\-Path} & a new path resulting from optimizing the original path path (i.\-e. a producing a shorter path with minimal number of obstacle-\/free segments) \\
+\hline
+\end{DoxyParams}
+
+
+References dsl\-::\-Grid\-Path\-::count, dsl\-::\-Grid\-Path\-::len, map, dsl\-::\-Grid\-Path\-::pos, R\-A\-Y\-\_\-\-T\-R\-A\-C\-E\-\_\-\-S\-T\-E\-P, and width.
+
+
+
+Referenced by main().
+
+\index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!Plan@{Plan}}
+\index{Plan@{Plan}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
+\subsubsection[{Plan}]{\setlength{\rightskip}{0pt plus 5cm}void Grid\-Search\-::\-Plan (
+\begin{DoxyParamCaption}
+\item[{{\bf Grid\-Path} \&}]{path}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1GridSearch_a529a35e2b3419c96dfbb7cbb5c39db32}
+Compute path b/n start and goal vertices these vertices should be already set 
+\begin{DoxyParams}{Parameters}
+{\em path} & the resulting path \\
+\hline
+\end{DoxyParams}
+
+
+References dsl\-::\-Grid\-Path\-::count, dsl\-::\-Vertex\-::data, dsl\-::\-Grid\-Path\-::len, dsl\-::\-Vertex\-::next, dsl\-::\-Search\-::\-Plan(), dsl\-::\-Grid\-Path\-::pos, and dsl\-::\-Search\-::start.
+
+
+
+Referenced by main().
+
+\index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!Remove\-Vertex@{Remove\-Vertex}}
+\index{Remove\-Vertex@{Remove\-Vertex}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
+\subsubsection[{Remove\-Vertex}]{\setlength{\rightskip}{0pt plus 5cm}void Grid\-Search\-::\-Remove\-Vertex (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1GridSearch_a1f31b1d17ca13143bd44b145f0629f6e}
+Useful method to remove a vertex at (x,y) 
+\begin{DoxyParams}{Parameters}
+{\em x} & x-\/coordiante \\
+\hline
+{\em y} & y-\/coordiante \\
+\hline
+\end{DoxyParams}
+
+
+References Get\-Vertex(), graph, and dsl\-::\-Graph\-::\-Remove\-Vertex().
+
+
+
+Referenced by main().
+
+\index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!Set\-Cost@{Set\-Cost}}
+\index{Set\-Cost@{Set\-Cost}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
+\subsubsection[{Set\-Cost}]{\setlength{\rightskip}{0pt plus 5cm}void Grid\-Search\-::\-Set\-Cost (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y, }
+\item[{double}]{cost}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1GridSearch_a46cb7bc7076b53cad44d3bb6e64b4909}
+Change the cost of an individual cell 
+\begin{DoxyParams}{Parameters}
+{\em x} & x-\/coordinate \\
+\hline
+{\em y} & y-\/coordinate \\
+\hline
+{\em cost} & cost \\
+\hline
+\end{DoxyParams}
+
+
+References dsl\-::\-Search\-::\-Change\-Cost(), cost, dsl\-::\-Search\-::\-Eq(), dsl\-::\-Vertex\-::in, map, dsl\-::\-Vertex\-::out, vertex\-Map, and width.
+
+
+
+Referenced by main(), and Set\-Map().
+
+\index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!Set\-Goal@{Set\-Goal}}
+\index{Set\-Goal@{Set\-Goal}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
+\subsubsection[{Set\-Goal}]{\setlength{\rightskip}{0pt plus 5cm}void Grid\-Search\-::\-Set\-Goal (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1GridSearch_a033cfbe8313ee845f2c0dd8b5113fe6b}
+Set goal location in the map 
+\begin{DoxyParams}{Parameters}
+{\em x} & x-\/coord \\
+\hline
+{\em y} & y-\/coord \\
+\hline
+\end{DoxyParams}
+
+
+References dsl\-::\-Search\-::\-Set\-Goal(), vertex\-Map, and width.
+
+
+
+Referenced by main().
+
+\index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!Set\-Map@{Set\-Map}}
+\index{Set\-Map@{Set\-Map}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
+\subsubsection[{Set\-Map}]{\setlength{\rightskip}{0pt plus 5cm}void Grid\-Search\-::\-Set\-Map (
+\begin{DoxyParamCaption}
+\item[{const double $\ast$}]{map}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1GridSearch_adbb22cd4bfb7f5d223d4f5ac4d5c2a60}
+Change the costs of all cells at once 
+\begin{DoxyParams}{Parameters}
+{\em map} & a width$\ast$height double array containing occupancy data \\
+\hline
+\end{DoxyParams}
+
+
+References height, Set\-Cost(), and width.
+
+\index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!Set\-Start@{Set\-Start}}
+\index{Set\-Start@{Set\-Start}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
+\subsubsection[{Set\-Start}]{\setlength{\rightskip}{0pt plus 5cm}void Grid\-Search\-::\-Set\-Start (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1GridSearch_a906aa657dffe9ee7a3d8f1493cf5889c}
+Set start location in the map 
+\begin{DoxyParams}{Parameters}
+{\em x} & x-\/coord \\
+\hline
+{\em y} & y-\/coord \\
+\hline
+\end{DoxyParams}
+
+
+References dsl\-::\-Search\-::\-Set\-Start(), vertex\-Map, and width.
+
+
+
+Referenced by main().
+
+
+
+\subsection{Member Data Documentation}
+\index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!cost@{cost}}
+\index{cost@{cost}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
+\subsubsection[{cost}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Grid\-Cost} dsl\-::\-Grid\-Search\-::cost\hspace{0.3cm}{\ttfamily [protected]}}\label{classdsl_1_1GridSearch_ae4b06b2ddfc295598fcfe0da68f769ff}
+
+
+Referenced by Set\-Cost().
+
+\index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!graph@{graph}}
+\index{graph@{graph}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
+\subsubsection[{graph}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Graph} dsl\-::\-Grid\-Search\-::graph\hspace{0.3cm}{\ttfamily [protected]}}\label{classdsl_1_1GridSearch_ad465ba46be970dae903d4d1c5ad76e35}
+
+
+Referenced by Add\-Edge(), Grid\-Search(), and Remove\-Vertex().
+
+\index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!height@{height}}
+\index{height@{height}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
+\subsubsection[{height}]{\setlength{\rightskip}{0pt plus 5cm}int dsl\-::\-Grid\-Search\-::height}\label{classdsl_1_1GridSearch_a765e59bd8afcd6cb983a9cee73d8ab12}
+
+
+height of cost grid 
+
+
+
+Referenced by Get\-Vertex(), Grid\-Search(), Set\-Map(), and $\sim$\-Grid\-Search().
+
+\index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!map@{map}}
+\index{map@{map}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
+\subsubsection[{map}]{\setlength{\rightskip}{0pt plus 5cm}double$\ast$ dsl\-::\-Grid\-Search\-::map}\label{classdsl_1_1GridSearch_acba55fef9aa96238a8047569b4c9aba0}
+
+
+cost grid array of size width$\ast$height 
+
+
+
+Referenced by Get\-Cost(), Opt\-Path(), Set\-Cost(), and $\sim$\-Grid\-Search().
+
+\index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!scale@{scale}}
+\index{scale@{scale}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
+\subsubsection[{scale}]{\setlength{\rightskip}{0pt plus 5cm}double dsl\-::\-Grid\-Search\-::scale}\label{classdsl_1_1GridSearch_af0815d65f819f2fb60d4e10b67c864f0}
+
+
+scale of each cell cost and each transition cost 
+
+\index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!vertex\-Map@{vertex\-Map}}
+\index{vertex\-Map@{vertex\-Map}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
+\subsubsection[{vertex\-Map}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Vertex}$\ast$$\ast$ dsl\-::\-Grid\-Search\-::vertex\-Map\hspace{0.3cm}{\ttfamily [protected]}}\label{classdsl_1_1GridSearch_aed8a4e7a0992fc9f9890b935a9182900}
+
+
+vertex grid array of size width$\ast$height 
+
+
+
+Referenced by Get\-Vertex(), Grid\-Search(), Set\-Cost(), Set\-Goal(), Set\-Start(), and $\sim$\-Grid\-Search().
+
+\index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!width@{width}}
+\index{width@{width}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
+\subsubsection[{width}]{\setlength{\rightskip}{0pt plus 5cm}int dsl\-::\-Grid\-Search\-::width}\label{classdsl_1_1GridSearch_a00f5f3859a75f31e0312697e702cfc98}
+
+
+width of cost grid 
+
+
+
+Referenced by Get\-Cost(), Get\-Vertex(), Grid\-Search(), Opt\-Path(), Set\-Cost(), Set\-Goal(), Set\-Map(), Set\-Start(), and $\sim$\-Grid\-Search().
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+lib/{\bf gridsearch.\-h}\item 
+lib/{\bf gridsearch.\-cc}\end{DoxyCompactItemize}

@@ -1,0 +1,66 @@
+\section{lib/search.cc File Reference}
+\label{search_8cc}\index{lib/search.\-cc@{lib/search.\-cc}}
+{\ttfamily \#include $<$stdlib.\-h$>$}\\*
+{\ttfamily \#include $<$stdio.\-h$>$}\\*
+{\ttfamily \#include $<$assert.\-h$>$}\\*
+{\ttfamily \#include $<$math.\-h$>$}\\*
+{\ttfamily \#include $<$unistd.\-h$>$}\\*
+{\ttfamily \#include $<$iostream$>$}\\*
+{\ttfamily \#include \char`\"{}fibheap.\-h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}search.\-h\char`\"{}}\\*
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define {\bf D\-S\-L\-\_\-\-M\-I\-N}(a, b)~((a$<$b)?(a)\-:(b))
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+int {\bf fibkey\-\_\-compare} (fibheapkey\-\_\-t a, fibheapkey\-\_\-t b)
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+int {\bf F\-I\-B\-H\-E\-A\-P\-K\-E\-Y\-\_\-\-S\-I\-Z\-E} = 2$\ast$sizeof(double)
+\item 
+fibheapkey\-\_\-t {\bf F\-I\-B\-H\-E\-A\-P\-K\-E\-Y\-\_\-\-M\-I\-N} = (void$\ast$)(double[2])\{-\/{\bf I\-N\-F}, -\/{\bf I\-N\-F}\}
+\end{DoxyCompactItemize}
+
+
+\subsection{Macro Definition Documentation}
+\index{search.\-cc@{search.\-cc}!D\-S\-L\-\_\-\-M\-I\-N@{D\-S\-L\-\_\-\-M\-I\-N}}
+\index{D\-S\-L\-\_\-\-M\-I\-N@{D\-S\-L\-\_\-\-M\-I\-N}!search.cc@{search.\-cc}}
+\subsubsection[{D\-S\-L\-\_\-\-M\-I\-N}]{\setlength{\rightskip}{0pt plus 5cm}\#define D\-S\-L\-\_\-\-M\-I\-N(
+\begin{DoxyParamCaption}
+\item[{}]{a, }
+\item[{}]{b}
+\end{DoxyParamCaption}
+)~((a$<$b)?(a)\-:(b))}\label{search_8cc_aaf38d66d7e86ce1c4c5b51b77e958ff4}
+
+
+Referenced by dsl\-::\-Search\-::\-Calculate\-Ext\-Key(), dsl\-::\-Search\-::\-Compute\-Shortest\-Path(), and dsl\-::\-Search\-::\-Plan().
+
+
+
+\subsection{Function Documentation}
+\index{search.\-cc@{search.\-cc}!fibkey\-\_\-compare@{fibkey\-\_\-compare}}
+\index{fibkey\-\_\-compare@{fibkey\-\_\-compare}!search.cc@{search.\-cc}}
+\subsubsection[{fibkey\-\_\-compare}]{\setlength{\rightskip}{0pt plus 5cm}int fibkey\-\_\-compare (
+\begin{DoxyParamCaption}
+\item[{fibheapkey\-\_\-t}]{a, }
+\item[{fibheapkey\-\_\-t}]{b}
+\end{DoxyParamCaption}
+)}\label{search_8cc_af39458aebb0f1d9d2afd504bca6b43d9}
+
+
+Referenced by dsl\-::\-Search\-::\-Compute\-Shortest\-Path(), and dsl\-::\-Search\-::\-Update().
+
+
+
+\subsection{Variable Documentation}
+\index{search.\-cc@{search.\-cc}!F\-I\-B\-H\-E\-A\-P\-K\-E\-Y\-\_\-\-M\-I\-N@{F\-I\-B\-H\-E\-A\-P\-K\-E\-Y\-\_\-\-M\-I\-N}}
+\index{F\-I\-B\-H\-E\-A\-P\-K\-E\-Y\-\_\-\-M\-I\-N@{F\-I\-B\-H\-E\-A\-P\-K\-E\-Y\-\_\-\-M\-I\-N}!search.cc@{search.\-cc}}
+\subsubsection[{F\-I\-B\-H\-E\-A\-P\-K\-E\-Y\-\_\-\-M\-I\-N}]{\setlength{\rightskip}{0pt plus 5cm}fibheapkey\-\_\-t F\-I\-B\-H\-E\-A\-P\-K\-E\-Y\-\_\-\-M\-I\-N = (void$\ast$)(double[2])\{-\/{\bf I\-N\-F}, -\/{\bf I\-N\-F}\}}\label{search_8cc_af2c4d9bc8866bb5d427bde2c3f3114c2}
+\index{search.\-cc@{search.\-cc}!F\-I\-B\-H\-E\-A\-P\-K\-E\-Y\-\_\-\-S\-I\-Z\-E@{F\-I\-B\-H\-E\-A\-P\-K\-E\-Y\-\_\-\-S\-I\-Z\-E}}
+\index{F\-I\-B\-H\-E\-A\-P\-K\-E\-Y\-\_\-\-S\-I\-Z\-E@{F\-I\-B\-H\-E\-A\-P\-K\-E\-Y\-\_\-\-S\-I\-Z\-E}!search.cc@{search.\-cc}}
+\subsubsection[{F\-I\-B\-H\-E\-A\-P\-K\-E\-Y\-\_\-\-S\-I\-Z\-E}]{\setlength{\rightskip}{0pt plus 5cm}int F\-I\-B\-H\-E\-A\-P\-K\-E\-Y\-\_\-\-S\-I\-Z\-E = 2$\ast$sizeof(double)}\label{search_8cc_adaf97948f8d64edec1110ddbb516fa77}

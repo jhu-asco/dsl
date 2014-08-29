@@ -1,0 +1,42 @@
+\section{Documentation}\label{index_Documentation}
+\subsection{Intro}\label{index_Intro}
+General implementation of the D$\ast$-\/\-Lite planner. The algorithm finds the shortest path in a directed graph using A$\ast$ search and has the ability to quickly replan if any edge costs along the path have changed (using dynamic A$\ast$, or D$\ast$). A typical application is a robotic vehicle with limited sensing radius that needs to optimally reach a goal in a partially known environment. The robot starts to travel towards the goal and as its sensors refine the terrain map the remaining path is efficiently adjusted or replanned using D$\ast$. The package provides a general implementation based on an underlying directed graph (graph ops are done using a fibonacci heap for faster key modifications) as well as a grid-\/based implementation (derived from the graph-\/based one) for search in an environment composed of cells of different \char`\"{}traversibility cost.\char`\"{}
+
+The library is easy to use and extend. Included is a test executable that demonstrates a typical path planning scenario.\subsection{Installation}\label{index_Installation}
+\subsection{requirements}\label{index_Build}
+g++; cmake\subsubsection{Download}\label{index_Download}
+
+\begin{DoxyItemize}
+\item download\-: {\tt dsl-\/1.\-0.\-0-\/\-Source.\-tar.\-gz}
+\item To unzip $>$\-: tar xfz dsl-\/1.\-0.\-0-\/\-Source.\-tar.\-gz
+\item To compile $>$\-: cd dsl-\/1.\-0.\-0-\/\-Source; mkdir build; cd build; cmake ..; make
+\item To test $>$\-: cd test; bin/test ../bin/map.ppm (look at the generated ppm images to view the result)
+\end{DoxyItemize}\subsection{Reference}\label{index_Class}
+{\tt Class hierarchy}\subsection{Usage}\label{index_Usage}
+The underlying structure is a regular directed graph of vertices and edges that can be added and removed during operation This implementation serves mostly as a base class for specific type of problems. Thus it does not define a \char`\"{}real distance\char`\"{} and \char`\"{}heuristic distance\char`\"{} functions between vertices but allows the user to supply a cost interface which defines them.
+
+The implementation follows the D$\ast$-\/\-Lite paper by S.\-Koenig and M. Likhachev with several optimizations\-:
+
+
+\begin{DoxyItemize}
+\item restructuring of some of the internals allows for reduced number of heap accesses and edge iterations;
+\item a fibonacci heap for faster O(1) key decrease
+\item a \char`\"{}\-Focussed D$\ast$\char`\"{} type of heap extraction is used which was discovered to be more effective than the current D$\ast$-\/\-Lite Top() by empirical results this modification results in more than 30\% speedup in time processing (for more complex, i.\-e. maze-\/like environments), results in reduced number of total explored states, as well as total number of heap accesses. In essense, the gain in efficiency comes from delaying certain heap operations. For simple environments there's no siginificant difference
+
+The planner is usually used as follows\-:
+\begin{DoxyItemize}
+\item 0. Create a graph
+\item 1. Create a cost interface
+\item 2. Initialize the search using Search(graph, cost)
+\item 3. Set start vertex using Set\-Start()
+\item 4. Set goal vertex using Set\-Goal()
+\item 5. Find the optimal path Plan()
+\item 6. follow the generated path until some changes in the graph are observed
+\item 7. Change\-Cost() -- for every changed cost
+\item 8. Set\-Start() -- to set the current position
+\item 9. goto 5 to replan path
+\end{DoxyItemize}
+\end{DoxyItemize}\subsection{Example}\label{index_Example}
+see directory test \subsection{Author}\label{index_Author}
+Copyright (C) 2004 Marin Kobilarov \subsection{Keywords}\label{index_Keywords}
+D$\ast$, D$\ast$-\/\-Lite, D-\/star, \char`\"{}\-D star\char`\"{}, \char`\"{}\-A$\ast$\char`\"{}, \char`\"{}\-D$\ast$ Lite\char`\"{}, \char`\"{}\-Heuristic Search\char`\"{} 

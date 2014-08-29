@@ -1,0 +1,179 @@
+\section{dsl\-:\-:Edge Class Reference}
+\label{classdsl_1_1Edge}\index{dsl\-::\-Edge@{dsl\-::\-Edge}}
+
+
+{\ttfamily \#include $<$edge.\-h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+{\bf Edge} ({\bf Vertex} $\ast${\bf from}=0, {\bf Vertex} $\ast${\bf to}=0, double {\bf cost}=0)
+\item 
+virtual {\bf $\sim$\-Edge} ()
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int {\bf id}
+\begin{DoxyCompactList}\small\item\em edge id (set internally) \end{DoxyCompactList}\item 
+{\bf Vertex} $\ast$ {\bf from}
+\begin{DoxyCompactList}\small\item\em from vertex \end{DoxyCompactList}\item 
+{\bf Vertex} $\ast$ {\bf to}
+\begin{DoxyCompactList}\small\item\em to vertex \end{DoxyCompactList}\item 
+double {\bf cost}
+\begin{DoxyCompactList}\small\item\em cost \end{DoxyCompactList}\item 
+double {\bf cost\-Change}
+\begin{DoxyCompactList}\small\item\em change in cost (used internally) \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+class {\bf Graph}
+\item 
+class {\bf Search}
+\item 
+std\-::ostream \& {\bf operator$<$$<$} (std\-::ostream \&os, const {\bf Edge} \&e)
+\item 
+std\-::istream \& {\bf operator$>$$>$} (std\-::istream \&is, {\bf Edge} \&e)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+A generic edge b/n two vertices. Contains an edge cost as well as a cost\-Change variable that could be used for path planning/replanning algorithms such as D$\ast$ (see Dsl)
+
+Author\-: Marin Kobilarov -- Copyright (C) 2004 
+
+\subsection{Constructor \& Destructor Documentation}
+\index{dsl\-::\-Edge@{dsl\-::\-Edge}!Edge@{Edge}}
+\index{Edge@{Edge}!dsl::Edge@{dsl\-::\-Edge}}
+\subsubsection[{Edge}]{\setlength{\rightskip}{0pt plus 5cm}Edge\-::\-Edge (
+\begin{DoxyParamCaption}
+\item[{{\bf Vertex} $\ast$}]{from = {\ttfamily 0}, }
+\item[{{\bf Vertex} $\ast$}]{to = {\ttfamily 0}, }
+\item[{double}]{cost = {\ttfamily 0}}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1Edge_a9aa20eb48ecb9f296665da92aed6291b}
+Initialize an edge using two vertices and a cost; all parameters are optional since an edge does not physically need to connect two vertices or have associated cost 
+\begin{DoxyParams}{Parameters}
+{\em from} & from vertext (optional) \\
+\hline
+{\em to} & to vertex (optional) \\
+\hline
+{\em cost} & cost (optional) \\
+\hline
+\end{DoxyParams}
+\index{dsl\-::\-Edge@{dsl\-::\-Edge}!$\sim$\-Edge@{$\sim$\-Edge}}
+\index{$\sim$\-Edge@{$\sim$\-Edge}!dsl::Edge@{dsl\-::\-Edge}}
+\subsubsection[{$\sim$\-Edge}]{\setlength{\rightskip}{0pt plus 5cm}Edge\-::$\sim$\-Edge (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [virtual]}}\label{classdsl_1_1Edge_a2f37b72f044427961d6730943daf10e0}
+
+
+\subsection{Friends And Related Function Documentation}
+\index{dsl\-::\-Edge@{dsl\-::\-Edge}!Graph@{Graph}}
+\index{Graph@{Graph}!dsl::Edge@{dsl\-::\-Edge}}
+\subsubsection[{Graph}]{\setlength{\rightskip}{0pt plus 5cm}friend class {\bf Graph}\hspace{0.3cm}{\ttfamily [friend]}}\label{classdsl_1_1Edge_afab89afd724f1b07b1aaad6bdc61c47a}
+\index{dsl\-::\-Edge@{dsl\-::\-Edge}!operator$<$$<$@{operator$<$$<$}}
+\index{operator$<$$<$@{operator$<$$<$}!dsl::Edge@{dsl\-::\-Edge}}
+\subsubsection[{operator$<$$<$}]{\setlength{\rightskip}{0pt plus 5cm}std\-::ostream\& operator$<$$<$ (
+\begin{DoxyParamCaption}
+\item[{std\-::ostream \&}]{os, }
+\item[{const {\bf Edge} \&}]{e}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [friend]}}\label{classdsl_1_1Edge_aa1b374eb64c6c754621b4fc918a9df57}
+Output the edge to a stream 
+\begin{DoxyParams}{Parameters}
+{\em os} & output stream \\
+\hline
+{\em e} & edge \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the output stream 
+\end{DoxyReturn}
+\index{dsl\-::\-Edge@{dsl\-::\-Edge}!operator$>$$>$@{operator$>$$>$}}
+\index{operator$>$$>$@{operator$>$$>$}!dsl::Edge@{dsl\-::\-Edge}}
+\subsubsection[{operator$>$$>$}]{\setlength{\rightskip}{0pt plus 5cm}std\-::istream\& operator$>$$>$ (
+\begin{DoxyParamCaption}
+\item[{std\-::istream \&}]{is, }
+\item[{{\bf Edge} \&}]{e}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [friend]}}\label{classdsl_1_1Edge_a40e320f0d46c447d7a361225e43abb25}
+Input the edge from a stream 
+\begin{DoxyParams}{Parameters}
+{\em is} & input stream \\
+\hline
+{\em e} & edge \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the input stream 
+\end{DoxyReturn}
+\index{dsl\-::\-Edge@{dsl\-::\-Edge}!Search@{Search}}
+\index{Search@{Search}!dsl::Edge@{dsl\-::\-Edge}}
+\subsubsection[{Search}]{\setlength{\rightskip}{0pt plus 5cm}friend class {\bf Search}\hspace{0.3cm}{\ttfamily [friend]}}\label{classdsl_1_1Edge_aea88561fddd2e924cebf793f0cfdc8b6}
+
+
+\subsection{Member Data Documentation}
+\index{dsl\-::\-Edge@{dsl\-::\-Edge}!cost@{cost}}
+\index{cost@{cost}!dsl::Edge@{dsl\-::\-Edge}}
+\subsubsection[{cost}]{\setlength{\rightskip}{0pt plus 5cm}double dsl\-::\-Edge\-::cost}\label{classdsl_1_1Edge_a2118fb06bf1a19ceffa4303caf41fc14}
+
+
+cost 
+
+
+
+Referenced by dsl\-::\-Graph\-::\-Add\-Edge(), dsl\-::\-Search\-::\-Change\-Cost(), dsl\-::\-Search\-::\-Compute\-Shortest\-Path(), dsl\-::\-Search\-::\-Min\-Succ(), dsl\-::operator$<$$<$(), dsl\-::\-Search\-::\-Plan(), and dsl\-::\-Graph\-::\-Remove\-Edge().
+
+\index{dsl\-::\-Edge@{dsl\-::\-Edge}!cost\-Change@{cost\-Change}}
+\index{cost\-Change@{cost\-Change}!dsl::Edge@{dsl\-::\-Edge}}
+\subsubsection[{cost\-Change}]{\setlength{\rightskip}{0pt plus 5cm}double dsl\-::\-Edge\-::cost\-Change}\label{classdsl_1_1Edge_a509db0804dbae524bc34cf89a53183fb}
+
+
+change in cost (used internally) 
+
+
+
+Referenced by dsl\-::\-Search\-::\-Change\-Cost(), dsl\-::operator$<$$<$(), dsl\-::\-Search\-::\-Plan(), and dsl\-::\-Graph\-::\-Remove\-Edge().
+
+\index{dsl\-::\-Edge@{dsl\-::\-Edge}!from@{from}}
+\index{from@{from}!dsl::Edge@{dsl\-::\-Edge}}
+\subsubsection[{from}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Vertex}$\ast$ dsl\-::\-Edge\-::from}\label{classdsl_1_1Edge_a90a355b5bf47c67fcb20f795d88ef5e3}
+
+
+from vertex 
+
+
+
+Referenced by dsl\-::\-Graph\-::\-Add\-Edge(), dsl\-::\-Search\-::\-Compute\-Shortest\-Path(), dsl\-::\-Vertex\-::\-Find(), dsl\-::operator$<$$<$(), dsl\-::\-Search\-::\-Plan(), and dsl\-::\-Graph\-::\-Remove\-Edge().
+
+\index{dsl\-::\-Edge@{dsl\-::\-Edge}!id@{id}}
+\index{id@{id}!dsl::Edge@{dsl\-::\-Edge}}
+\subsubsection[{id}]{\setlength{\rightskip}{0pt plus 5cm}int dsl\-::\-Edge\-::id}\label{classdsl_1_1Edge_a274a19c8792a79675b643098c2524b84}
+
+
+edge id (set internally) 
+
+
+
+Referenced by dsl\-::\-Graph\-::\-Add\-Edge(), dsl\-::operator$<$$<$(), and dsl\-::\-Graph\-::\-Remove\-Edge().
+
+\index{dsl\-::\-Edge@{dsl\-::\-Edge}!to@{to}}
+\index{to@{to}!dsl::Edge@{dsl\-::\-Edge}}
+\subsubsection[{to}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Vertex}$\ast$ dsl\-::\-Edge\-::to}\label{classdsl_1_1Edge_aa2f851d9d63e51cf54b5d10412ef7735}
+
+
+to vertex 
+
+
+
+Referenced by dsl\-::\-Graph\-::\-Add\-Edge(), dsl\-::\-Vertex\-::\-Find(), dsl\-::\-Search\-::\-Min\-Succ(), dsl\-::operator$<$$<$(), dsl\-::\-Search\-::\-Plan(), and dsl\-::\-Graph\-::\-Remove\-Edge().
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+lib/{\bf edge.\-h}\item 
+lib/{\bf edge.\-cc}\end{DoxyCompactItemize}

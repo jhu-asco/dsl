@@ -1,0 +1,126 @@
+\section{dsl Namespace Reference}
+\label{namespacedsl}\index{dsl@{dsl}}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class {\bf Cost}
+\item 
+class {\bf Edge}
+\item 
+class {\bf Graph}
+\item 
+class {\bf Grid\-Cost}
+\item 
+class {\bf Grid\-Path}
+\item 
+class {\bf Grid\-Search}
+\item 
+class {\bf Search}
+\item 
+class {\bf Vertex}
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+std\-::ostream \& {\bf operator$<$$<$} (std\-::ostream \&os, const {\bf Edge} \&e)
+\item 
+std\-::istream \& {\bf operator$>$$>$} (std\-::istream \&is, {\bf Edge} \&e)
+\item 
+std\-::ostream \& {\bf operator$<$$<$} (std\-::ostream \&os, const {\bf Vertex} \&v)
+\item 
+std\-::istream \& {\bf operator$>$$>$} (std\-::istream \&is, {\bf Vertex} \&v)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Grid based D$\ast$ Lite, extends graph-\/based D$\ast$ Lite. The class maps grid cell costs and the transition costs b/n two cells into graph edge costs of the base \doxyref{Search}{p.}{classdsl_1_1Search} class
+
+The cell transition costs are hardcoded as the euclidean distance b/n the centers of the cells (i.\-e. each cell has 8 neighbors\-: the neighbors at N,S,W,E have transition cost of 1, and the neighbors at N\-E, S\-E, N\-W, S\-W have transition costs of sqrt(2) These transition costs are added to the maximum of the values of two neighboring cells to compute the cost of their connecting edge. Finally that cost is multiplied by the variable scale.
+
+The planner is used as follows\-:
+
+1) Grid\-Search(map, width, height) 2) Set\-Start(x, y) 3) Set\-Goal(x, y) 4) Plan(path) and Opt\-Path(path, opt\-Path) -- to plan a path and optimize it 5) follow path until map changes are observed 6) for each change\-: Set\-Cost(x, y, cost) or change the whole map\-: Set\-Map(map) 7) Set\-Start(x,y) -- change the start to the current robot position 8) goto 4
+
+Author\-: Marin Kobilarov (c) 2004 mkobilar(at)robotics.\-usc.\-edu 
+
+\subsection{Function Documentation}
+\index{dsl@{dsl}!operator$<$$<$@{operator$<$$<$}}
+\index{operator$<$$<$@{operator$<$$<$}!dsl@{dsl}}
+\subsubsection[{operator$<$$<$}]{\setlength{\rightskip}{0pt plus 5cm}std\-::ostream \& dsl\-::operator$<$$<$ (
+\begin{DoxyParamCaption}
+\item[{std\-::ostream \&}]{os, }
+\item[{const {\bf Edge} \&}]{e}
+\end{DoxyParamCaption}
+)}\label{namespacedsl_ade2b83848090f98795391dc26b71aa7c}
+Output the edge to a stream 
+\begin{DoxyParams}{Parameters}
+{\em os} & output stream \\
+\hline
+{\em e} & edge \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the output stream 
+\end{DoxyReturn}
+
+
+References dsl\-::\-Edge\-::cost, dsl\-::\-Edge\-::cost\-Change, dsl\-::\-Edge\-::from, dsl\-::\-Edge\-::id, dsl\-::\-Vertex\-::id, and dsl\-::\-Edge\-::to.
+
+\index{dsl@{dsl}!operator$<$$<$@{operator$<$$<$}}
+\index{operator$<$$<$@{operator$<$$<$}!dsl@{dsl}}
+\subsubsection[{operator$<$$<$}]{\setlength{\rightskip}{0pt plus 5cm}std\-::ostream \& dsl\-::operator$<$$<$ (
+\begin{DoxyParamCaption}
+\item[{std\-::ostream \&}]{os, }
+\item[{const {\bf Vertex} \&}]{v}
+\end{DoxyParamCaption}
+)}\label{namespacedsl_a8fec20e4e7209493a4c056cfd9d6b05b}
+Output the vertex to a stream 
+\begin{DoxyParams}{Parameters}
+{\em os} & output stream \\
+\hline
+{\em v} & vertex \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the output stream 
+\end{DoxyReturn}
+
+
+References dsl\-::\-Vertex\-::g, dsl\-::\-Vertex\-::id, dsl\-::\-Vertex\-::in, dsl\-::\-Vertex\-::key, dsl\-::\-Vertex\-::next, dsl\-::\-Vertex\-::open\-List\-Node, dsl\-::\-Vertex\-::out, dsl\-::\-Vertex\-::rhs, and dsl\-::\-Vertex\-::t.
+
+\index{dsl@{dsl}!operator$>$$>$@{operator$>$$>$}}
+\index{operator$>$$>$@{operator$>$$>$}!dsl@{dsl}}
+\subsubsection[{operator$>$$>$}]{\setlength{\rightskip}{0pt plus 5cm}std\-::istream \& dsl\-::operator$>$$>$ (
+\begin{DoxyParamCaption}
+\item[{std\-::istream \&}]{is, }
+\item[{{\bf Edge} \&}]{e}
+\end{DoxyParamCaption}
+)}\label{namespacedsl_ac5e6a05466a06ac60a7f1d37ba141231}
+Input the edge from a stream 
+\begin{DoxyParams}{Parameters}
+{\em is} & input stream \\
+\hline
+{\em e} & edge \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the input stream 
+\end{DoxyReturn}
+\index{dsl@{dsl}!operator$>$$>$@{operator$>$$>$}}
+\index{operator$>$$>$@{operator$>$$>$}!dsl@{dsl}}
+\subsubsection[{operator$>$$>$}]{\setlength{\rightskip}{0pt plus 5cm}std\-::istream \& dsl\-::operator$>$$>$ (
+\begin{DoxyParamCaption}
+\item[{std\-::istream \&}]{is, }
+\item[{{\bf Vertex} \&}]{v}
+\end{DoxyParamCaption}
+)}\label{namespacedsl_a3b7e5de0f593e4949ad477470fb97cb9}
+Input the vertex from a stream 
+\begin{DoxyParams}{Parameters}
+{\em is} & input stream \\
+\hline
+{\em v} & vertex \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the input stream 
+\end{DoxyReturn}

@@ -7,6 +7,7 @@ ADD_DEFINITIONS(-g -O2 -Wall -W -Winline)
 
 add_subdirectory (lib) 
 add_subdirectory (bin) 
+add_subdirectory (docs) 
 
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Dynamic D* Lite Graph Search Library")
 SET(CPACK_PACKAGE_VENDOR "Marin Kobilarov")
@@ -23,6 +24,6 @@ SET(CPACK_PACKAGE_EXECUTABLES test "Test search")
 INSTALL(FILES dsl.pc
         DESTINATION lib/pkgconfig)
 
-set(CPACK_SOURCE_IGNORE_FILES "/CVS/;/\\\\.svn/;\\\\.swp$;~$;\\\\.\\\\#;/\\\\#")
+set(CPACK_SOURCE_IGNORE_FILES "/build/;/CVS/;/\\\\.svn/;\\\\.swp$;~$;\\\\.\\\\#;/\\\\#")
 
 INCLUDE(CPack)

@@ -1,0 +1,36 @@
+\section{\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TGZ/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/lib/gridsearch.cc File Reference}
+\label{__CPack__Packages_2Linux-Source_2TBZ2_2dsl-1_80_80-Source_2__CPack__Packages_2Linux-Source_2TGZ_3746cd5dbd4e15ff94e1c42bc690a669}\index{\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TGZ/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/lib/gridsearch.cc@{\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TGZ/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/lib/gridsearch.cc}}
+{\ttfamily \#include $<$assert.h$>$}\par
+{\ttfamily \#include $<$math.h$>$}\par
+{\ttfamily \#include $<$stdlib.h$>$}\par
+{\ttfamily \#include $<$iostream$>$}\par
+{\ttfamily \#include $<$string.h$>$}\par
+{\ttfamily \#include \char`\"{}gridsearch.h\char`\"{}}\par
+{\ttfamily \#include \char`\"{}search.h\char`\"{}}\par
+{\ttfamily \#include \char`\"{}gridcost.h\char`\"{}}\par
+\subsection*{Defines}
+\begin{DoxyCompactItemize}
+\item 
+\#define {\bf MAX}(a, b)~(a$>$b?a:b)
+\item 
+\#define {\bf NBR\_\-COUNT}~8
+\item 
+\#define {\bf SQRT2}~1.414213562373095
+\item 
+\#define {\bf RAY\_\-TRACE\_\-STEP}~1.0
+\end{DoxyCompactItemize}
+
+
+\subsection{Define Documentation}
+\index{\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TGZ/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/lib/gridsearch.cc@{\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TGZ/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/lib/gridsearch.cc}!MAX@{MAX}}
+\index{MAX@{MAX}!_CPack_Packages/Linux-Source/TBZ2/dsl-1.0.0-Source/_CPack_Packages/Linux-Source/TGZ/dsl-1.0.0-Source/_CPack_Packages/Linux-Source/TBZ2/dsl-1.0.0-Source/lib/gridsearch.cc@{\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TGZ/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/lib/gridsearch.cc}}
+\subsubsection[{MAX}]{\setlength{\rightskip}{0pt plus 5cm}\#define MAX(a, \/  b)~(a$>$b?a:b)}\label{__CPack__Packages_2Linux-Source_2TBZ2_2dsl-1_80_80-Source_2__CPack__Packages_2Linux-Source_2TGZ_3746cd5dbd4e15ff94e1c42bc690a669_afa99ec4acc4ecb2dc3c2d05da15d0e3f}
+\index{\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TGZ/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/lib/gridsearch.cc@{\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TGZ/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/lib/gridsearch.cc}!NBR\_\-COUNT@{NBR\_\-COUNT}}
+\index{NBR\_\-COUNT@{NBR\_\-COUNT}!_CPack_Packages/Linux-Source/TBZ2/dsl-1.0.0-Source/_CPack_Packages/Linux-Source/TGZ/dsl-1.0.0-Source/_CPack_Packages/Linux-Source/TBZ2/dsl-1.0.0-Source/lib/gridsearch.cc@{\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TGZ/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/lib/gridsearch.cc}}
+\subsubsection[{NBR\_\-COUNT}]{\setlength{\rightskip}{0pt plus 5cm}\#define NBR\_\-COUNT~8}\label{__CPack__Packages_2Linux-Source_2TBZ2_2dsl-1_80_80-Source_2__CPack__Packages_2Linux-Source_2TGZ_3746cd5dbd4e15ff94e1c42bc690a669_a11a86d7f840460b5ff808e0882a8d5ca}
+\index{\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TGZ/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/lib/gridsearch.cc@{\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TGZ/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/lib/gridsearch.cc}!RAY\_\-TRACE\_\-STEP@{RAY\_\-TRACE\_\-STEP}}
+\index{RAY\_\-TRACE\_\-STEP@{RAY\_\-TRACE\_\-STEP}!_CPack_Packages/Linux-Source/TBZ2/dsl-1.0.0-Source/_CPack_Packages/Linux-Source/TGZ/dsl-1.0.0-Source/_CPack_Packages/Linux-Source/TBZ2/dsl-1.0.0-Source/lib/gridsearch.cc@{\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TGZ/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/lib/gridsearch.cc}}
+\subsubsection[{RAY\_\-TRACE\_\-STEP}]{\setlength{\rightskip}{0pt plus 5cm}\#define RAY\_\-TRACE\_\-STEP~1.0}\label{__CPack__Packages_2Linux-Source_2TBZ2_2dsl-1_80_80-Source_2__CPack__Packages_2Linux-Source_2TGZ_3746cd5dbd4e15ff94e1c42bc690a669_a80cdef6e452f5b61415ca47e137f1b46}
+\index{\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TGZ/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/lib/gridsearch.cc@{\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TGZ/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/lib/gridsearch.cc}!SQRT2@{SQRT2}}
+\index{SQRT2@{SQRT2}!_CPack_Packages/Linux-Source/TBZ2/dsl-1.0.0-Source/_CPack_Packages/Linux-Source/TGZ/dsl-1.0.0-Source/_CPack_Packages/Linux-Source/TBZ2/dsl-1.0.0-Source/lib/gridsearch.cc@{\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TGZ/dsl-\/1.0.0-\/Source/\_\-CPack\_\-Packages/Linux-\/Source/TBZ2/dsl-\/1.0.0-\/Source/lib/gridsearch.cc}}
+\subsubsection[{SQRT2}]{\setlength{\rightskip}{0pt plus 5cm}\#define SQRT2~1.414213562373095}\label{__CPack__Packages_2Linux-Source_2TBZ2_2dsl-1_80_80-Source_2__CPack__Packages_2Linux-Source_2TGZ_3746cd5dbd4e15ff94e1c42bc690a669_a514396dd60fa0621c83072091fb2a0cd}

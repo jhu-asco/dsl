@@ -1,0 +1,224 @@
+\section{dsl\-:\-:Graph Class Reference}
+\label{classdsl_1_1Graph}\index{dsl\-::\-Graph@{dsl\-::\-Graph}}
+
+
+{\ttfamily \#include $<$graph.\-h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+{\bf Graph} ()
+\item 
+virtual {\bf $\sim$\-Graph} ()
+\item 
+void {\bf Add\-Vertex} ({\bf Vertex} \&v)
+\item 
+void {\bf Remove\-Vertex} ({\bf Vertex} \&v, bool re=true, bool del=false)
+\item 
+void {\bf Add\-Edge} ({\bf Edge} \&e)
+\item 
+void {\bf Remove\-Edge} ({\bf Edge} \&e, bool update=true, bool del=false)
+\item 
+bool {\bf Exists} (const {\bf Vertex} \&v) const 
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+std\-::map$<$ int, {\bf Edge} $\ast$ $>$ {\bf edges}
+\begin{DoxyCompactList}\small\item\em all edges \end{DoxyCompactList}\item 
+std\-::map$<$ int, {\bf Vertex} $\ast$ $>$ {\bf vertices}
+\begin{DoxyCompactList}\small\item\em all vertices \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+{\bf Search} $\ast$ {\bf search}
+\begin{DoxyCompactList}\small\item\em search operating on this graph \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+class {\bf Search}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Generic graph data structure using hashtables for storing vertices and edges for quick add/remove ops
+
+Author\-: Marin Kobilarov -- Copyright (C) 2004 
+
+\subsection{Constructor \& Destructor Documentation}
+\index{dsl\-::\-Graph@{dsl\-::\-Graph}!Graph@{Graph}}
+\index{Graph@{Graph}!dsl::Graph@{dsl\-::\-Graph}}
+\subsubsection[{Graph}]{\setlength{\rightskip}{0pt plus 5cm}Graph\-::\-Graph (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1Graph_ae4c72b8ac4d693c49800a4c7e273654f}
+Initialize an empty graph \index{dsl\-::\-Graph@{dsl\-::\-Graph}!$\sim$\-Graph@{$\sim$\-Graph}}
+\index{$\sim$\-Graph@{$\sim$\-Graph}!dsl::Graph@{dsl\-::\-Graph}}
+\subsubsection[{$\sim$\-Graph}]{\setlength{\rightskip}{0pt plus 5cm}Graph\-::$\sim$\-Graph (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [virtual]}}\label{classdsl_1_1Graph_a902c5b3eacb66d60752525ab23297a95}
+
+
+\subsection{Member Function Documentation}
+\index{dsl\-::\-Graph@{dsl\-::\-Graph}!Add\-Edge@{Add\-Edge}}
+\index{Add\-Edge@{Add\-Edge}!dsl::Graph@{dsl\-::\-Graph}}
+\subsubsection[{Add\-Edge}]{\setlength{\rightskip}{0pt plus 5cm}void Graph\-::\-Add\-Edge (
+\begin{DoxyParamCaption}
+\item[{{\bf Edge} \&}]{e}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1Graph_aa4c0322501870143cafbe86a0bc0859d}
+Add edge. If the from/to vertices of the edge are set then they are modified to incude this edge in their outgoing/incoming respectively list of edges 
+\begin{DoxyParams}{Parameters}
+{\em e} & edge \\
+\hline
+\end{DoxyParams}
+
+
+References dsl\-::\-Search\-::\-Change\-Cost(), dsl\-::\-Edge\-::cost, edges, dsl\-::\-Edge\-::from, dsl\-::\-Edge\-::id, dsl\-::\-Vertex\-::in, I\-N\-F, dsl\-::\-Search\-::last, dsl\-::\-Vertex\-::out, search, and dsl\-::\-Edge\-::to.
+
+
+
+Referenced by dsl\-::\-Grid\-Search\-::\-Add\-Edge(), and dsl\-::\-Grid\-Search\-::\-Grid\-Search().
+
+\index{dsl\-::\-Graph@{dsl\-::\-Graph}!Add\-Vertex@{Add\-Vertex}}
+\index{Add\-Vertex@{Add\-Vertex}!dsl::Graph@{dsl\-::\-Graph}}
+\subsubsection[{Add\-Vertex}]{\setlength{\rightskip}{0pt plus 5cm}void Graph\-::\-Add\-Vertex (
+\begin{DoxyParamCaption}
+\item[{{\bf Vertex} \&}]{v}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1Graph_a2a76d7d84d7af2151c9c9b3af5a88b68}
+Add vertex. \doxyref{Vertex}{p.}{classdsl_1_1Vertex} is added to map of vertices. No other graph elements are modified. 
+\begin{DoxyParams}{Parameters}
+{\em v} & vertex \\
+\hline
+\end{DoxyParams}
+
+
+References dsl\-::\-Vertex\-::id, and vertices.
+
+
+
+Referenced by dsl\-::\-Grid\-Search\-::\-Grid\-Search().
+
+\index{dsl\-::\-Graph@{dsl\-::\-Graph}!Exists@{Exists}}
+\index{Exists@{Exists}!dsl::Graph@{dsl\-::\-Graph}}
+\subsubsection[{Exists}]{\setlength{\rightskip}{0pt plus 5cm}bool Graph\-::\-Exists (
+\begin{DoxyParamCaption}
+\item[{const {\bf Vertex} \&}]{v}
+\end{DoxyParamCaption}
+) const}\label{classdsl_1_1Graph_ab951b71f46e614c43ac235c5340652d4}
+Checks if a vertex exists 
+\begin{DoxyParams}{Parameters}
+{\em v} & the vertex \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true if present in the graph 
+\end{DoxyReturn}
+
+
+References dsl\-::\-Vertex\-::id, and vertices.
+
+\index{dsl\-::\-Graph@{dsl\-::\-Graph}!Remove\-Edge@{Remove\-Edge}}
+\index{Remove\-Edge@{Remove\-Edge}!dsl::Graph@{dsl\-::\-Graph}}
+\subsubsection[{Remove\-Edge}]{\setlength{\rightskip}{0pt plus 5cm}void Graph\-::\-Remove\-Edge (
+\begin{DoxyParamCaption}
+\item[{{\bf Edge} \&}]{e, }
+\item[{bool}]{update = {\ttfamily true}, }
+\item[{bool}]{del = {\ttfamily false}}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1Graph_afb56c9c3db9c8eb30c004ce26373003f}
+Remove edge. If the from/to vertices of the edge are set then they are modified to remove this edge in their outgoing/incoming respectively list of edges 
+\begin{DoxyParams}{Parameters}
+{\em e} & edge \\
+\hline
+{\em update} & whether to update the graph/search data to reflect the influence of removing this edge if this is done during search. Normally, one can pass update=false only when cleaning up the graph upon deletion, for efficiency \\
+\hline
+{\em del} & delete/free all removed data? (false by default, the idea is that we care more about speed rather than memory; and these will be deleted when the graph object is deleted anyways) \\
+\hline
+\end{DoxyParams}
+
+
+References dsl\-::\-Edge\-::cost, dsl\-::\-Edge\-::cost\-Change, edges, dsl\-::\-Search\-::\-Eq(), dsl\-::\-Edge\-::from, dsl\-::\-Vertex\-::g, dsl\-::\-Search\-::goal, dsl\-::\-Edge\-::id, dsl\-::\-Vertex\-::in, I\-N\-F, dsl\-::\-Search\-::last, dsl\-::\-Search\-::\-Min\-Succ(), dsl\-::\-Vertex\-::open\-List\-Node, dsl\-::\-Vertex\-::out, dsl\-::\-Vertex\-::rhs, search, dsl\-::\-Edge\-::to, and dsl\-::\-Search\-::\-Update\-Vertex().
+
+
+
+Referenced by Remove\-Vertex().
+
+\index{dsl\-::\-Graph@{dsl\-::\-Graph}!Remove\-Vertex@{Remove\-Vertex}}
+\index{Remove\-Vertex@{Remove\-Vertex}!dsl::Graph@{dsl\-::\-Graph}}
+\subsubsection[{Remove\-Vertex}]{\setlength{\rightskip}{0pt plus 5cm}void Graph\-::\-Remove\-Vertex (
+\begin{DoxyParamCaption}
+\item[{{\bf Vertex} \&}]{v, }
+\item[{bool}]{re = {\ttfamily true}, }
+\item[{bool}]{del = {\ttfamily false}}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1Graph_a3f1e66ac1512a70794d90e99edd2a0f9}
+Remove vertex v. Incoming and outgoing edges are removed by default but can be kept intact if paramter re is set ot false 
+\begin{DoxyParams}{Parameters}
+{\em v} & vertex \\
+\hline
+{\em re} & remove edges? (true by default) \\
+\hline
+{\em del} & delete/free all removed data? (false by default) \\
+\hline
+\end{DoxyParams}
+
+
+References dsl\-::\-Vertex\-::id, dsl\-::\-Vertex\-::in, dsl\-::\-Search\-::last, dsl\-::\-Vertex\-::out, dsl\-::\-Search\-::\-Remove(), Remove\-Edge(), search, and vertices.
+
+
+
+Referenced by dsl\-::\-Grid\-Search\-::\-Remove\-Vertex().
+
+
+
+\subsection{Friends And Related Function Documentation}
+\index{dsl\-::\-Graph@{dsl\-::\-Graph}!Search@{Search}}
+\index{Search@{Search}!dsl::Graph@{dsl\-::\-Graph}}
+\subsubsection[{Search}]{\setlength{\rightskip}{0pt plus 5cm}friend class {\bf Search}\hspace{0.3cm}{\ttfamily [friend]}}\label{classdsl_1_1Graph_aea88561fddd2e924cebf793f0cfdc8b6}
+
+
+\subsection{Member Data Documentation}
+\index{dsl\-::\-Graph@{dsl\-::\-Graph}!edges@{edges}}
+\index{edges@{edges}!dsl::Graph@{dsl\-::\-Graph}}
+\subsubsection[{edges}]{\setlength{\rightskip}{0pt plus 5cm}std\-::map$<$int, {\bf Edge}$\ast$$>$ dsl\-::\-Graph\-::edges}\label{classdsl_1_1Graph_a4469eb2ded476a18414e6d3da30ce25b}
+
+
+all edges 
+
+
+
+Referenced by Add\-Edge(), and Remove\-Edge().
+
+\index{dsl\-::\-Graph@{dsl\-::\-Graph}!search@{search}}
+\index{search@{search}!dsl::Graph@{dsl\-::\-Graph}}
+\subsubsection[{search}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Search}$\ast$ dsl\-::\-Graph\-::search\hspace{0.3cm}{\ttfamily [protected]}}\label{classdsl_1_1Graph_a6e76d9d58448b15cbc96e44cc026a6b3}
+
+
+search operating on this graph 
+
+
+
+Referenced by Add\-Edge(), dsl\-::\-Search\-::\-Compute\-Shortest\-Path(), Remove\-Edge(), and Remove\-Vertex().
+
+\index{dsl\-::\-Graph@{dsl\-::\-Graph}!vertices@{vertices}}
+\index{vertices@{vertices}!dsl::Graph@{dsl\-::\-Graph}}
+\subsubsection[{vertices}]{\setlength{\rightskip}{0pt plus 5cm}std\-::map$<$int, {\bf Vertex}$\ast$$>$ dsl\-::\-Graph\-::vertices}\label{classdsl_1_1Graph_ad1ed99a9711757a661131e7074fdd32b}
+
+
+all vertices 
+
+
+
+Referenced by Add\-Vertex(), Exists(), Remove\-Vertex(), and dsl\-::\-Search\-::\-Reset().
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+lib/{\bf graph.\-h}\item 
+lib/{\bf graph.\-cc}\end{DoxyCompactItemize}

@@ -7,6 +7,7 @@
 #include "gridsearch.h"
 
 using namespace dsl;
+using namespace std;
 
 void save_map(const char* map, int width, int height, const char* filename)
 {
@@ -25,23 +26,45 @@ void save_map(const char* map, int width, int height, const char* filename)
 }
 
 
-char* load_map(int* width, int* height, const char* filename)
+unsigned char* load_map(int* width, int* height, const char* filename)
 {
   int i, size;
-  char *map, *data;
+  unsigned char *map, *data;
   FILE* file = fopen(filename, "r");
   assert(file);
   assert(fscanf(file, "P6\n%d %d 255\n", width, height));
   size = (*width**height);
-  map = (char*)malloc(size);
-  data = (char*)malloc(size*3);
-  assert(fread(data, sizeof(char), size*3, file));
+  map = (unsigned char*)malloc(size);
+  data = (unsigned char*)malloc(size*3);
+  assert(fread(data, sizeof(unsigned char), size*3, file));
   for (i = 0; i < size; i++)
     map[i] = (data[3*i] ? 1 : 0);
   free(data);
   fclose(file);
   return map;
 }
+
+unsigned char* load_heightmap(int* width, int* height, const char* filename, int max_elev)
+{
+  int i, size;
+  unsigned char *map, *data;
+  FILE* file = fopen(filename, "r");
+  assert(file);
+  assert(fscanf(file, "P6\n%d %d 255\n", width, height));
+  size = (*width**height);
+  map = (unsigned char*)malloc(size);
+  data = (unsigned char*)malloc(size*3);
+  assert(fread(data, sizeof(unsigned char), size*3, file));
+  for (i = 0; i < size; i++)
+  {
+    map[i] = ((data[3*i] < max_elev) ? 0 : 1);
+  }
+  free(data);
+  fclose(file);
+  return map;
+}
+
+
 
 void timer_start(struct timeval *time) 
 {
@@ -58,8 +81,19 @@ long timer_us(struct timeval *time)
 
 int main(int argc, char** argv)
 {
+  if (argc<2) {
+    cout << "Usage: $./test map.ppm [--height max_elev]" << endl;
+    cout << "\t\t where map.ppm is a map graphics file" << endl;
+    cout << "\t\t output will be written to graphics files path1.ppm and path2.ppm" << endl;
+    return 0;
+  }
+  assert(argc >= 2);
   int width, height; 
-  char* chmap = load_map(&width, &height, "map.ppm");
+  unsigned char* chmap; // = load_map(&width, &height, argv[1]);
+  if(argc == 4 && string(argv[2]) == "--height")
+    chmap = load_heightmap(&width, &height, argv[1], atoi(argv[3]));
+  else
+    chmap = load_map(&width, &height, argv[1]);
   GridPath path, optPath;
   int x, y;
   char mapPath[width*height];
@@ -77,8 +111,8 @@ int main(int argc, char** argv)
 
   // create planner
   GridSearch gdsl(width, height, map);
-  gdsl.SetStart(0, height/2);
-  gdsl.SetGoal(width - 1, height/2);
+  gdsl.SetStart(width/4+60, height/2+170);
+  gdsl.SetGoal(5*width/8-50, height/4);
   // plan
   timer_start(&timer);
   gdsl.Plan(path);
@@ -86,11 +120,15 @@ int main(int argc, char** argv)
   printf("plan path time= %ld\n", time);
   printf("path: count=%d len=%f\n", path.count, path.len);
   // print results
+  
+  
   for (i = 0; i < path.count; ++i) {
-    printf("(%d,%d) ", path.pos[2*i], path.pos[2*i+1]);
+    //printf("(%d,%d) ", path.pos[2*i], path.pos[2*i+1]);
     mapPath[path.pos[2*i+1]*width + path.pos[2*i]] = 2;
   }
+  /*
   printf("\n");
+  
   for (y = 0; y < height; ++y) {
     for (x = 0; x < width; ++x) {
       printf("%d ", mapPath[y*width + x]);
@@ -98,11 +136,11 @@ int main(int argc, char** argv)
     printf("\n");
   }
   fflush(stdout);
-
+  */
   // save it to image for viewing
   save_map(mapPath, width, height, "path1.ppm");
 
-  
+  /*
   // follow path until (28,18)
   gdsl.SetStart(28,18);
 
@@ -130,7 +168,7 @@ int main(int argc, char** argv)
   printf("replan path time= %ld us\n", time);
   printf("path: count=%d len=%f\n", path.count, path.len);
   fflush(stdout);
-  
+  */
 
   /*
   // bypass the old vertex
@@ -144,7 +182,7 @@ int main(int argc, char** argv)
   printf("path: count=%d len=%f\n", path.count, path.len);
   fflush(stdout);
   */
-
+  /*
   // optimize path (experimental)
   timer_start(&timer);
   gdsl.OptPath(path, optPath);
@@ -172,8 +210,9 @@ int main(int argc, char** argv)
 
   // save it to image for viewing
   save_map(mapPath, width, height, "path2.ppm");
+  */
 
-  getchar();
+  //getchar();
 
   return 0;
 }

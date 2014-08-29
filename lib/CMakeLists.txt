@@ -5,7 +5,9 @@ add_library(dsl SHARED fibheap.c
                        cost.cc
                        search.cc
                        gridcost.cc
-                       gridsearch.cc)
+                       gridcost3d.cc
+                       gridsearch.cc
+                       gridsearch3d.cc)
 
 
 SET_TARGET_PROPERTIES(dsl
@@ -25,5 +27,7 @@ INSTALL(FILES fibheap.h
               cost.h
               search.h
               gridcost.h
+              gridcost3d.h
               gridsearch.h
+              gridsearch3d.h
               DESTINATION include/dsl)              

@@ -1,3 +1,11 @@
+// This file is part of libdsl, a library for heuristic graph search
+//
+// Copyright (C) 2004 Marin Kobilarov <marin@jhu.edu>
+//
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 #ifndef DSL_SEARCH_H
 #define DSL_SEARCH_H
 
@@ -7,8 +15,8 @@
 #include "cost.h"
 
 /*! \mainpage D*Lite
- *
- * \section Intro
+ * \section Documentation
+ * \subsection Intro
  *
  * General implementation of the D*-Lite planner. The algorithm
  * finds the shortest path in a directed graph using A* search
@@ -28,22 +36,21 @@
  * The library is easy to use and extend. Included is a test executable
  * that demonstrates a typical path planning scenario.
  * 
- * \section Installation
+ * \subsection Installation
  * \subsection Build requirements
- *  Unix/Linux with g++ compiler; the scons build system
+ *  g++; cmake
  *
- * \subsection Download
+ * \subsubsection Download
  *
- * - Send an email to <img src="http://www.cds.caltech.edu/~marin/uploads/Main/email2.png"/> to request a download password
- * - download: <a href="../dsl-1.0.tar.gz">dsl-1.0.tar.gz</a>
- * - To unzip   >: tar xfz dsl-1.0.tar.gz
- * - To compile >: cd dsl-1.0; scons; sudo scons install; sudo ldconfig 
- * - To test >: cd test; ./test (look at the ppm images to view the result)
+ * - download: <a href="../../dsl-1.0.0-Source.tar.gz">dsl-1.0.0-Source.tar.gz</a>
+ * - To unzip   >: tar xfz dsl-1.0.0-Source.tar.gz
+ * - To compile >: cd dsl-1.0.0-Source; mkdir build; cd build; cmake ..; make
+ * - To test >: cd test; bin/test ../bin/map.ppm (look at the generated ppm images to view the result)
  *
- * \section Class Reference
- * <a href="http://www.cds.caltech.edu/~marin/projects/dsl/html/hierarchy.html">Class hierarchy</a>
+ * \subsection Class Reference
+ * <a href="https://jshare.johnshopkins.edu/mkobila1/projects/dsl/html/hierarchy.html">Class hierarchy</a>
  *
- * \section Usage
+ * \subsection Usage
  *  The underlying structure is a regular directed graph
  *  of vertices and edges that can be added and removed during operation
  *  This implementation serves mostly as a base class for specific
@@ -80,11 +87,11 @@
  *   - 9. goto 5 to replan path
  *
  *
- * \section Example
+ * \subsection Example
  *  see directory test
- * \section Author
- *  Marin Kobilarov -- Copyright (C) 2004
- * \section Keywords
+ * \subsection Author
+ *  Copyright (C) 2004 Marin Kobilarov 
+ * \subsection Keywords
  * D*, D*-Lite, D-star, "D star", "A*", "D* Lite", "Heuristic Search"
  */
 
