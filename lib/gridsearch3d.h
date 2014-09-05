@@ -51,7 +51,7 @@ namespace dsl {
   {
   public:
   GridPath3D() : pos(0), count(0), len(0) {};
-    int *pos;          ///< (x,y,z) point position array of size 3*count
+    double *pos;          ///< (x,y,z) point position array of size 3*count
     int count;         ///< number of points along the path 
     double len;        ///< length of path (sum of eucl. distances b/n points)
   };
@@ -137,6 +137,14 @@ namespace dsl {
      */
     void OptPath(const GridPath3D &path, GridPath3D &optPath) const;
 
+    /**
+     * Smooth the path produced by Plan
+     * @param path an initial obstacle-free path (e.g. one produced by calling Plan(path))
+     * @param optPath a new path resulting from smoothing the original path path  
+     * @param smoothness smoothness of the curve
+     */
+    void SmoothPath(const GridPath3D &path, GridPath3D &smoothPath, double smoothness) const;
+    
     /**
      * Useful method to get the graph vertex at position (x,y)
      * @param x x-coordinate

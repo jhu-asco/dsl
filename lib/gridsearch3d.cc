@@ -28,10 +28,6 @@ using namespace dsl;
 static int NBR_OFFSETS[NBR_COUNT*3] = {0,0,-1, -1,0,-1, -1,-1,-1, 0,-1,-1, 1,-1,-1, 1,0,-1, 1,1,-1, 0,1,-1, -1,1,-1, -1,0,0, -1,-1,0, 0,-1,0, 1,-1,0, 1,0,0, 1,1,0, 0,1,0, -1,1,0, 0,0,1, -1,0,1, -1,-1,1, 0,-1,1, 1,-1,1, 1,0,1, 1,1,1, 0,1,1, -1,1,1};
 static double NBR_COSTS_[NBR_COUNT] = {1.0, SQRT2, SQRT3, SQRT2, SQRT3, SQRT2, SQRT3, SQRT2, SQRT3, 1.0, SQRT2, 1.0, SQRT2, 1.0, SQRT2, 1.0, SQRT2, 1.0, SQRT2, SQRT3, SQRT2, SQRT3, SQRT2, SQRT3, SQRT2, SQRT3};
 
-//static int NBR_OFFSETS[8*2] = {1,0, 0,1, -1,0, 0,-1, 1,1, -1,1, -1,-1, 1,-1};
-//static double NBR_COSTS_[8] = {1.0, 1.0, 1.0, 1.0, SQRT2, SQRT2, SQRT2, SQRT2};
-
-
 GridSearch3D::GridSearch3D(int length, int width, int height, const double *map, double scale) : 
   Search(graph, cost),
   length(length),
@@ -212,11 +208,14 @@ void GridSearch3D::Plan(GridPath3D& path)
   int i;
 
   count = Search::Plan();
-  path.pos = (int*)realloc(path.pos, count*3*sizeof(int));
+  path.pos = (double*)realloc(path.pos, count*3*sizeof(double));
   path.count = count;
   for (i = 0; i < count; ++i) {
-    pos1 = (int*)cur->data;   
-    memcpy(&path.pos[3*i], pos1, 3*sizeof(int));
+    pos1 = (int*)cur->data;
+    path.pos[3*i] = (double)pos1[0];   
+    path.pos[3*i+1] = (double)pos1[1];   
+    path.pos[3*i+2] = (double)pos1[2];   
+    //memcpy(&path.pos[3*i], pos1, 3*sizeof(double));
     if (i > 0) {
       len += sqrt((pos1[0]-pos0[0])*(pos1[0]-pos0[0]) + (pos1[1]-pos0[1])*(pos1[1]-pos0[1]) + (pos1[2]-pos0[2])*(pos1[2]-pos0[2]));
     }
@@ -226,7 +225,79 @@ void GridSearch3D::Plan(GridPath3D& path)
   path.len = len;
 }
 
-#define RAY_TRACE_STEP 0.1
+#define RAY_TRACE_STEP 0.05
+
+void GridSearch3D::SmoothPath(const GridPath3D &path, GridPath3D &smoothPath, double smoothness) const
+{
+  double x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3, n;
+  int numSteps = 1.0/RAY_TRACE_STEP;
+  double count =  (numSteps*(path.count-3)+3);
+  double len = 0;
+  smoothPath.pos = (double*) realloc(smoothPath.pos, count*3*sizeof(double));
+  smoothPath.count = count;
+
+  // First and last two pos are the same
+  for(int i = 0; i < 3; i ++)
+    smoothPath.pos[i] = path.pos[i];
+
+  // Interpolate with cubic bezier curve
+  for(int i = 1; i < path.count-2; i++)
+  {
+    x0 = path.pos[3*i];
+    y0 = path.pos[3*i+1];
+    z0 = path.pos[3*i+2];
+    x3 = path.pos[3*(i+1)];
+    y3 = path.pos[3*(i+1)+1];
+    z3 = path.pos[3*(i+1)+2];
+    
+    x1 = x3 - x0;
+    y1 = y3 - y0;
+    z1 = z3 - z0;
+    n = sqrt(x1*x1 + y1*y1 + z1*z1);
+    x1 *= smoothness/n;    
+    y1 *= smoothness/n;    
+    z1 *= smoothness/n;
+    x1 += x0;   
+    y1 += y0;   
+    z1 += z0;   
+    
+    x2 = path.pos[3*(i+2)] - x3;
+    y2 = path.pos[3*(i+2)+1] - y3;
+    z2 = path.pos[3*(i+2)+2] - z3;
+    n = sqrt(x2*x2 + y2*y2 + z2*z2);
+    x2 *= -smoothness/n;    
+    y2 *= -smoothness/n;    
+    z2 *= -smoothness/n;
+    x2 += x3;   
+    y2 += y3;   
+    z2 += z3;   
+    for(int j = 0; j < numSteps; j++)
+    {
+      double t = j*RAY_TRACE_STEP;
+      int idx = (i-1)*numSteps + j + 1;
+      smoothPath.pos[idx*3] = (1-t)*(1-t)*(1-t)*x0 + 3*(1-t)*(1-t)*t*x1 + 3*(1-t)*t*t*x2 + t*t*t*x3;
+      smoothPath.pos[idx*3+1] = (1-t)*(1-t)*(1-t)*y0 + 3*(1-t)*(1-t)*t*y1 + 3*(1-t)*t*t*y2 + t*t*t*y3;
+      smoothPath.pos[idx*3+2] = (1-t)*(1-t)*(1-t)*z0 + 3*(1-t)*(1-t)*t*z1 + 3*(1-t)*t*t*z2 + t*t*t*z3;
+    }
+  }
+  
+  for(int i = -6; i < 0; i ++)
+  {
+    smoothPath.pos[smoothPath.count*3+i] = path.pos[path.count*3+i];
+  } 
+
+  for(int i = 0; i < count-1; i++)
+  {
+    double dx = smoothPath.pos[(i+1)*3] - smoothPath.pos[i*3];
+    double dy = smoothPath.pos[(i+1)*3+1] - smoothPath.pos[i*3+1];
+    double dz = smoothPath.pos[(i+1)*3+2] - smoothPath.pos[i*3+2];
+    len += sqrt(dx*dx + dy*dy + dz*dz);
+  }
+  smoothPath.len = len;
+  //std::cout << "Count: " << count << " Path count: " << path.count << std::endl;
+
+}
+
 
 void GridSearch3D::OptPath(const GridPath3D &path, GridPath3D &optPath) const
 {
@@ -239,8 +310,8 @@ void GridSearch3D::OptPath(const GridPath3D &path, GridPath3D &optPath) const
   int pos[3*path.count];
 
   if (path.len == 2) {
-    optPath.pos = (int*)realloc(optPath.pos, 6*sizeof(int));
-    memcpy(optPath.pos, path.pos, 6*sizeof(int));
+    optPath.pos = (double*)realloc(optPath.pos, 6*sizeof(double));
+    memcpy(optPath.pos, path.pos, 6*sizeof(double));
     optPath.count = 2;
     optPath.len = path.len;
     return;
@@ -316,8 +387,8 @@ void GridSearch3D::OptPath(const GridPath3D &path, GridPath3D &optPath) const
   pos[3*count + 2] = (int)z2;
   len += sqrt((x2-x0)*(x2-x0) + (y2-y0)*(y2-y0) + (z2-z0)*(z2-z0));
   count++;
-  optPath.pos = (int*)realloc(optPath.pos, count*3*sizeof(int));
-  memcpy(optPath.pos, pos, count*3*sizeof(int));
+  optPath.pos = (double*)realloc(optPath.pos, count*3*sizeof(double));
+  memcpy(optPath.pos, pos, count*3*sizeof(double));
   optPath.count = count;
   optPath.len = len;
 }
