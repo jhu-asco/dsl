@@ -78,6 +78,26 @@ GridPath3DPlusTime::~GridPath3DPlusTime()
 }
 
 
+void GridPath3DPlusTime::AppendPath(GridPath3DPlusTime &p)
+{
+  if(p.times)
+  {
+    double* cur_times = this->times;
+    this->times = (double*) malloc((this->count + p.count)*sizeof(double));
+
+    for(int i = 0; i < this->count; i++)
+    {
+      this->times[i] = cur_times[i];
+    }
+    for(int i = 0; i < p.count; i++)
+    {
+      this->times[this->count+i] = p.times[i] + this->times[this->count-1];
+    }
+    if(this->len > 0 && cur_times)
+      free(cur_times);
+  }
+  this->GridPath3D::AppendPath(p);
+}
 
 void GridPath3D::AppendPath(GridPath3D &p)
 {
@@ -93,7 +113,7 @@ void GridPath3D::AppendPath(GridPath3D &p)
     this->pos[3*this->count+i] = p.pos[i];
   }
   if(this->len > 0 && cur_path)
-    delete cur_path;
+    free(cur_path);
 
   this->len += p.len;
   this->count += p.count;  
@@ -202,6 +222,9 @@ GridSearch3D::~GridSearch3D()
 
 double GridSearch3D::GetCost(int x, int y, int z) const
 {
+  if(x < 0 || y < 0 || z < 0 || x >= length || y >= width || z >= height)
+    return DSL3D_OCCUPIED;
+
   return map[z*length*width + y*length + x];
 }
 
@@ -298,6 +321,161 @@ void GridSearch3D::Plan(GridPath3D& path)
 
 #define RAY_TRACE_STEP 0.05
 
+void GridSearch3D::SmoothPathOptCost(const GridPath3D &path, GridPath3DPlusTime &smoothPath, double v, double timeStep) const
+{
+  srand(time(NULL));
+  double totalTimeOrig = 0;
+  std::vector<double> times;
+  std::vector<double> pointsx;
+  std::vector<double> pointsy;
+  std::vector<double> pointsz;
+  for(int i = 0; i < path.count; i++)
+  {
+    pointsx.push_back(path.pos[3*i]);
+    pointsy.push_back(path.pos[3*i+1]);
+    pointsz.push_back(path.pos[3*i+2]);
+    if(i>0)
+    {
+      double dx = path.pos[3*i] - path.pos[3*(i-1)];    
+      double dy = path.pos[3*i+1] - path.pos[3*(i-1)+1];
+      double dz = path.pos[3*i+2] - path.pos[3*(i-1)+2];
+      double dist = sqrt(dx*dx + dy*dy + dz*dz);
+      //cout << path.pos[3*i] << " "
+      // << path.pos[3*i+1] << " "
+      // << path.pos[3*i+2] << " "
+      // << totalTime << endl;
+      totalTimeOrig += dist/v;
+    }
+    times.push_back(totalTimeOrig);
+  }
+
+  /* Create the spline interpolating the position over time */
+  Spline<double, double> spxOrig(times, pointsx);
+  Spline<double, double> spyOrig(times, pointsy);
+  Spline<double, double> spzOrig(times, pointsz);
+
+  Spline<double, double> spxOpt;
+  Spline<double, double> spyOpt;
+  Spline<double, double> spzOpt;
+  double totalTimeOpt;
+  double minCost = 999999999;
+  for(int i = 0; i < 200000; i++)
+  {
+    std::vector<double> timesTest;
+    std::vector<double> pointsxTest;
+    std::vector<double> pointsyTest;
+    std::vector<double> pointszTest;
+
+    // Always add first point
+    timesTest.push_back(0);
+    pointsxTest.push_back(path.pos[0]);
+    pointsyTest.push_back(path.pos[1]);
+    pointszTest.push_back(path.pos[2]);
+
+    // Randomly choose points along path to add as spline ctrl points
+    int curPt = 1;
+    int numCtrlPts = 0;
+    while(curPt < path.count-2)
+    {
+      int pt = (rand() % (path.count - curPt)) + curPt;
+        
+      double dx = path.pos[3*pt] - pointsxTest.at(pointsxTest.size()-1);    
+      double dy = path.pos[3*pt+1] - pointsyTest.at(pointsyTest.size()-1);    
+      double dz = path.pos[3*pt+2] - pointszTest.at(pointszTest.size()-1);    
+      double dist = sqrt(dx*dx + dy*dy + dz*dz);
+ 
+      timesTest.push_back(timesTest.at(timesTest.size()-1) + dist/v);
+      pointsxTest.push_back(path.pos[3*pt]);
+      pointsyTest.push_back(path.pos[3*pt+1]);
+      pointszTest.push_back(path.pos[3*pt+2]);
+      
+      numCtrlPts++;
+      curPt = pt+1;
+    }
+    if(numCtrlPts < 1)
+      continue;
+
+    // Always add last point
+    double dx = path.pos[3*(path.count-1)] - pointsxTest.at(pointsxTest.size()-1);    
+    double dy = path.pos[3*(path.count-1)+1] - pointsyTest.at(pointsyTest.size()-1);    
+    double dz = path.pos[3*(path.count-1)+2] - pointszTest.at(pointszTest.size()-1);    
+    double dist = sqrt(dx*dx + dy*dy + dz*dz);
+ 
+    timesTest.push_back(timesTest.at(timesTest.size()-1) + dist/v);
+    pointsxTest.push_back(path.pos[3*(path.count-1)]);
+    pointsyTest.push_back(path.pos[3*(path.count-1)+1]);
+    pointszTest.push_back(path.pos[3*(path.count-1)+2]);
+
+    // Calculate path cost
+    Spline<double, double> spxTest(timesTest, pointsxTest);
+    Spline<double, double> spyTest(timesTest, pointsyTest);
+    Spline<double, double> spzTest(timesTest, pointszTest);
+    
+    double ctrlPtCost = 5*(numCtrlPts+2.)/path.count;
+    double pathDistCost = 0;
+    double tScale = timesTest.at(timesTest.size()-1)/totalTimeOrig;
+
+    for(double i = 0; i < totalTimeOrig; i += timeStep)
+    {
+      double x = spxTest[tScale*i];
+      double y = spyTest[tScale*i];
+      double z = spzTest[tScale*i];
+      double dx = spxOrig[i] - x;
+      double dy = spyOrig[i] - y;
+      double dz = spzOrig[i] - z;
+
+      // Make sure path doesn't collide
+      if ( GetCost((int)x, (int)y, (int)z) == DSL3D_OCCUPIED)
+      { 
+        pathDistCost = -10.; 
+        break;
+      }
+
+      pathDistCost += sqrt(dx*dx + dy*dy + dz*dz);
+    }
+    pathDistCost /= (totalTimeOrig/timeStep);
+
+    if(pathDistCost > 0 && ctrlPtCost + pathDistCost < minCost)
+    {
+      cout << "NumCtrlPts: " << numCtrlPts <<  " CtrlPtCost: " << ctrlPtCost  << " PathDistCost: " << pathDistCost << " Total Cost: " << (ctrlPtCost + pathDistCost) << endl;     
+      minCost = ctrlPtCost + pathDistCost;
+      spxOpt = spxTest;
+      spyOpt = spyTest;
+      spzOpt = spzTest;
+      totalTimeOpt = timesTest.at(timesTest.size()-1);
+    }    
+  }
+  
+  // Convert to dsl path
+  int count = totalTimeOpt/timeStep + 1;
+  smoothPath.pos = (double*) realloc(smoothPath.pos, count*3*sizeof(double));
+  smoothPath.times = (double*) realloc(smoothPath.times, count*sizeof(double));
+  smoothPath.count = count;
+  for(int i = 0; i < count-1; i++)
+  {
+    smoothPath.pos[3*i] = spxOpt[i*timeStep];
+    smoothPath.pos[3*i+1] = spyOpt[i*timeStep];
+    smoothPath.pos[3*i+2] = spzOpt[i*timeStep];
+    smoothPath.times[i] = i*timeStep;
+  }
+
+  smoothPath.pos[3*(count-1)] = spxOpt[totalTimeOpt];
+  smoothPath.pos[3*(count-1)+1] = spyOpt[totalTimeOpt];
+  smoothPath.pos[3*(count-1)+2] = spzOpt[totalTimeOpt];
+  smoothPath.times[count-1] = totalTimeOpt;
+
+  double len = 0;
+  for(int i = 0; i < count-1; i++)
+  {
+    double dx = smoothPath.pos[(i+1)*3] - smoothPath.pos[i*3];
+    double dy = smoothPath.pos[(i+1)*3+1] - smoothPath.pos[i*3+1];
+    double dz = smoothPath.pos[(i+1)*3+2] - smoothPath.pos[i*3+2];
+    len += sqrt(dx*dx + dy*dy + dz*dz);
+  }
+  smoothPath.len = len;
+
+}
+
 void GridSearch3D::SmoothPathSpline(const GridPath3D &path, GridPath3DPlusTime &smoothPath, double v, double timeStep) const
 {
   double totalTime = 0;
@@ -316,10 +494,6 @@ void GridSearch3D::SmoothPathSpline(const GridPath3D &path, GridPath3DPlusTime &
       double dy = path.pos[3*i+1] - path.pos[3*(i-1)+1];      
       double dz = path.pos[3*i+2] - path.pos[3*(i-1)+2];
       double dist = sqrt(dx*dx + dy*dy + dz*dz);    
-      //cout << path.pos[3*i] << " "
-      // << path.pos[3*i+1] << " "
-      // << path.pos[3*i+2] << " "
-      // << totalTime << endl;
       totalTime += dist/v;  
     }
     times.push_back(totalTime);

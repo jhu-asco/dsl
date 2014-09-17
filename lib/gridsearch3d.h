@@ -71,6 +71,8 @@ namespace dsl {
     GridPath3DPlusTime(const GridPath3DPlusTime&);
     virtual ~GridPath3DPlusTime(); 
     
+    void AppendPath(GridPath3DPlusTime &p);
+    
     double *times;
   };  
 
@@ -155,7 +157,7 @@ namespace dsl {
     void OptPath(const GridPath3D &path, GridPath3D &optPath) const;
 
     /**
-     * Smooth the path produced by Plan
+     * Smooth the path produced by Plan with a Bezier interpolation
      * @param path an initial obstacle-free path (e.g. one produced by calling Plan(path))
      * @param optPath a new path resulting from smoothing the original path path  
      * @param smoothness smoothness of the curve
@@ -171,6 +173,16 @@ namespace dsl {
      * @param timeStep the time between each point along the generated path
      */
     void SmoothPathSpline(const GridPath3D &path, GridPath3DPlusTime &smoothPath, double v, double timeStep) const;
+
+    /**
+     * Smooth the path produced by Plan with a clamped cubic spline, choosing the control points in order to minimize a cost function
+     * @param path an initial obstacle-free path (e.g. one produced by calling Plan(path))
+     * @param optPath a new path resulting from smoothing the original path path  
+     * @param v the average velocity along the path
+     * @param timeStep the time between each point along the generated path
+     */
+    void SmoothPathOptCost(const GridPath3D &path, GridPath3DPlusTime &smoothPath, double v, double timeStep) const;
+
 
     /**
      * Useful method to get the graph vertex at position (x,y)
