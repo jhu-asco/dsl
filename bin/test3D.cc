@@ -192,7 +192,7 @@ int main(int argc, char** argv)
   
   
   for (i = 0; i < path.count; ++i) {
-    printf("(%d,%d,%d) ", path.pos[3*i], path.pos[3*i+1], path.pos[3*i+2]);
+    printf("(%f,%f,%f) ", path.pos[3*i], path.pos[3*i+1], path.pos[3*i+2]);
     //mapPath[path.pos[3*i+1]*length + path.pos[3*i]] = path.pos[3*i+2]*255/50;
   }
   /*

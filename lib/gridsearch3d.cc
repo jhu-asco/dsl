@@ -445,6 +445,13 @@ void GridSearch3D::SmoothPathOptCost(const GridPath3D &path, GridPath3DPlusTime 
       totalTimeOpt = timesTest.at(timesTest.size()-1);
     }    
   }
+
+  // If no solution, return all control pt solution
+  if(minCost == 999999999)
+  {
+    SmoothPathSpline(path, smoothPath, v, timeStep);
+    return;
+  }
   
   // Convert to dsl path
   int count = totalTimeOpt/timeStep + 1;

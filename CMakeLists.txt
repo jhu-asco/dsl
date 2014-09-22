@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 2.8) 
 project (dsl)
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
+
 include_directories(lib)
 
 ADD_DEFINITIONS(-g -O2 -Wall -W -Winline)
@@ -19,6 +21,9 @@ SET(CPACK_PACKAGE_VERSION_PATCH "0")
 SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
 #SET(CPACK_STRIP_FILES "bin/MyExecutable")
 #SET(CPACK_SOURCE_STRIP_FILES "")
+
+
+
 SET(CPACK_PACKAGE_EXECUTABLES test "Test search")
 
 INSTALL(FILES dsl.pc

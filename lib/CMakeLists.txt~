@@ -1,17 +1,6 @@
-macro(append_subdir_files variable dirname)
-  get_directory_property(holder DIRECTORY ${dirname} DEFINITION ${variable})
-  foreach(depfile ${holder})
-    list(APPEND ${variable} "${dirname}/${depfile}")
-  endforeach()
-endmacro()
+add_subdirectory (dgc);
 
-
-#add_subdirectory (dgc)
-#append_subdir_files(sources dgc)
-#append_subdir_files(headers dgc)
-
-add_library(dsl SHARED ${sources}
-                       fibheap.c 
+add_library(dsl SHARED fibheap.c 
                        vertex.cc
                        edge.cc
                        graph.cc
@@ -26,14 +15,10 @@ add_library(dsl SHARED ${sources}
                        gridsearch3d.cc
                        gridsearch3dvel.cc
                        gridsearch3dvelb.cc
-                       gridsearch3dvelprm.cc
-                       gridsearch3dvels.cc
-                       particleprm.cc
-                       trajectory.cc
-                       state.cc
-                       system.cc)
+                       gridsearch3dvels.cc)
 
-target_link_libraries(dsl ${LIBS})
+target_link_libraries(dsl dgc)
+
 
 SET_TARGET_PROPERTIES(dsl
                       PROPERTIES
@@ -43,8 +28,7 @@ SET_TARGET_PROPERTIES(dsl
 INSTALL(TARGETS dsl
         DESTINATION lib)
 
-INSTALL(FILES ${headers}
-              fibheap.h
+INSTALL(FILES fibheap.h
               libiberty.h
               ansidecl.h
               vertex.h
@@ -61,11 +45,6 @@ INSTALL(FILES ${headers}
               gridsearch3d.h
               gridsearch3dvel.h
               gridsearch3dvelb.h
-              gridsearch3dvelprm.h
               gridsearch3dvels.h
               spline.h
-              particleprm.h
-              trajectory.h
-              state.h
-              system.h
               DESTINATION include/dsl)              

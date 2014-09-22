@@ -6,13 +6,15 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_GRIDSEARCH3DVELS_H
-#define DSL_GRIDSEARCH3DVELS_H
+#ifndef DSL_GRIDSEARCH3DVELPRM_H
+#define DSL_GRIDSEARCH3DVELPRM_H
 
+#include <string.h>
 #include "search.h"
 #include "gridsearch3d.h"
 #include "gridsearch3dvel.h"
-#include "gridcost3dspline.h"
+#include "gridcost3dprm.h"
+#include <iostream>
 
 /**
  *  Grid based D* Lite, extends graph-based D* Lite.
@@ -48,17 +50,35 @@
 namespace dsl {
 
 
-  class GridSearch3DVelS : public GridSearch3DVel
+  class GridSearch3DVelPRM : public GridSearch3DVel
   {
- public:
-   GridSearch3DVelS(int length, int width, int height, int numYaws, int numPitches, const double *map = 0, double scale = 1.0) : GridSearch3DVel(length, width, height, numYaws, numPitches, map, scale){};
+  public:
+    GridSearch3DVelPRM(int length, int width, int height, int numYaws, int numPitches, double v, double vmin[], double vmax[], double amin[], double amax[], const double *map = 0, double scale = 1.0) : GridSearch3DVel(length, width, height, numYaws, numPitches, map, scale), v(v)
+    {
+      cost.xub[0] = xub[0] = length;
+      cost.xub[1] = xub[1] = width;
+      cost.xub[2] = xub[2] = height;
+      for(int i = 0; i < 3; i++)
+      {
+        cost.xlb[i] = xlb[i] = -5;
+        cost.xlb[i+3] = xlb[i+3] = vmin[i];
+        cost.xub[i+3] = xub[i+3] = vmax[i];
+        cost.alb[i] = alb[i] = amin[i];
+        cost.aub[i] = aub[i] = amax[i];
+      }
+    };
     
   protected:
     virtual void GetTrajectory(const Vertex &from, const Vertex &to, GridPath3DPlusTime &path) const;
  
     Graph graph;
-    GridCost3DSpline cost; 
+    GridCost3DPRM cost; 
     Vertex **vertexMap;                ///< vertex grid array of size width*height
+    double xlb[6];
+    double xub[6];
+    double alb[3];
+    double aub[3];
+    double v;
   };
 }
 

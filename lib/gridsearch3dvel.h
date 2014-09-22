@@ -12,6 +12,7 @@
 #include "search.h"
 #include "gridsearch3d.h"
 #include "gridcost3dbezier.h"
+#include <sstream>
 
 /**
  *  Grid based D* Lite, extends graph-based D* Lite.
@@ -46,10 +47,29 @@
 
 namespace dsl {
 
+  struct PathInfo
+  {
+    int dx;
+    int dy;
+    int dz;
+    int t1;
+    int t2;
+    int p1;
+    int p2;
+    bool operator <(const PathInfo &rhs) const
+    {
+       std::stringstream ss1;
+       ss1 << dx << dy << dz << t1 << t2 << p1 << p2;
+       std::stringstream ss2;
+       ss2 << rhs.dx << rhs.dy << rhs.dz << rhs.t1 << rhs.t2 << rhs.p1 << rhs.p2;
+       return ss1.str() < ss2.str();
+    }
+  };
+
 
   class GridSearch3DVel : public Search
   {
- public:
+  public:
     
     /**
      * The planner allocates all states in the beginning
@@ -112,7 +132,7 @@ namespace dsl {
      * these vertices should be already set
      * @param path the resulting path
      */
-    void Plan(GridPath3D &path);
+    void Plan(GridPath3DPlusTime &path);
     
     /**
      * Useful method to get the graph vertex at position (x,y)
@@ -152,10 +172,9 @@ namespace dsl {
     
   protected:
     double GetPathCost(const Vertex &from, const Vertex &to) const;
-    virtual void GetTrajectory(const Vertex &from, const Vertex &to, GridPath3D &path) const = 0;
- 
+    virtual void GetTrajectory(const Vertex &from, const Vertex &to, GridPath3DPlusTime &path) const = 0;
+    GridCost3D cost; 
     Graph graph;
-    GridCost3DBezier cost; 
     Vertex **vertexMap;                ///< vertex grid array of size width*height
   };
 }

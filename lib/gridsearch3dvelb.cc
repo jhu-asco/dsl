@@ -16,12 +16,13 @@ using namespace dsl;
 #define _USE_MATH_DEFINES
 #define MAX(a,b) (a>b?a:b)
 
-void GridSearch3DVelB::GetTrajectory(const Vertex &from, const Vertex &to, GridPath3D &path) const
+void GridSearch3DVelB::GetTrajectory(const Vertex &from, const Vertex &to, GridPath3DPlusTime &path) const
 {
   const double rayTraceStep = 0.05;
   int numSteps = 1.0/rayTraceStep;
   double len = 0;
   path.pos = (double*) realloc(path.pos, numSteps*3*sizeof(double));
+  path.times = (double*) realloc(path.times, numSteps*sizeof(double));
   path.count = numSteps;
 
   const double smoothness = 0.8;
@@ -68,6 +69,7 @@ void GridSearch3DVelB::GetTrajectory(const Vertex &from, const Vertex &to, GridP
       path.len = -1;
       return;
     }
+    path.times[j] = t;
     path.pos[j*3] = xi;
     path.pos[j*3+1] = yi;
     path.pos[j*3+2] = zi;

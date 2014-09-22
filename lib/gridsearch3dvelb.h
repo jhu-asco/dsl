@@ -54,7 +54,7 @@ namespace dsl {
    GridSearch3DVelB(int length, int width, int height, int numYaws, int numPitches, const double *map = 0, double scale = 1.0) : GridSearch3DVel(length, width, height, numYaws, numPitches, map, scale){};
     
   protected:
-    virtual void GetTrajectory(const Vertex &from, const Vertex &to, GridPath3D &path) const;
+    virtual void GetTrajectory(const Vertex &from, const Vertex &to, GridPath3DPlusTime &path) const;
  
     Graph graph;
     GridCost3DBezier cost; 

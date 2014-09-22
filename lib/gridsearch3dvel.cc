@@ -101,7 +101,7 @@ void GridSearch3DVel::Init()
             // connect to sphere around point
             for(int st = 0; st < 360; st+=30){
               for(int sp = 0; sp < 360; sp+=30){
-                for(int r = 1; r < 3; r++){
+                for(int r = 1; r < 5; r++){
                   double trad = st*M_PI/180.;
                   double prad = sp*M_PI/180.;
                   nx = x + r*cos(trad)*sin(prad);  
@@ -149,7 +149,7 @@ void GridSearch3DVel::Init()
 
 double GridSearch3DVel::GetPathCost(const Vertex &from, const Vertex &to) const
 {
-  GridPath3D path;
+  GridPath3DPlusTime path;
   GetTrajectory(from, to, path);
   return path.len;
 }
@@ -232,9 +232,9 @@ void GridSearch3DVel::SetGoal(int x, int y, int z, int t, int p)
   Search::SetGoal(*(GetVertex(x,y,z,t,p)));
 }
 
-void GridSearch3DVel::Plan(GridPath3D& path)
+void GridSearch3DVel::Plan(GridPath3DPlusTime& path)
 {
-  path = GridPath3D();
+  path = GridPath3DPlusTime();
   Vertex *last = start, *cur;
   int i;
   int count;
@@ -245,7 +245,7 @@ void GridSearch3DVel::Plan(GridPath3D& path)
   //path.pos = (double*)realloc(path.pos, count*3*sizeof(double));
   //path.count = count;
   for (i = 1; i < count; ++i) {
-    GridPath3D nextPath;
+    GridPath3DPlusTime nextPath;
     GetTrajectory(*last,*cur, nextPath);
     path.AppendPath(nextPath);
     last = cur;
