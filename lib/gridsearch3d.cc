@@ -204,7 +204,7 @@ void GridSearch3D::AddEdge(int x1, int y1, int z1, int x2, int y2, int z2)
   double dx = x2-x1;
   double dy = y2-y1;
   double dz = z2-z1;
-  Edge* edge = new Edge(from, to, sqrt(dx*dx + dy*dy + dz*dz)); 
+  Edge* edge = new Edge(from, to, scale*(MAX(GetCost(x1,y1,z1), GetCost(x2,y2,z2)) + sqrt(dx*dx + dy*dy + dz*dz))); 
   graph.AddEdge(*edge);
 }
 
@@ -261,11 +261,28 @@ void GridSearch3D::SetCost(int x, int y, int z, double cost)
   // fix all connected edges
   ein = vertexMap[i]->in.begin();
   eout = vertexMap[i]->out.begin();
+  
   for (;ein != vertexMap[i]->in.end(); ein++)
-    ChangeCost(*ein->second, cost > 10 ? 10000 : 0);
+  {
+    int* pos = static_cast<int*>((*ein).second->from->data);
+
+    int dx = x-pos[0];
+    int dy = y-pos[1];
+    int dz = z-pos[2];
+
+    ChangeCost(*ein->second, scale*(MAX(GetCost(pos[0], pos[1], pos[2]), cost) + sqrt(dx*dx + dy*dy + dz*dz)));
+  }
 
   for (;eout != vertexMap[i]->out.end(); eout++)
-    ChangeCost(*eout->second, cost > 10 ? 10000 : 0);
+  {
+    int* pos = static_cast<int*>((*eout).second->to->data);
+
+    int dx = x-pos[0];
+    int dy = y-pos[1];
+    int dz = z-pos[2];
+
+    ChangeCost(*eout->second, scale*(MAX(GetCost(pos[0], pos[1], pos[2]), cost) + sqrt(dx*dx + dy*dy + dz*dz)));
+  }
 }
 
 void GridSearch3D::SetMap(const double *map)
