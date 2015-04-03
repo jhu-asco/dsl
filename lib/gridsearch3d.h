@@ -42,7 +42,7 @@
  *  Author: Marin Kobilarov (c) 2004 mkobilar(at)robotics.usc.edu
  */
 
-#define DSL3D_OCCUPIED 999999999
+#define DSL3D_OCCUPIED 1e10
 
 namespace dsl {
 

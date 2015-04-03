@@ -692,7 +692,7 @@ void GridSearch3D::OptPath(const GridPath3D &path, GridPath3D &optPath) const
 	x = dx1*d;
 	y = dy1*d;
         z = dz1*d;
-	if (((int)map[((int)(z0 + z))*length*width + ((int)(y0 + y))*length + (int)(x0 + x)]) == DSL3D_OCCUPIED) {
+	if ((map[((int)(z0 + z))*length*width + ((int)(y0 + y))*length + (int)(x0 + x)]) == DSL3D_OCCUPIED) {
 	  pos[3*count] = x1;
 	  pos[3*count + 1] = y1;
 	  pos[3*count + 2] = z1;
