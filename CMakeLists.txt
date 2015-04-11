@@ -7,7 +7,7 @@ ADD_DEFINITIONS(-g -O2 -Wall -W -Winline)
 
 add_subdirectory (lib) 
 add_subdirectory (bin) 
-add_subdirectory (docs) 
+#add_subdirectory (docs) 
 
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Dynamic D* Lite Graph Search Library")
 SET(CPACK_PACKAGE_VENDOR "Marin Kobilarov")
