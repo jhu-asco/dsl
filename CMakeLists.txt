@@ -3,7 +3,7 @@ project (dsl)
 
 include_directories(lib)
 
-ADD_DEFINITIONS(-g -O2 -Wall -W -Winline)
+ADD_DEFINITIONS(-g -O2 -Wall -W)
 
 add_subdirectory (lib) 
 add_subdirectory (bin) 
