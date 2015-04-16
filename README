@@ -1,1 +1,1 @@
-Visit http://jhu-asco.github.io/dsl for API documentation.
+To generate html documentation, run doxygen from the project directory.  The files will be output to the docs folder.
