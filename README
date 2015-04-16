@@ -1,1 +1,1 @@
-To generate html documentation, run doxygen from the project directory.  The files will be output to the docs folder.
+To generate html documentation, use "make doc".  The files will be output to the docs subdirectory in your build folder.
