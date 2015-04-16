@@ -155,6 +155,14 @@ namespace dsl {
      * @param y2 to y-coordiante
      */    
     void AddEdge(int x1, int y1, int x2, int y2);
+
+    /**
+     * Calculates an augmented edge cost as a function of two vertex costs and the original edge cost
+     * param v1cost cost of "from" vertex  
+     * param v2cost cost of "to" vertex  
+     * param elength 2D distance between vertices
+     */
+    virtual double CalcEdgeCost(double v1cost, double v2cost, double elength);
     
 
     int width;                         ///< width of cost grid

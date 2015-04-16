@@ -6,6 +6,7 @@ add_library(dsl SHARED fibheap.c
                        search.cc
                        gridcost.cc
                        gridcost3d.cc
+                       travsearch.cc
                        gridsearch.cc
                        gridsearch3d.cc)
 
@@ -28,6 +29,7 @@ INSTALL(FILES fibheap.h
               search.h
               gridcost.h
               gridcost3d.h
+              travsearch.h
               gridsearch.h
               gridsearch3d.h
               spline.h

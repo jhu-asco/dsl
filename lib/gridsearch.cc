@@ -82,7 +82,8 @@ GridSearch::GridSearch(int width, int height, const double *map, double scale) :
         
         
 
-        Edge* edge = new Edge(from, to, scale*(MAX(this->map[i], this->map[ni]) + NBR_COSTS_[nbr]));
+        //Edge* edge = new Edge(from, to, scale*(MAX(this->map[i], this->map[ni]) + NBR_COSTS_[nbr]));
+        Edge* edge = new Edge(from, to, CalcEdgeCost(this->map[i], this->map[ni], NBR_COSTS_[nbr]));
         
 
         graph.AddEdge(*edge);
@@ -94,6 +95,11 @@ GridSearch::GridSearch(int width, int height, const double *map, double scale) :
       }
     }
   }
+}
+
+double GridSearch::CalcEdgeCost(double v1cost, double v2cost, double elength)
+{
+  return scale*(MAX(v1cost, v2cost) + elength);
 }
 
 
@@ -161,10 +167,29 @@ void GridSearch::SetCost(int x, int y, double cost)
   ein = vertexMap[i]->in.begin();
   eout = vertexMap[i]->out.begin();
   for (;ein != vertexMap[i]->in.end(); ein++)
-    ChangeCost(*ein->second, cost > 10 ? 10000 : 0);
+  {
+    int* pos = static_cast<int*>((*ein).second->from->data);
+
+    int dx = x-pos[0];
+    int dy = y-pos[1];
+
+    ChangeCost(*ein->second, CalcEdgeCost(GetCost(pos[0], pos[1]), cost, sqrt(dx*dx + dy*dy)));
+  }
 
   for (;eout != vertexMap[i]->out.end(); eout++)
-    ChangeCost(*eout->second, cost > 10 ? 10000 : 0);
+  {
+    int* pos = static_cast<int*>((*eout).second->to->data);
+
+    int dx = x-pos[0];
+    int dy = y-pos[1];
+
+    ChangeCost(*eout->second, CalcEdgeCost(cost, GetCost(pos[0], pos[1]), sqrt(dx*dx + dy*dy)));
+  }
+  //for (;ein != vertexMap[i]->in.end(); ein++)
+  //  ChangeCost(*ein->second, cost > 10 ? 10000 : 0);
+
+  //for (;eout != vertexMap[i]->out.end(); eout++)
+  //  ChangeCost(*eout->second, cost > 10 ? 10000 : 0);
 }
 
 void GridSearch::SetMap(const double *map)
