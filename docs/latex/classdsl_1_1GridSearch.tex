@@ -7,13 +7,13 @@
 \-Inheritance diagram for dsl\-:\-:\-Grid\-Search\-:\begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[height=3.000000cm]{classdsl_1_1GridSearch}
+\includegraphics[height=2.000000cm]{classdsl_1_1GridSearch}
 \end{center}
 \end{figure}
 \subsection*{\-Public \-Member \-Functions}
 \begin{DoxyCompactItemize}
 \item 
-{\bf \-Grid\-Search} (int {\bf width}, int {\bf height}, const double $\ast${\bf map}=0, double {\bf scale}=1.\-0, bool setup\-\_\-edges=true)
+{\bf \-Grid\-Search} (int {\bf width}, int {\bf height}, {\bf \-Edge\-Cost} $\ast${\bf edge\-Cost}, const double $\ast${\bf map}=0, double {\bf scale}=1.\-0)
 \item 
 virtual {\bf $\sim$\-Grid\-Search} ()
 \item 
@@ -36,8 +36,6 @@ void {\bf \-Opt\-Path} (const {\bf \-Grid\-Path} \&path, {\bf \-Grid\-Path} \&op
 void {\bf \-Remove\-Vertex} (int x, int y)
 \item 
 void {\bf \-Add\-Edge} (int x1, int y1, int x2, int y2)
-\item 
-virtual double {\bf \-Calc\-Edge\-Cost} (double v1cost, double v2cost, double elength)
 \end{DoxyCompactItemize}
 \subsection*{\-Public \-Attributes}
 \begin{DoxyCompactItemize}
@@ -57,6 +55,8 @@ double $\ast$ {\bf map}
 \begin{DoxyCompactList}\small\item\em graph \end{DoxyCompactList}\item 
 {\bf \-Grid\-Cost} {\bf cost}
 \begin{DoxyCompactList}\small\item\em cost interface \end{DoxyCompactList}\item 
+{\bf \-Edge\-Cost} $\ast$ {\bf edge\-Cost}
+\item 
 {\bf \-Vertex} $\ast$$\ast$ {\bf vertex\-Map}
 \begin{DoxyCompactList}\small\item\em vertex grid array of size width$\ast$height \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{\-Static \-Protected \-Attributes}
@@ -75,11 +75,11 @@ static const double {\bf \-N\-B\-R\-\_\-\-C\-O\-S\-T\-S\-\_\-} [8] = \{{\bf \-S\
 \begin{DoxyParamCaption}
 \item[{int}]{width, }
 \item[{int}]{height, }
+\item[{{\bf \-Edge\-Cost} $\ast$}]{edge\-Cost, }
 \item[{const double $\ast$}]{map = {\ttfamily 0}, }
-\item[{double}]{scale = {\ttfamily 1.0}, }
-\item[{bool}]{setup\-\_\-edges = {\ttfamily true}}
+\item[{double}]{scale = {\ttfamily 1.0}}
 \end{DoxyParamCaption}
-)}\label{classdsl_1_1GridSearch_aec6542d54f6c7d8e874d4f9c57d909ca}
+)}\label{classdsl_1_1GridSearch_a5427c1868bffc97db0e05e84021cc8a5}
 \-The planner allocates all states in the beginning a valid map of size width$\ast$height should be provided scale is used to multiply each cell value and each neighbor transition value before they are used for planning 
 \begin{DoxyParams}{\-Parameters}
 {\em width} & width \\
@@ -93,7 +93,7 @@ static const double {\bf \-N\-B\-R\-\_\-\-C\-O\-S\-T\-S\-\_\-} [8] = \{{\bf \-S\
 \end{DoxyParams}
 
 
-\-References dsl\-::\-Graph\-::\-Add\-Edge(), dsl\-::\-Graph\-::\-Add\-Vertex(), \-Calc\-Edge\-Cost(), graph, height, \-N\-B\-R\-\_\-\-C\-O\-S\-T\-S\-\_\-, \-N\-B\-R\-\_\-\-C\-O\-U\-N\-T, \-N\-B\-R\-\_\-\-O\-F\-F\-S\-E\-T\-S, vertex\-Map, and width.
+\-References dsl\-::\-Graph\-::\-Add\-Edge(), dsl\-::\-Graph\-::\-Add\-Vertex(), dsl\-::\-Edge\-Cost\-::\-Calc\-Edge\-Cost(), graph, height, \-N\-B\-R\-\_\-\-C\-O\-S\-T\-S\-\_\-, \-N\-B\-R\-\_\-\-C\-O\-U\-N\-T, \-N\-B\-R\-\_\-\-O\-F\-F\-S\-E\-T\-S, vertex\-Map, and width.
 
 \index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!$\sim$\-Grid\-Search@{$\sim$\-Grid\-Search}}
 \index{$\sim$\-Grid\-Search@{$\sim$\-Grid\-Search}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
@@ -133,27 +133,6 @@ static const double {\bf \-N\-B\-R\-\_\-\-C\-O\-S\-T\-S\-\_\-} [8] = \{{\bf \-S\
 
 
 \-References dsl\-::\-Graph\-::\-Add\-Edge(), \-Get\-Vertex(), and graph.
-
-\index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!\-Calc\-Edge\-Cost@{\-Calc\-Edge\-Cost}}
-\index{\-Calc\-Edge\-Cost@{\-Calc\-Edge\-Cost}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
-\subsubsection[{\-Calc\-Edge\-Cost}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf \-Grid\-Search\-::\-Calc\-Edge\-Cost} (
-\begin{DoxyParamCaption}
-\item[{double}]{v1cost, }
-\item[{double}]{v2cost, }
-\item[{double}]{elength}
-\end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily  [virtual]}}\label{classdsl_1_1GridSearch_ac903ddc2775df35bdb60d9c855841af9}
-\-Calculates an augmented edge cost as a function of two vertex costs and the original edge cost param v1cost cost of \char`\"{}from\char`\"{} vertex param v2cost cost of \char`\"{}to\char`\"{} vertex param elength 2\-D distance between vertices 
-
-\-Reimplemented in {\bf dsl\-::\-Trav\-Search} \doxyref{}{p.}{classdsl_1_1TravSearch_a053d3010eab8b70299ed437d542efdfb}.
-
-
-
-\-References \-M\-A\-X, and scale.
-
-
-
-\-Referenced by \-Grid\-Search(), and \-Set\-Cost().
 
 \index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!\-Get\-Cost@{\-Get\-Cost}}
 \index{\-Get\-Cost@{\-Get\-Cost}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
@@ -293,7 +272,7 @@ corresponding vertex or 0 if none there
 \end{DoxyParams}
 
 
-\-References \-Calc\-Edge\-Cost(), dsl\-::\-Search\-::\-Change\-Cost(), cost, dsl\-::\-Search\-::\-Eq(), \-Get\-Cost(), dsl\-::\-Vertex\-::in, map, dsl\-::\-Vertex\-::out, vertex\-Map, and width.
+\-References dsl\-::\-Edge\-Cost\-::\-Calc\-Edge\-Cost(), dsl\-::\-Search\-::\-Change\-Cost(), cost, edge\-Cost, dsl\-::\-Search\-::\-Eq(), \-Get\-Cost(), dsl\-::\-Vertex\-::in, map, dsl\-::\-Vertex\-::out, scale, vertex\-Map, and width.
 
 
 
@@ -379,6 +358,13 @@ cost interface
 
 \-Referenced by \-Set\-Cost().
 
+\index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!edge\-Cost@{edge\-Cost}}
+\index{edge\-Cost@{edge\-Cost}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
+\subsubsection[{edge\-Cost}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Edge\-Cost}$\ast$ {\bf dsl\-::\-Grid\-Search\-::edge\-Cost}\hspace{0.3cm}{\ttfamily  [protected]}}\label{classdsl_1_1GridSearch_a9c31fcb8d40c09e2b36b06f827c8da73}
+
+
+\-Referenced by \-Set\-Cost().
+
 \index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!graph@{graph}}
 \index{graph@{graph}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
 \subsubsection[{graph}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Graph} {\bf dsl\-::\-Grid\-Search\-::graph}\hspace{0.3cm}{\ttfamily  [protected]}}\label{classdsl_1_1GridSearch_ad465ba46be970dae903d4d1c5ad76e35}
@@ -392,7 +378,7 @@ graph
 
 
 
-\-Referenced by \-Add\-Edge(), \-Grid\-Search(), \-Remove\-Vertex(), and dsl\-::\-Trav\-Search\-::\-Trav\-Search().
+\-Referenced by \-Add\-Edge(), \-Grid\-Search(), and \-Remove\-Vertex().
 
 \index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!height@{height}}
 \index{height@{height}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
@@ -403,7 +389,7 @@ height of cost grid
 
 
 
-\-Referenced by \-Get\-Vertex(), \-Grid\-Search(), \-Set\-Map(), dsl\-::\-Trav\-Search\-::\-Trav\-Search(), and $\sim$\-Grid\-Search().
+\-Referenced by \-Get\-Vertex(), \-Grid\-Search(), \-Set\-Map(), and $\sim$\-Grid\-Search().
 
 \index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!map@{map}}
 \index{map@{map}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
@@ -421,14 +407,14 @@ cost grid array of size width$\ast$height
 \subsubsection[{\-N\-B\-R\-\_\-\-C\-O\-S\-T\-S\-\_\-}]{\setlength{\rightskip}{0pt plus 5cm}const double {\bf \-Grid\-Search\-::\-N\-B\-R\-\_\-\-C\-O\-S\-T\-S\-\_\-} = \{{\bf \-S\-Q\-R\-T2}, 1.\-0, {\bf \-S\-Q\-R\-T2}, 1.\-0, 1.\-0, {\bf \-S\-Q\-R\-T2}, 1.\-0, {\bf \-S\-Q\-R\-T2}\}\hspace{0.3cm}{\ttfamily  [static, protected]}}\label{classdsl_1_1GridSearch_ae89cc1dd3bd1adacd7e1e90dc22f8b25}
 
 
-\-Referenced by \-Grid\-Search(), and dsl\-::\-Trav\-Search\-::\-Trav\-Search().
+\-Referenced by \-Grid\-Search().
 
 \index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!\-N\-B\-R\-\_\-\-O\-F\-F\-S\-E\-T\-S@{\-N\-B\-R\-\_\-\-O\-F\-F\-S\-E\-T\-S}}
 \index{\-N\-B\-R\-\_\-\-O\-F\-F\-S\-E\-T\-S@{\-N\-B\-R\-\_\-\-O\-F\-F\-S\-E\-T\-S}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
 \subsubsection[{\-N\-B\-R\-\_\-\-O\-F\-F\-S\-E\-T\-S}]{\setlength{\rightskip}{0pt plus 5cm}const int {\bf \-Grid\-Search\-::\-N\-B\-R\-\_\-\-O\-F\-F\-S\-E\-T\-S} = \{-\/1,-\/1, 0,-\/1, 1,-\/1, -\/1,0, 1,0, -\/1,1, 0,1 ,1,1\}\hspace{0.3cm}{\ttfamily  [static, protected]}}\label{classdsl_1_1GridSearch_a1dc22c927d6796c7171598a5c508b005}
 
 
-\-Referenced by \-Grid\-Search(), and dsl\-::\-Trav\-Search\-::\-Trav\-Search().
+\-Referenced by \-Grid\-Search().
 
 \index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!scale@{scale}}
 \index{scale@{scale}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
@@ -439,7 +425,7 @@ scale of each cell cost and each transition cost
 
 
 
-\-Referenced by dsl\-::\-Trav\-Search\-::\-Calc\-Edge\-Cost(), and \-Calc\-Edge\-Cost().
+\-Referenced by \-Set\-Cost().
 
 \index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!vertex\-Map@{vertex\-Map}}
 \index{vertex\-Map@{vertex\-Map}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
@@ -450,7 +436,7 @@ vertex grid array of size width$\ast$height
 
 
 
-\-Referenced by \-Get\-Vertex(), \-Grid\-Search(), \-Set\-Cost(), \-Set\-Goal(), \-Set\-Start(), dsl\-::\-Trav\-Search\-::\-Trav\-Search(), and $\sim$\-Grid\-Search().
+\-Referenced by \-Get\-Vertex(), \-Grid\-Search(), \-Set\-Cost(), \-Set\-Goal(), \-Set\-Start(), and $\sim$\-Grid\-Search().
 
 \index{dsl\-::\-Grid\-Search@{dsl\-::\-Grid\-Search}!width@{width}}
 \index{width@{width}!dsl::GridSearch@{dsl\-::\-Grid\-Search}}
@@ -461,7 +447,7 @@ width of cost grid
 
 
 
-\-Referenced by \-Get\-Cost(), \-Get\-Vertex(), \-Grid\-Search(), \-Opt\-Path(), \-Set\-Cost(), \-Set\-Goal(), \-Set\-Map(), \-Set\-Start(), dsl\-::\-Trav\-Search\-::\-Trav\-Search(), and $\sim$\-Grid\-Search().
+\-Referenced by \-Get\-Cost(), \-Get\-Vertex(), \-Grid\-Search(), \-Opt\-Path(), \-Set\-Cost(), \-Set\-Goal(), \-Set\-Map(), \-Set\-Start(), and $\sim$\-Grid\-Search().
 
 
 

@@ -5,7 +5,11 @@
 \item 
 class {\bf \-Cost}
 \item 
+class {\bf \-Dist\-Edge\-Cost}
+\item 
 class {\bf \-Edge}
+\item 
+class {\bf \-Edge\-Cost}
 \item 
 class {\bf \-Graph}
 \item 
@@ -25,7 +29,7 @@ class {\bf \-Grid\-Search3\-D}
 \item 
 class {\bf \-Search}
 \item 
-class {\bf \-Trav\-Search}
+class {\bf \-Trav\-Edge\-Cost}
 \item 
 class {\bf \-Vertex}
 \end{DoxyCompactItemize}
@@ -43,6 +47,14 @@ std\-::istream \& {\bf operator$>$$>$} (std\-::istream \&is, {\bf \-Vertex} \&v)
 
 
 \subsection{\-Detailed \-Description}
+\-Calculates edge costs as the \-Euclidean distance between two points plus some vertex cost
+
+\-Author\-: \-Matt \-Sheckells (c) 2015 msheckells(at)jhu.\-edu
+
+\-An interface for calculating edge costs from vertex costs in a gridded search structure
+
+\-Author\-: \-Matt \-Sheckells (c) 2015 msheckells(at)jhu.\-edu
+
 \-Grid based \-D$\ast$ \-Lite, extends graph-\/based \-D$\ast$ \-Lite. \-The class maps grid cell costs and the transition costs b/n two cells into graph edge costs of the base \doxyref{\-Search}{p.}{classdsl_1_1Search} class
 
 \-The cell transition costs are hardcoded as the euclidean distance b/n the centers of the cells (i.\-e. each cell has 8 neighbors\-: the neighbors at \-N,\-S,\-W,\-E have transition cost of 1, and the neighbors at \-N\-E, \-S\-E, \-N\-W, \-S\-W have transition costs of sqrt(2) \-These transition costs are added to the maximum of the values of two neighboring cells to compute the cost of their connecting edge. \-Finally that cost is multiplied by the variable scale.
@@ -53,11 +65,7 @@ std\-::istream \& {\bf operator$>$$>$} (std\-::istream \&is, {\bf \-Vertex} \&v)
 
 \-Author\-: \-Marin \-Kobilarov (c) 2004 mkobilar(at)robotics.\-usc.\-edu
 
-\-Grid based \-D$\ast$ \-Lite, extends graph-\/based \-D$\ast$ \-Lite. \-The class maps grid cell costs and the transition costs b/n two cells into graph edge costs of the base \doxyref{\-Search}{p.}{classdsl_1_1Search} class. \-The cost function in particular uses the gradient of the vertex costs across an edge length to define the edge cost. \-The purpose of this is to generate a traversability map where the vertex costs are the height of a particular 2\-D position.
-
-\-The planner is used as follows\-:
-
-1) \-Grid\-Search(map, width, height) 2) \-Set\-Start(x, y) 3) \-Set\-Goal(x, y) 4) \-Plan(path) and \-Opt\-Path(path, opt\-Path) -\/-\/ to plan a path and optimize it 5) follow path until map changes are observed 6) for each change\-: \-Set\-Cost(x, y, cost) or change the whole map\-: \-Set\-Map(map) 7) \-Set\-Start(x,y) -\/-\/ change the start to the current robot position 8) goto 4
+\-Calculates the edge cost as the height gradient between two vertices
 
 \-Author\-: \-Matt \-Sheckells (c) 2015 msheckells(at)jhu.\-edu 
 

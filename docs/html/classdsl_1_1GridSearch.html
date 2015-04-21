@@ -77,8 +77,7 @@ Inheritance diagram for dsl::GridSearch:</div>
  <div class="center">
   <img src="classdsl_1_1GridSearch.png" usemap="#dsl::GridSearch_map" alt=""/>
   <map id="dsl::GridSearch_map" name="dsl::GridSearch_map">
-<area href="classdsl_1_1Search.html" alt="dsl::Search" shape="rect" coords="0,0,101,24"/>
-<area href="classdsl_1_1TravSearch.html" alt="dsl::TravSearch" shape="rect" coords="0,112,101,136"/>
+<area href="classdsl_1_1Search.html" alt="dsl::Search" shape="rect" coords="0,0,99,24"/>
 </map>
  </div></div>
 
@@ -86,7 +85,7 @@ Inheritance diagram for dsl::GridSearch:</div>
 <table class="memberdecls">
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdsl_1_1GridSearch.html#aec6542d54f6c7d8e874d4f9c57d909ca">GridSearch</a> (int <a class="el" href="classdsl_1_1GridSearch.html#a00f5f3859a75f31e0312697e702cfc98">width</a>, int <a class="el" href="classdsl_1_1GridSearch.html#a765e59bd8afcd6cb983a9cee73d8ab12">height</a>, const double *<a class="el" href="classdsl_1_1GridSearch.html#acba55fef9aa96238a8047569b4c9aba0">map</a>=0, double <a class="el" href="classdsl_1_1GridSearch.html#af0815d65f819f2fb60d4e10b67c864f0">scale</a>=1.0, bool setup_edges=true)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdsl_1_1GridSearch.html#a5427c1868bffc97db0e05e84021cc8a5">GridSearch</a> (int <a class="el" href="classdsl_1_1GridSearch.html#a00f5f3859a75f31e0312697e702cfc98">width</a>, int <a class="el" href="classdsl_1_1GridSearch.html#a765e59bd8afcd6cb983a9cee73d8ab12">height</a>, <a class="el" href="classdsl_1_1EdgeCost.html">EdgeCost</a> *<a class="el" href="classdsl_1_1GridSearch.html#a9c31fcb8d40c09e2b36b06f827c8da73">edgeCost</a>, const double *<a class="el" href="classdsl_1_1GridSearch.html#acba55fef9aa96238a8047569b4c9aba0">map</a>=0, double <a class="el" href="classdsl_1_1GridSearch.html#af0815d65f819f2fb60d4e10b67c864f0">scale</a>=1.0)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdsl_1_1GridSearch.html#a7c319016f2d53252109857aaca2b09d3">~GridSearch</a> ()</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdsl_1_1GridSearch.html#a46cb7bc7076b53cad44d3bb6e64b4909">SetCost</a> (int x, int y, double <a class="el" href="classdsl_1_1GridSearch.html#ae4b06b2ddfc295598fcfe0da68f769ff">cost</a>)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdsl_1_1GridSearch.html#ac0f102bbb9cb82d6cc7c0b1760f7edca">GetCost</a> (int x, int y) const </td></tr>
@@ -98,7 +97,6 @@ Public Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classdsl_1_1Vertex.html">Vertex</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdsl_1_1GridSearch.html#a5ab3dea36f27a7d2c7ca4383e1e1b8e6">GetVertex</a> (int x, int y) const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdsl_1_1GridSearch.html#a1f31b1d17ca13143bd44b145f0629f6e">RemoveVertex</a> (int x, int y)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdsl_1_1GridSearch.html#a38bcbd68f597eda0a051f765e03b02fa">AddEdge</a> (int x1, int y1, int x2, int y2)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">virtual double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdsl_1_1GridSearch.html#ac903ddc2775df35bdb60d9c855841af9">CalcEdgeCost</a> (double v1cost, double v2cost, double elength)</td></tr>
 <tr><td colspan="2"><h2><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdsl_1_1GridSearch.html#a00f5f3859a75f31e0312697e702cfc98">width</a></td></tr>
@@ -115,6 +113,7 @@ Protected Attributes</h2></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">graph  <a href="#ad465ba46be970dae903d4d1c5ad76e35"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classdsl_1_1GridCost.html">GridCost</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdsl_1_1GridSearch.html#ae4b06b2ddfc295598fcfe0da68f769ff">cost</a></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">cost interface  <a href="#ae4b06b2ddfc295598fcfe0da68f769ff"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classdsl_1_1EdgeCost.html">EdgeCost</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdsl_1_1GridSearch.html#a9c31fcb8d40c09e2b36b06f827c8da73">edgeCost</a></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classdsl_1_1Vertex.html">Vertex</a> **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdsl_1_1GridSearch.html#aed8a4e7a0992fc9f9890b935a9182900">vertexMap</a></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">vertex grid array of size width*height  <a href="#aed8a4e7a0992fc9f9890b935a9182900"></a><br/></td></tr>
 <tr><td colspan="2"><h2><a name="pro-static-attribs"></a>
@@ -123,12 +122,12 @@ Static Protected Attributes</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">static const double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdsl_1_1GridSearch.html#ae89cc1dd3bd1adacd7e1e90dc22f8b25">NBR_COSTS_</a> [8] = {<a class="el" href="gridsearch3d_8cc.html#a514396dd60fa0621c83072091fb2a0cd">SQRT2</a>, 1.0, <a class="el" href="gridsearch3d_8cc.html#a514396dd60fa0621c83072091fb2a0cd">SQRT2</a>, 1.0, 1.0, <a class="el" href="gridsearch3d_8cc.html#a514396dd60fa0621c83072091fb2a0cd">SQRT2</a>, 1.0, <a class="el" href="gridsearch3d_8cc.html#a514396dd60fa0621c83072091fb2a0cd">SQRT2</a>}</td></tr>
 </table>
 <hr/><h2>Constructor &amp; Destructor Documentation</h2>
-<a class="anchor" id="aec6542d54f6c7d8e874d4f9c57d909ca"></a><!-- doxytag: member="dsl::GridSearch::GridSearch" ref="aec6542d54f6c7d8e874d4f9c57d909ca" args="(int width, int height, const double *map=0, double scale=1.0, bool setup_edges=true)" -->
+<a class="anchor" id="a5427c1868bffc97db0e05e84021cc8a5"></a><!-- doxytag: member="dsl::GridSearch::GridSearch" ref="a5427c1868bffc97db0e05e84021cc8a5" args="(int width, int height, EdgeCost *edgeCost, const double *map=0, double scale=1.0)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classdsl_1_1GridSearch.html#aec6542d54f6c7d8e874d4f9c57d909ca">GridSearch::GridSearch</a> </td>
+          <td class="memname"><a class="el" href="classdsl_1_1GridSearch.html#a5427c1868bffc97db0e05e84021cc8a5">GridSearch::GridSearch</a> </td>
           <td>(</td>
           <td class="paramtype">int&#160;</td>
           <td class="paramname"><em>width</em>, </td>
@@ -142,6 +141,12 @@ Static Protected Attributes</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype"><a class="el" href="classdsl_1_1EdgeCost.html">EdgeCost</a> *&#160;</td>
+          <td class="paramname"><em>edgeCost</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">const double *&#160;</td>
           <td class="paramname"><em>map</em> = <code>0</code>, </td>
         </tr>
@@ -149,13 +154,7 @@ Static Protected Attributes</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>scale</em> = <code>1.0</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>setup_edges</em> = <code>true</code>&#160;</td>
+          <td class="paramname"><em>scale</em> = <code>1.0</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -176,7 +175,7 @@ Static Protected Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p>References <a class="el" href="classdsl_1_1Graph.html#aa4c0322501870143cafbe86a0bc0859d">dsl::Graph::AddEdge()</a>, <a class="el" href="classdsl_1_1Graph.html#a2a76d7d84d7af2151c9c9b3af5a88b68">dsl::Graph::AddVertex()</a>, <a class="el" href="classdsl_1_1GridSearch.html#ac903ddc2775df35bdb60d9c855841af9">CalcEdgeCost()</a>, <a class="el" href="classdsl_1_1GridSearch.html#ad465ba46be970dae903d4d1c5ad76e35">graph</a>, <a class="el" href="classdsl_1_1GridSearch.html#a765e59bd8afcd6cb983a9cee73d8ab12">height</a>, <a class="el" href="classdsl_1_1GridSearch.html#ae89cc1dd3bd1adacd7e1e90dc22f8b25">NBR_COSTS_</a>, <a class="el" href="gridsearch_8h.html#a11a86d7f840460b5ff808e0882a8d5ca">NBR_COUNT</a>, <a class="el" href="classdsl_1_1GridSearch.html#a1dc22c927d6796c7171598a5c508b005">NBR_OFFSETS</a>, <a class="el" href="classdsl_1_1GridSearch.html#aed8a4e7a0992fc9f9890b935a9182900">vertexMap</a>, and <a class="el" href="classdsl_1_1GridSearch.html#a00f5f3859a75f31e0312697e702cfc98">width</a>.</p>
+<p>References <a class="el" href="classdsl_1_1Graph.html#aa4c0322501870143cafbe86a0bc0859d">dsl::Graph::AddEdge()</a>, <a class="el" href="classdsl_1_1Graph.html#a2a76d7d84d7af2151c9c9b3af5a88b68">dsl::Graph::AddVertex()</a>, <a class="el" href="classdsl_1_1EdgeCost.html#ae09d4d844afd0dda495013c4279ced33">dsl::EdgeCost::CalcEdgeCost()</a>, <a class="el" href="classdsl_1_1GridSearch.html#ad465ba46be970dae903d4d1c5ad76e35">graph</a>, <a class="el" href="classdsl_1_1GridSearch.html#a765e59bd8afcd6cb983a9cee73d8ab12">height</a>, <a class="el" href="classdsl_1_1GridSearch.html#ae89cc1dd3bd1adacd7e1e90dc22f8b25">NBR_COSTS_</a>, <a class="el" href="gridsearch_8cc.html#a11a86d7f840460b5ff808e0882a8d5ca">NBR_COUNT</a>, <a class="el" href="classdsl_1_1GridSearch.html#a1dc22c927d6796c7171598a5c508b005">NBR_OFFSETS</a>, <a class="el" href="classdsl_1_1GridSearch.html#aed8a4e7a0992fc9f9890b935a9182900">vertexMap</a>, and <a class="el" href="classdsl_1_1GridSearch.html#a00f5f3859a75f31e0312697e702cfc98">width</a>.</p>
 
 </div>
 </div>
@@ -247,46 +246,6 @@ Static Protected Attributes</h2></td></tr>
 </dl>
 
 <p>References <a class="el" href="classdsl_1_1Graph.html#aa4c0322501870143cafbe86a0bc0859d">dsl::Graph::AddEdge()</a>, <a class="el" href="classdsl_1_1GridSearch.html#a5ab3dea36f27a7d2c7ca4383e1e1b8e6">GetVertex()</a>, and <a class="el" href="classdsl_1_1GridSearch.html#ad465ba46be970dae903d4d1c5ad76e35">graph</a>.</p>
-
-</div>
-</div>
-<a class="anchor" id="ac903ddc2775df35bdb60d9c855841af9"></a><!-- doxytag: member="dsl::GridSearch::CalcEdgeCost" ref="ac903ddc2775df35bdb60d9c855841af9" args="(double v1cost, double v2cost, double elength)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">double <a class="el" href="classdsl_1_1GridSearch.html#ac903ddc2775df35bdb60d9c855841af9">GridSearch::CalcEdgeCost</a> </td>
-          <td>(</td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>v1cost</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>v2cost</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>elength</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td><code> [virtual]</code></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-<p>Calculates an augmented edge cost as a function of two vertex costs and the original edge cost param v1cost cost of "from" vertex param v2cost cost of "to" vertex param elength 2D distance between vertices </p>
-
-<p>Reimplemented in <a class="el" href="classdsl_1_1TravSearch.html#a053d3010eab8b70299ed437d542efdfb">dsl::TravSearch</a>.</p>
-
-<p>References <a class="el" href="gridsearch_8cc.html#afa99ec4acc4ecb2dc3c2d05da15d0e3f">MAX</a>, and <a class="el" href="classdsl_1_1GridSearch.html#af0815d65f819f2fb60d4e10b67c864f0">scale</a>.</p>
-
-<p>Referenced by <a class="el" href="classdsl_1_1GridSearch.html#aec6542d54f6c7d8e874d4f9c57d909ca">GridSearch()</a>, and <a class="el" href="classdsl_1_1GridSearch.html#a46cb7bc7076b53cad44d3bb6e64b4909">SetCost()</a>.</p>
 
 </div>
 </div>
@@ -516,7 +475,7 @@ Static Protected Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p>References <a class="el" href="classdsl_1_1GridSearch.html#ac903ddc2775df35bdb60d9c855841af9">CalcEdgeCost()</a>, <a class="el" href="classdsl_1_1Search.html#aa4633ccb38de011506d12c63b1dcf8a9">dsl::Search::ChangeCost()</a>, <a class="el" href="classdsl_1_1GridSearch.html#ae4b06b2ddfc295598fcfe0da68f769ff">cost</a>, <a class="el" href="classdsl_1_1Search.html#a97cf2c2745ef182fd27e99fadf0e7650">dsl::Search::Eq()</a>, <a class="el" href="classdsl_1_1GridSearch.html#ac0f102bbb9cb82d6cc7c0b1760f7edca">GetCost()</a>, <a class="el" href="classdsl_1_1Vertex.html#a0366cdb27e1674f10b033c5cad9cfe71">dsl::Vertex::in</a>, <a class="el" href="classdsl_1_1GridSearch.html#acba55fef9aa96238a8047569b4c9aba0">map</a>, <a class="el" href="classdsl_1_1Vertex.html#a8eece6b931c93f951100d2ab988c8666">dsl::Vertex::out</a>, <a class="el" href="classdsl_1_1GridSearch.html#aed8a4e7a0992fc9f9890b935a9182900">vertexMap</a>, and <a class="el" href="classdsl_1_1GridSearch.html#a00f5f3859a75f31e0312697e702cfc98">width</a>.</p>
+<p>References <a class="el" href="classdsl_1_1EdgeCost.html#ae09d4d844afd0dda495013c4279ced33">dsl::EdgeCost::CalcEdgeCost()</a>, <a class="el" href="classdsl_1_1Search.html#aa4633ccb38de011506d12c63b1dcf8a9">dsl::Search::ChangeCost()</a>, <a class="el" href="classdsl_1_1GridSearch.html#ae4b06b2ddfc295598fcfe0da68f769ff">cost</a>, <a class="el" href="classdsl_1_1GridSearch.html#a9c31fcb8d40c09e2b36b06f827c8da73">edgeCost</a>, <a class="el" href="classdsl_1_1Search.html#a97cf2c2745ef182fd27e99fadf0e7650">dsl::Search::Eq()</a>, <a class="el" href="classdsl_1_1GridSearch.html#ac0f102bbb9cb82d6cc7c0b1760f7edca">GetCost()</a>, <a class="el" href="classdsl_1_1Vertex.html#a0366cdb27e1674f10b033c5cad9cfe71">dsl::Vertex::in</a>, <a class="el" href="classdsl_1_1GridSearch.html#acba55fef9aa96238a8047569b4c9aba0">map</a>, <a class="el" href="classdsl_1_1Vertex.html#a8eece6b931c93f951100d2ab988c8666">dsl::Vertex::out</a>, <a class="el" href="classdsl_1_1GridSearch.html#af0815d65f819f2fb60d4e10b67c864f0">scale</a>, <a class="el" href="classdsl_1_1GridSearch.html#aed8a4e7a0992fc9f9890b935a9182900">vertexMap</a>, and <a class="el" href="classdsl_1_1GridSearch.html#a00f5f3859a75f31e0312697e702cfc98">width</a>.</p>
 
 <p>Referenced by <a class="el" href="test_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627">main()</a>, and <a class="el" href="classdsl_1_1GridSearch.html#adbb22cd4bfb7f5d223d4f5ac4d5c2a60">SetMap()</a>.</p>
 
@@ -646,6 +605,21 @@ Static Protected Attributes</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a9c31fcb8d40c09e2b36b06f827c8da73"></a><!-- doxytag: member="dsl::GridSearch::edgeCost" ref="a9c31fcb8d40c09e2b36b06f827c8da73" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classdsl_1_1EdgeCost.html">EdgeCost</a>* <a class="el" href="classdsl_1_1GridSearch.html#a9c31fcb8d40c09e2b36b06f827c8da73">dsl::GridSearch::edgeCost</a><code> [protected]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Referenced by <a class="el" href="classdsl_1_1GridSearch.html#a46cb7bc7076b53cad44d3bb6e64b4909">SetCost()</a>.</p>
+
+</div>
+</div>
 <a class="anchor" id="ad465ba46be970dae903d4d1c5ad76e35"></a><!-- doxytag: member="dsl::GridSearch::graph" ref="ad465ba46be970dae903d4d1c5ad76e35" args="" -->
 <div class="memitem">
 <div class="memproto">
@@ -661,7 +635,7 @@ Static Protected Attributes</h2></td></tr>
 
 <p>Reimplemented from <a class="el" href="classdsl_1_1Search.html#a41367e4af253eeb3aad5deaac1e31753">dsl::Search</a>.</p>
 
-<p>Referenced by <a class="el" href="classdsl_1_1GridSearch.html#a38bcbd68f597eda0a051f765e03b02fa">AddEdge()</a>, <a class="el" href="classdsl_1_1GridSearch.html#aec6542d54f6c7d8e874d4f9c57d909ca">GridSearch()</a>, <a class="el" href="classdsl_1_1GridSearch.html#a1f31b1d17ca13143bd44b145f0629f6e">RemoveVertex()</a>, and <a class="el" href="classdsl_1_1TravSearch.html#a7477da4cc72f1b04fa591b5f7e61591d">dsl::TravSearch::TravSearch()</a>.</p>
+<p>Referenced by <a class="el" href="classdsl_1_1GridSearch.html#a38bcbd68f597eda0a051f765e03b02fa">AddEdge()</a>, <a class="el" href="classdsl_1_1GridSearch.html#a5427c1868bffc97db0e05e84021cc8a5">GridSearch()</a>, and <a class="el" href="classdsl_1_1GridSearch.html#a1f31b1d17ca13143bd44b145f0629f6e">RemoveVertex()</a>.</p>
 
 </div>
 </div>
@@ -678,7 +652,7 @@ Static Protected Attributes</h2></td></tr>
 
 <p>height of cost grid </p>
 
-<p>Referenced by <a class="el" href="classdsl_1_1GridSearch.html#a5ab3dea36f27a7d2c7ca4383e1e1b8e6">GetVertex()</a>, <a class="el" href="classdsl_1_1GridSearch.html#aec6542d54f6c7d8e874d4f9c57d909ca">GridSearch()</a>, <a class="el" href="classdsl_1_1GridSearch.html#adbb22cd4bfb7f5d223d4f5ac4d5c2a60">SetMap()</a>, <a class="el" href="classdsl_1_1TravSearch.html#a7477da4cc72f1b04fa591b5f7e61591d">dsl::TravSearch::TravSearch()</a>, and <a class="el" href="classdsl_1_1GridSearch.html#a7c319016f2d53252109857aaca2b09d3">~GridSearch()</a>.</p>
+<p>Referenced by <a class="el" href="classdsl_1_1GridSearch.html#a5ab3dea36f27a7d2c7ca4383e1e1b8e6">GetVertex()</a>, <a class="el" href="classdsl_1_1GridSearch.html#a5427c1868bffc97db0e05e84021cc8a5">GridSearch()</a>, <a class="el" href="classdsl_1_1GridSearch.html#adbb22cd4bfb7f5d223d4f5ac4d5c2a60">SetMap()</a>, and <a class="el" href="classdsl_1_1GridSearch.html#a7c319016f2d53252109857aaca2b09d3">~GridSearch()</a>.</p>
 
 </div>
 </div>
@@ -710,7 +684,7 @@ Static Protected Attributes</h2></td></tr>
 </div>
 <div class="memdoc">
 
-<p>Referenced by <a class="el" href="classdsl_1_1GridSearch.html#aec6542d54f6c7d8e874d4f9c57d909ca">GridSearch()</a>, and <a class="el" href="classdsl_1_1TravSearch.html#a7477da4cc72f1b04fa591b5f7e61591d">dsl::TravSearch::TravSearch()</a>.</p>
+<p>Referenced by <a class="el" href="classdsl_1_1GridSearch.html#a5427c1868bffc97db0e05e84021cc8a5">GridSearch()</a>.</p>
 
 </div>
 </div>
@@ -725,7 +699,7 @@ Static Protected Attributes</h2></td></tr>
 </div>
 <div class="memdoc">
 
-<p>Referenced by <a class="el" href="classdsl_1_1GridSearch.html#aec6542d54f6c7d8e874d4f9c57d909ca">GridSearch()</a>, and <a class="el" href="classdsl_1_1TravSearch.html#a7477da4cc72f1b04fa591b5f7e61591d">dsl::TravSearch::TravSearch()</a>.</p>
+<p>Referenced by <a class="el" href="classdsl_1_1GridSearch.html#a5427c1868bffc97db0e05e84021cc8a5">GridSearch()</a>.</p>
 
 </div>
 </div>
@@ -742,7 +716,7 @@ Static Protected Attributes</h2></td></tr>
 
 <p>scale of each cell cost and each transition cost </p>
 
-<p>Referenced by <a class="el" href="classdsl_1_1TravSearch.html#a053d3010eab8b70299ed437d542efdfb">dsl::TravSearch::CalcEdgeCost()</a>, and <a class="el" href="classdsl_1_1GridSearch.html#ac903ddc2775df35bdb60d9c855841af9">CalcEdgeCost()</a>.</p>
+<p>Referenced by <a class="el" href="classdsl_1_1GridSearch.html#a46cb7bc7076b53cad44d3bb6e64b4909">SetCost()</a>.</p>
 
 </div>
 </div>
@@ -759,7 +733,7 @@ Static Protected Attributes</h2></td></tr>
 
 <p>vertex grid array of size width*height </p>
 
-<p>Referenced by <a class="el" href="classdsl_1_1GridSearch.html#a5ab3dea36f27a7d2c7ca4383e1e1b8e6">GetVertex()</a>, <a class="el" href="classdsl_1_1GridSearch.html#aec6542d54f6c7d8e874d4f9c57d909ca">GridSearch()</a>, <a class="el" href="classdsl_1_1GridSearch.html#a46cb7bc7076b53cad44d3bb6e64b4909">SetCost()</a>, <a class="el" href="classdsl_1_1GridSearch.html#a033cfbe8313ee845f2c0dd8b5113fe6b">SetGoal()</a>, <a class="el" href="classdsl_1_1GridSearch.html#a906aa657dffe9ee7a3d8f1493cf5889c">SetStart()</a>, <a class="el" href="classdsl_1_1TravSearch.html#a7477da4cc72f1b04fa591b5f7e61591d">dsl::TravSearch::TravSearch()</a>, and <a class="el" href="classdsl_1_1GridSearch.html#a7c319016f2d53252109857aaca2b09d3">~GridSearch()</a>.</p>
+<p>Referenced by <a class="el" href="classdsl_1_1GridSearch.html#a5ab3dea36f27a7d2c7ca4383e1e1b8e6">GetVertex()</a>, <a class="el" href="classdsl_1_1GridSearch.html#a5427c1868bffc97db0e05e84021cc8a5">GridSearch()</a>, <a class="el" href="classdsl_1_1GridSearch.html#a46cb7bc7076b53cad44d3bb6e64b4909">SetCost()</a>, <a class="el" href="classdsl_1_1GridSearch.html#a033cfbe8313ee845f2c0dd8b5113fe6b">SetGoal()</a>, <a class="el" href="classdsl_1_1GridSearch.html#a906aa657dffe9ee7a3d8f1493cf5889c">SetStart()</a>, and <a class="el" href="classdsl_1_1GridSearch.html#a7c319016f2d53252109857aaca2b09d3">~GridSearch()</a>.</p>
 
 </div>
 </div>
@@ -776,7 +750,7 @@ Static Protected Attributes</h2></td></tr>
 
 <p>width of cost grid </p>
 
-<p>Referenced by <a class="el" href="classdsl_1_1GridSearch.html#ac0f102bbb9cb82d6cc7c0b1760f7edca">GetCost()</a>, <a class="el" href="classdsl_1_1GridSearch.html#a5ab3dea36f27a7d2c7ca4383e1e1b8e6">GetVertex()</a>, <a class="el" href="classdsl_1_1GridSearch.html#aec6542d54f6c7d8e874d4f9c57d909ca">GridSearch()</a>, <a class="el" href="classdsl_1_1GridSearch.html#a8487c49c0c2a674a1b9fbe5fbdff643c">OptPath()</a>, <a class="el" href="classdsl_1_1GridSearch.html#a46cb7bc7076b53cad44d3bb6e64b4909">SetCost()</a>, <a class="el" href="classdsl_1_1GridSearch.html#a033cfbe8313ee845f2c0dd8b5113fe6b">SetGoal()</a>, <a class="el" href="classdsl_1_1GridSearch.html#adbb22cd4bfb7f5d223d4f5ac4d5c2a60">SetMap()</a>, <a class="el" href="classdsl_1_1GridSearch.html#a906aa657dffe9ee7a3d8f1493cf5889c">SetStart()</a>, <a class="el" href="classdsl_1_1TravSearch.html#a7477da4cc72f1b04fa591b5f7e61591d">dsl::TravSearch::TravSearch()</a>, and <a class="el" href="classdsl_1_1GridSearch.html#a7c319016f2d53252109857aaca2b09d3">~GridSearch()</a>.</p>
+<p>Referenced by <a class="el" href="classdsl_1_1GridSearch.html#ac0f102bbb9cb82d6cc7c0b1760f7edca">GetCost()</a>, <a class="el" href="classdsl_1_1GridSearch.html#a5ab3dea36f27a7d2c7ca4383e1e1b8e6">GetVertex()</a>, <a class="el" href="classdsl_1_1GridSearch.html#a5427c1868bffc97db0e05e84021cc8a5">GridSearch()</a>, <a class="el" href="classdsl_1_1GridSearch.html#a8487c49c0c2a674a1b9fbe5fbdff643c">OptPath()</a>, <a class="el" href="classdsl_1_1GridSearch.html#a46cb7bc7076b53cad44d3bb6e64b4909">SetCost()</a>, <a class="el" href="classdsl_1_1GridSearch.html#a033cfbe8313ee845f2c0dd8b5113fe6b">SetGoal()</a>, <a class="el" href="classdsl_1_1GridSearch.html#adbb22cd4bfb7f5d223d4f5ac4d5c2a60">SetMap()</a>, <a class="el" href="classdsl_1_1GridSearch.html#a906aa657dffe9ee7a3d8f1493cf5889c">SetStart()</a>, and <a class="el" href="classdsl_1_1GridSearch.html#a7c319016f2d53252109857aaca2b09d3">~GridSearch()</a>.</p>
 
 </div>
 </div>
@@ -788,7 +762,7 @@ Static Protected Attributes</h2></td></tr>
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Apr 21 2015 01:50:29 for D*Lite by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Apr 21 2015 12:00:37 for D*Lite by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.7.6.1
 </small></address>
