@@ -11,6 +11,7 @@
 
 #include "search.h"
 #include "gridcost.h"
+#include "edgecost.h"
 
 /**
  *  Grid based D* Lite, extends graph-based D* Lite.
@@ -45,10 +46,6 @@
 namespace dsl {
 
 
-  // cell neighbor connectivity
-  // this can be either 4 (faster,less accurate) or 8 (slower, more accurate) 
-  #define NBR_COUNT 8
-  #define SQRT2 1.414213562373095
 
   /**
    *  Path containing a list of grid points
@@ -77,7 +74,7 @@ namespace dsl {
      * @param map a double array of size width*height containing occupancy info (optional)
      * @param scale the size of each cell (default is 1.0)
      */
-    GridSearch(int width, int height, const double *map = 0, double scale = 1.0, bool setup_edges = true);
+    GridSearch(int width, int height, EdgeCost* edgeCost, const double *map = 0, double scale = 1.0);
     
     
     virtual ~GridSearch();
@@ -162,15 +159,6 @@ namespace dsl {
      */    
     void AddEdge(int x1, int y1, int x2, int y2);
 
-    /**
-     * Calculates an augmented edge cost as a function of two vertex costs and the original edge cost
-     * param v1cost cost of "from" vertex  
-     * param v2cost cost of "to" vertex  
-     * param elength 2D distance between vertices
-     */
-    virtual double CalcEdgeCost(double v1cost, double v2cost, double elength);
-    
-
     int width;                         ///< width of cost grid
     int height;                        ///< height of cost grid
     double scale;                      ///< scale of each cell cost and each transition cost
@@ -183,6 +171,7 @@ namespace dsl {
 
     Graph graph;
     GridCost cost;
+    EdgeCost* edgeCost;
   
     Vertex **vertexMap;                ///< vertex grid array of size width*height
   };

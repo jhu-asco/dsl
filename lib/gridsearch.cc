@@ -17,14 +17,20 @@ using namespace std;
 using namespace dsl;
 
 #define MAX(a,b) (a>b?a:b)
+// cell neighbor connectivity
+// this can be either 4 (faster,less accurate) or 8 (slower, more accurate) 
+#define NBR_COUNT 8
+#define SQRT2 1.414213562373095
+
 const int GridSearch::NBR_OFFSETS[8*2] = {-1,-1, 0,-1, 1,-1, -1,0, 1,0, -1,1, 0,1 ,1,1};
 const double GridSearch::NBR_COSTS_[8] = {SQRT2,  1.0, SQRT2, 1.0, 1.0, SQRT2, 1.0, SQRT2};
 
-GridSearch::GridSearch(int width, int height, const double *map, double scale, bool setup_edges) : 
+GridSearch::GridSearch(int width, int height, EdgeCost* edgeCost, const double *map, double scale) : 
   Search(graph, cost),
   width(width),
   height(height), 
-  scale(scale)
+  scale(scale),
+  edgeCost(edgeCost)
 {
   int x, y, i, nbr, nx, ny, ni;
   int* pos;
@@ -55,46 +61,36 @@ GridSearch::GridSearch(int width, int height, const double *map, double scale, b
   }
 
 
-  if(setup_edges)
-  {
-    // create all edges
-    i = 0;
-    for (y = 0; y < height; ++y) {
-      for (x = 0; x < width; ++x, ++i) {    
-        for (nbr = 0; nbr < NBR_COUNT; ++nbr) {
-          nx = x + NBR_OFFSETS[2*nbr];
-          ny = y + NBR_OFFSETS[2*nbr+1];
-          if (nx < 0 || ny < 0 || nx >= width || ny >= height)
-            continue;
-          ni = ny*width + nx;
-          // create an edge b/n vertices at pos. i and ni
+  // create all edges
+  i = 0;
+  for (y = 0; y < height; ++y) {
+    for (x = 0; x < width; ++x, ++i) {    
+      for (nbr = 0; nbr < NBR_COUNT; ++nbr) {
+        nx = x + NBR_OFFSETS[2*nbr];
+        ny = y + NBR_OFFSETS[2*nbr+1];
+        if (nx < 0 || ny < 0 || nx >= width || ny >= height)
+          continue;
+        ni = ny*width + nx;
+        // create an edge b/n vertices at pos. i and ni
 
-          Vertex *from = vertexMap[i];
-          Vertex *to = vertexMap[ni];
+        Vertex *from = vertexMap[i];
+        Vertex *to = vertexMap[ni];
         
-          double ecost = CalcEdgeCost(this->map[i], this->map[ni], NBR_COSTS_[nbr]);
-          assert(ecost >= 0);
-          //Edge* edge = new Edge(from, to, scale*(MAX(this->map[i], this->map[ni]) + NBR_COSTS_[nbr]));
-          Edge* edge = new Edge(from, to, ecost);
+        double ecost = edgeCost->CalcEdgeCost(this->map[i], this->map[ni], NBR_COSTS_[nbr]);
+        assert(ecost >= 0);
+        //Edge* edge = new Edge(from, to, scale*(MAX(this->map[i], this->map[ni]) + NBR_COSTS_[nbr]));
+        Edge* edge = new Edge(from, to, scale*ecost);
         
 
-          graph.AddEdge(*edge);
-
-          //        from->out[edge->id] = edge;
-          //        to->in[edge->id] = edge;
-          //        edges.push_back(edge);
+        graph.AddEdge(*edge);
+        //        from->out[edge->id] = edge;
+        //        to->in[edge->id] = edge;
+        //        edges.push_back(edge);
         
-        }
       }
     }
   }
 }
-
-double GridSearch::CalcEdgeCost(double v1cost, double v2cost, double elength)
-{
-  return scale*(MAX(v1cost, v2cost) + elength);
-}
-
 
 void GridSearch::AddEdge(int x1, int y1, int x2, int y2)
 {  
@@ -165,9 +161,9 @@ void GridSearch::SetCost(int x, int y, double cost)
     int dx = x-pos[0];
     int dy = y-pos[1];
     
-    double ecost = CalcEdgeCost(GetCost(pos[0], pos[1]), cost, sqrt(dx*dx + dy*dy));
+    double ecost = edgeCost->CalcEdgeCost(GetCost(pos[0], pos[1]), cost, sqrt(dx*dx + dy*dy));
     assert(ecost >= 0);
-    ChangeCost(*ein->second, ecost);
+    ChangeCost(*ein->second, scale*ecost);
   }
 
   for (;eout != vertexMap[i]->out.end(); eout++)
@@ -177,9 +173,9 @@ void GridSearch::SetCost(int x, int y, double cost)
     int dx = x-pos[0];
     int dy = y-pos[1];
 
-    double ecost = CalcEdgeCost(GetCost(pos[0], pos[1]), cost, sqrt(dx*dx + dy*dy));
+    double ecost = edgeCost->CalcEdgeCost(GetCost(pos[0], pos[1]), cost, sqrt(dx*dx + dy*dy));
     assert(ecost >= 0);
-    ChangeCost(*eout->second, ecost);
+    ChangeCost(*eout->second, scale*ecost);
   }
   //for (;ein != vertexMap[i]->in.end(); ein++)
   //  ChangeCost(*ein->second, cost > 10 ? 10000 : 0);
