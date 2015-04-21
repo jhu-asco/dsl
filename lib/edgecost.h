@@ -25,9 +25,9 @@ namespace dsl {
     
     /**
      * Calculates the cost (usually a height) gradient between two vertices.
-     * param v1cost cost of "from" vertex  
-     * param v2cost cost of "to" vertex  
-     * param ecost cost of edge
+     * @param v1cost cost of "from" vertex  
+     * @param v2cost cost of "to" vertex  
+     * @param ecost cost of edge
      */
     virtual double CalcEdgeCost(double v1cost, double v2cost, double elength) = 0;
   };
