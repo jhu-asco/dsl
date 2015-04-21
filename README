@@ -1,1 +1,0 @@
-To generate html documentation, use "make doc".  The files will be output to the docs subdirectory in your build folder.

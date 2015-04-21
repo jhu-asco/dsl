@@ -1,0 +1,42 @@
+\section{/home/matt/dsl/lib/gridsearch3d.h \-File \-Reference}
+\label{gridsearch3d_8h}\index{/home/matt/dsl/lib/gridsearch3d.\-h@{/home/matt/dsl/lib/gridsearch3d.\-h}}
+{\ttfamily \#include $<$iostream$>$}\*
+{\ttfamily \#include \char`\"{}search.\-h\char`\"{}}\*
+{\ttfamily \#include \char`\"{}gridcost3d.\-h\char`\"{}}\*
+\subsection*{\-Classes}
+\begin{DoxyCompactItemize}
+\item 
+class {\bf dsl\-::\-Grid\-Path3\-D}
+\item 
+class {\bf dsl\-::\-Grid\-Path3\-D\-Plus\-Time}
+\item 
+class {\bf dsl\-::\-Grid\-Search3\-D}
+\end{DoxyCompactItemize}
+\subsection*{\-Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace {\bf dsl}
+\end{DoxyCompactItemize}
+\subsection*{\-Defines}
+\begin{DoxyCompactItemize}
+\item 
+\#define {\bf \-D\-S\-L3\-D\-\_\-\-O\-C\-C\-U\-P\-I\-E\-D}~1e10
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Define \-Documentation}
+\index{gridsearch3d.\-h@{gridsearch3d.\-h}!\-D\-S\-L3\-D\-\_\-\-O\-C\-C\-U\-P\-I\-E\-D@{\-D\-S\-L3\-D\-\_\-\-O\-C\-C\-U\-P\-I\-E\-D}}
+\index{\-D\-S\-L3\-D\-\_\-\-O\-C\-C\-U\-P\-I\-E\-D@{\-D\-S\-L3\-D\-\_\-\-O\-C\-C\-U\-P\-I\-E\-D}!gridsearch3d.h@{gridsearch3d.\-h}}
+\subsubsection[{\-D\-S\-L3\-D\-\_\-\-O\-C\-C\-U\-P\-I\-E\-D}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-D\-S\-L3\-D\-\_\-\-O\-C\-C\-U\-P\-I\-E\-D}~1e10}\label{gridsearch3d_8h_a82dc4d23dd619ee2c37f8bf2e15a34a3}
+\-Grid based \-D$\ast$ \-Lite in 3\-D, extends graph-\/based \-D$\ast$ \-Lite. \-The class maps grid cell costs and the transition costs b/n two cells into graph edge costs of the base \-Search class
+
+\-The cell transition costs are hardcoded as the euclidean distance b/n the centers of the cells (i.\-e. each cell has 26 neighbors) \-These transition costs are added to the maximum of the values of two neighboring cells to compute the cost of their connecting edge. \-Finally that cost is multiplied by the variable scale.
+
+\-The planner is used as follows\-:
+
+1) \-Grid\-Search3\-D(map, width, height) 2) \-Set\-Start(x, y) 3) \-Set\-Goal(x, y) 4) \-Plan(path) and \-Opt\-Path(path, opt\-Path) -\/-\/ to plan a path and optimize it 5) follow path until map changes are observed 6) for each change\-: \-Set\-Cost(x, y, cost) or change the whole map\-: \-Set\-Map(map) 7) \-Set\-Start(x,y) -\/-\/ change the start to the current robot position 8) goto 4
+
+\-Author\-: \-Matt \-Sheckells (c) 2014 msheckells(at)jhu.\-edu 
+
+\-Referenced by dsl\-::\-Grid\-Search3\-D\-::\-Get\-Cost(), dsl\-::\-Grid\-Search3\-D\-::\-Opt\-Path(), and dsl\-::\-Grid\-Search3\-D\-::\-Smooth\-Path\-Opt\-Cost().
+

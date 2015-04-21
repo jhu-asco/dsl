@@ -1,0 +1,85 @@
+\section{dsl\-:\-:\-Grid\-Cost3\-D \-Class \-Reference}
+\label{classdsl_1_1GridCost3D}\index{dsl\-::\-Grid\-Cost3\-D@{dsl\-::\-Grid\-Cost3\-D}}
+
+
+{\ttfamily \#include $<$gridcost3d.\-h$>$}
+
+\-Inheritance diagram for dsl\-:\-:\-Grid\-Cost3\-D\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classdsl_1_1GridCost3D}
+\end{center}
+\end{figure}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+double {\bf \-Heur} (const {\bf \-Vertex} \&va, const {\bf \-Vertex} \&vb) const 
+\item 
+double {\bf \-Real} (const {\bf \-Vertex} \&va, const {\bf \-Vertex} \&vb) const 
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+3\-D \-Grid cost interface.
+
+\-Author\-: \-Marin \-Kobilarov -\/-\/ \-Copyright (\-C) 2004 
+
+\subsection{\-Member \-Function \-Documentation}
+\index{dsl\-::\-Grid\-Cost3\-D@{dsl\-::\-Grid\-Cost3\-D}!\-Heur@{\-Heur}}
+\index{\-Heur@{\-Heur}!dsl::GridCost3D@{dsl\-::\-Grid\-Cost3\-D}}
+\subsubsection[{\-Heur}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf \-Grid\-Cost3\-D\-::\-Heur} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Vertex} \&}]{va, }
+\item[{const {\bf \-Vertex} \&}]{vb}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily  [virtual]}}\label{classdsl_1_1GridCost3D_a3bb22c4a85612a3dfa47d443fb75efff}
+\-Heuristic distance (should be admissible, i.\-e. less than the real minimum distance) b/n two vertices. \-Subclasses must provide this function 
+\begin{DoxyParams}{\-Parameters}
+{\em va} & first vertex \\
+\hline
+{\em vb} & second vertex \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+heuristic distance (optimal cost) 
+\end{DoxyReturn}
+
+
+\-Implements {\bf dsl\-::\-Cost} \doxyref{}{p.}{classdsl_1_1Cost_a585a274e68a75de0c9ede55864d6e845}.
+
+
+
+\-References dsl\-::\-Vertex\-::data, and \-M\-A\-X.
+
+\index{dsl\-::\-Grid\-Cost3\-D@{dsl\-::\-Grid\-Cost3\-D}!\-Real@{\-Real}}
+\index{\-Real@{\-Real}!dsl::GridCost3D@{dsl\-::\-Grid\-Cost3\-D}}
+\subsubsection[{\-Real}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf \-Grid\-Cost3\-D\-::\-Real} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Vertex} \&}]{va, }
+\item[{const {\bf \-Vertex} \&}]{vb}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily  [virtual]}}\label{classdsl_1_1GridCost3D_a6c5ee4a7157f48061284bdcf9deb2b2b}
+\-Real best possible distance b/n two vertices. \-Subclasses should optionally provide this function. \-By default it is the heuristic function + epsilon 
+\begin{DoxyParams}{\-Parameters}
+{\em va} & first vertex \\
+\hline
+{\em vb} & second vertex \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+real minimum possible cost b/n va and vb 
+\end{DoxyReturn}
+
+
+\-Reimplemented from {\bf dsl\-::\-Cost} \doxyref{}{p.}{classdsl_1_1Cost_a92a686af3e0d416d6f3b03eb1fa1c570}.
+
+
+
+\-References dsl\-::\-Vertex\-::data.
+
+
+
+\-The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+/home/matt/dsl/lib/{\bf gridcost3d.\-h}\item 
+/home/matt/dsl/lib/{\bf gridcost3d.\-cc}\end{DoxyCompactItemize}

@@ -1,0 +1,528 @@
+\section{dsl\-:\-:\-Grid\-Search3\-D \-Class \-Reference}
+\label{classdsl_1_1GridSearch3D}\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}}
+
+
+{\ttfamily \#include $<$gridsearch3d.\-h$>$}
+
+\-Inheritance diagram for dsl\-:\-:\-Grid\-Search3\-D\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classdsl_1_1GridSearch3D}
+\end{center}
+\end{figure}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+{\bf \-Grid\-Search3\-D} (int {\bf length}, int {\bf width}, int {\bf height}, const double $\ast${\bf map}=0, double {\bf scale}=1.\-0)
+\item 
+virtual {\bf $\sim$\-Grid\-Search3\-D} ()
+\item 
+void {\bf \-Set\-Cost} (int x, int y, int z, double {\bf cost})
+\item 
+double {\bf \-Get\-Cost} (int x, int y, int z) const 
+\item 
+void {\bf \-Set\-Map} (const double $\ast${\bf map})
+\item 
+void {\bf \-Set\-Start} (int x, int y, int z)
+\item 
+void {\bf \-Set\-Goal} (int x, int y, int z)
+\item 
+void {\bf \-Plan} ({\bf \-Grid\-Path3\-D} \&path)
+\item 
+void {\bf \-Opt\-Path} (const {\bf \-Grid\-Path3\-D} \&path, {\bf \-Grid\-Path3\-D} \&opt\-Path) const 
+\item 
+void {\bf \-Smooth\-Path\-Bezier} (const {\bf \-Grid\-Path3\-D} \&path, {\bf \-Grid\-Path3\-D} \&smooth\-Path, double smoothness) const 
+\item 
+void {\bf \-Smooth\-Path\-Spline} (const {\bf \-Grid\-Path3\-D} \&path, {\bf \-Grid\-Path3\-D\-Plus\-Time} \&smooth\-Path, double v, double time\-Step) const 
+\item 
+void {\bf \-Smooth\-Path\-Opt\-Cost} (const {\bf \-Grid\-Path3\-D} \&path, {\bf \-Grid\-Path3\-D\-Plus\-Time} \&smooth\-Path, double v, double time\-Step) const 
+\item 
+{\bf \-Vertex} $\ast$ {\bf \-Get\-Vertex} (int x, int y, int z) const 
+\item 
+void {\bf \-Remove\-Vertex} (int x, int y, int z)
+\item 
+void {\bf \-Add\-Edge} (int x1, int y1, int z1, int x2, int y2, int z2)
+\end{DoxyCompactItemize}
+\subsection*{\-Public \-Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int {\bf length}
+\begin{DoxyCompactList}\small\item\em length of cost grid \end{DoxyCompactList}\item 
+int {\bf width}
+\begin{DoxyCompactList}\small\item\em width of cost grid \end{DoxyCompactList}\item 
+int {\bf height}
+\begin{DoxyCompactList}\small\item\em height of cost grid \end{DoxyCompactList}\item 
+double {\bf scale}
+\begin{DoxyCompactList}\small\item\em scale of each cell cost and each transition cost \end{DoxyCompactList}\item 
+double $\ast$ {\bf map}
+\begin{DoxyCompactList}\small\item\em cost grid array of size width$\ast$height \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{\-Protected \-Attributes}
+\begin{DoxyCompactItemize}
+\item 
+{\bf \-Graph} {\bf graph}
+\begin{DoxyCompactList}\small\item\em graph \end{DoxyCompactList}\item 
+{\bf \-Grid\-Cost3\-D} {\bf cost}
+\begin{DoxyCompactList}\small\item\em cost interface \end{DoxyCompactList}\item 
+{\bf \-Vertex} $\ast$$\ast$ {\bf vertex\-Map}
+\begin{DoxyCompactList}\small\item\em vertex grid array of size width$\ast$height \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{\-Constructor \& \-Destructor \-Documentation}
+\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}!\-Grid\-Search3\-D@{\-Grid\-Search3\-D}}
+\index{\-Grid\-Search3\-D@{\-Grid\-Search3\-D}!dsl::GridSearch3D@{dsl\-::\-Grid\-Search3\-D}}
+\subsubsection[{\-Grid\-Search3\-D}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Grid\-Search3\-D\-::\-Grid\-Search3\-D} (
+\begin{DoxyParamCaption}
+\item[{int}]{length, }
+\item[{int}]{width, }
+\item[{int}]{height, }
+\item[{const double $\ast$}]{map = {\ttfamily 0}, }
+\item[{double}]{scale = {\ttfamily 1.0}}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1GridSearch3D_a762887dcb2d68e006d85742861acbbe5}
+\-The planner allocates all states in the beginning a valid map of size length$\ast$width$\ast$height should be provided scale is used to multiply each cell value and each neighbor transition value before they are used for planning 
+\begin{DoxyParams}{\-Parameters}
+{\em length} & length \\
+\hline
+{\em width} & width \\
+\hline
+{\em height} & height \\
+\hline
+{\em map} & a double array of size length$\ast$width$\ast$height containing occupancy info (optional) \\
+\hline
+{\em scale} & the size of each cell (default is 1.\-0) \\
+\hline
+\end{DoxyParams}
+
+
+\-References dsl\-::\-Graph\-::\-Add\-Edge(), dsl\-::\-Graph\-::\-Add\-Vertex(), graph, height, length, \-M\-A\-X, \-N\-B\-R\-\_\-\-C\-O\-U\-N\-T, vertex\-Map, and width.
+
+\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}!$\sim$\-Grid\-Search3\-D@{$\sim$\-Grid\-Search3\-D}}
+\index{$\sim$\-Grid\-Search3\-D@{$\sim$\-Grid\-Search3\-D}!dsl::GridSearch3D@{dsl\-::\-Grid\-Search3\-D}}
+\subsubsection[{$\sim$\-Grid\-Search3\-D}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Grid\-Search3\-D\-::$\sim$\-Grid\-Search3\-D} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  [virtual]}}\label{classdsl_1_1GridSearch3D_a07719281fe2ad4119f777c52432c81fb}
+
+
+\-References dsl\-::\-Vertex\-::data, height, length, map, vertex\-Map, and width.
+
+
+
+\subsection{\-Member \-Function \-Documentation}
+\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}!\-Add\-Edge@{\-Add\-Edge}}
+\index{\-Add\-Edge@{\-Add\-Edge}!dsl::GridSearch3D@{dsl\-::\-Grid\-Search3\-D}}
+\subsubsection[{\-Add\-Edge}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Grid\-Search3\-D\-::\-Add\-Edge} (
+\begin{DoxyParamCaption}
+\item[{int}]{x1, }
+\item[{int}]{y1, }
+\item[{int}]{z1, }
+\item[{int}]{x2, }
+\item[{int}]{y2, }
+\item[{int}]{z2}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1GridSearch3D_a578583a53363ed7b5899eacfb7a09977}
+\-Useful method for adding edges b/n vertices 
+\begin{DoxyParams}{\-Parameters}
+{\em x1} & from x-\/coordiante \\
+\hline
+{\em y1} & from y-\/coordiante \\
+\hline
+{\em z1} & from z-\/coordiante \\
+\hline
+{\em x2} & to x-\/coordiante \\
+\hline
+{\em y2} & to y-\/coordiante \\
+\hline
+{\em z2} & to z-\/coordiante \\
+\hline
+\end{DoxyParams}
+
+
+\-References dsl\-::\-Graph\-::\-Add\-Edge(), \-Get\-Cost(), \-Get\-Vertex(), graph, \-M\-A\-X, and scale.
+
+\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}!\-Get\-Cost@{\-Get\-Cost}}
+\index{\-Get\-Cost@{\-Get\-Cost}!dsl::GridSearch3D@{dsl\-::\-Grid\-Search3\-D}}
+\subsubsection[{\-Get\-Cost}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf \-Grid\-Search3\-D\-::\-Get\-Cost} (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y, }
+\item[{int}]{z}
+\end{DoxyParamCaption}
+) const}\label{classdsl_1_1GridSearch3D_a9f5b44270c3a100d44b11be3148a2436}
+\-Get the cost of an individual cell 
+\begin{DoxyParams}{\-Parameters}
+{\em x} & x \\
+\hline
+{\em y} & y \\
+\hline
+{\em z} & z \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+cost 
+\end{DoxyReturn}
+
+
+\-References \-D\-S\-L3\-D\-\_\-\-O\-C\-C\-U\-P\-I\-E\-D, height, length, map, and width.
+
+
+
+\-Referenced by \-Add\-Edge(), \-Set\-Cost(), and \-Smooth\-Path\-Opt\-Cost().
+
+\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}!\-Get\-Vertex@{\-Get\-Vertex}}
+\index{\-Get\-Vertex@{\-Get\-Vertex}!dsl::GridSearch3D@{dsl\-::\-Grid\-Search3\-D}}
+\subsubsection[{\-Get\-Vertex}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Vertex} $\ast$ {\bf \-Grid\-Search3\-D\-::\-Get\-Vertex} (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y, }
+\item[{int}]{z}
+\end{DoxyParamCaption}
+) const}\label{classdsl_1_1GridSearch3D_a6f29ccb57caab3966b4fa2abc737d171}
+\-Useful method to get the graph vertex at position (x,y) 
+\begin{DoxyParams}{\-Parameters}
+{\em x} & x-\/coordinate \\
+\hline
+{\em y} & y-\/coordinate \\
+\hline
+{\em z} & z-\/coordinate \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+corresponding vertex or 0 if none there 
+\end{DoxyReturn}
+
+
+\-References height, length, vertex\-Map, and width.
+
+
+
+\-Referenced by \-Add\-Edge(), \-Remove\-Vertex(), \-Set\-Goal(), and \-Set\-Start().
+
+\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}!\-Opt\-Path@{\-Opt\-Path}}
+\index{\-Opt\-Path@{\-Opt\-Path}!dsl::GridSearch3D@{dsl\-::\-Grid\-Search3\-D}}
+\subsubsection[{\-Opt\-Path}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Grid\-Search3\-D\-::\-Opt\-Path} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Grid\-Path3\-D} \&}]{path, }
+\item[{{\bf \-Grid\-Path3\-D} \&}]{opt\-Path}
+\end{DoxyParamCaption}
+) const}\label{classdsl_1_1GridSearch3D_a9a2c518c60958e7a010fceeb3c45081b}
+\-Optimize the path produced by \-Plan 
+\begin{DoxyParams}{\-Parameters}
+{\em path} & an initial obstacle-\/free path (e.\-g. one produced by calling \-Plan(path)) \\
+\hline
+{\em opt\-Path} & a new path resulting from optimizing the original path path (i.\-e. a producing a shorter path with minimal number of obstacle-\/free segments) \\
+\hline
+\end{DoxyParams}
+
+
+\-References dsl\-::\-Grid\-Path3\-D\-::count, \-D\-S\-L3\-D\-\_\-\-O\-C\-C\-U\-P\-I\-E\-D, dsl\-::\-Grid\-Path3\-D\-::len, length, map, dsl\-::\-Grid\-Path3\-D\-::pos, \-R\-A\-Y\-\_\-\-T\-R\-A\-C\-E\-\_\-\-S\-T\-E\-P, and width.
+
+\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}!\-Plan@{\-Plan}}
+\index{\-Plan@{\-Plan}!dsl::GridSearch3D@{dsl\-::\-Grid\-Search3\-D}}
+\subsubsection[{\-Plan}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Grid\-Search3\-D\-::\-Plan} (
+\begin{DoxyParamCaption}
+\item[{{\bf \-Grid\-Path3\-D} \&}]{path}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1GridSearch3D_a64e2a08dc55d5cc13b8e4fc7fee574f6}
+\-Compute path b/n start and goal vertices these vertices should be already set 
+\begin{DoxyParams}{\-Parameters}
+{\em path} & the resulting path \\
+\hline
+\end{DoxyParams}
+
+
+\-References dsl\-::\-Grid\-Path3\-D\-::count, dsl\-::\-Vertex\-::data, dsl\-::\-Grid\-Path3\-D\-::len, dsl\-::\-Vertex\-::next, dsl\-::\-Search\-::\-Plan(), dsl\-::\-Grid\-Path3\-D\-::pos, and dsl\-::\-Search\-::start.
+
+\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}!\-Remove\-Vertex@{\-Remove\-Vertex}}
+\index{\-Remove\-Vertex@{\-Remove\-Vertex}!dsl::GridSearch3D@{dsl\-::\-Grid\-Search3\-D}}
+\subsubsection[{\-Remove\-Vertex}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Grid\-Search3\-D\-::\-Remove\-Vertex} (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y, }
+\item[{int}]{z}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1GridSearch3D_a531b957174801aba03df816858efdc79}
+\-Useful method to remove a vertex at (x,y) 
+\begin{DoxyParams}{\-Parameters}
+{\em x} & x-\/coordinate \\
+\hline
+{\em y} & y-\/coordinate \\
+\hline
+{\em z} & z-\/coordinate \\
+\hline
+\end{DoxyParams}
+
+
+\-References \-Get\-Vertex(), graph, and dsl\-::\-Graph\-::\-Remove\-Vertex().
+
+\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}!\-Set\-Cost@{\-Set\-Cost}}
+\index{\-Set\-Cost@{\-Set\-Cost}!dsl::GridSearch3D@{dsl\-::\-Grid\-Search3\-D}}
+\subsubsection[{\-Set\-Cost}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Grid\-Search3\-D\-::\-Set\-Cost} (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y, }
+\item[{int}]{z, }
+\item[{double}]{cost}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1GridSearch3D_ab77662f0b4acac1831fa89251b19dc82}
+\-Change the cost of an individual cell 
+\begin{DoxyParams}{\-Parameters}
+{\em x} & x-\/coordinate \\
+\hline
+{\em y} & y-\/coordinate \\
+\hline
+{\em z} & z-\/coordinate \\
+\hline
+{\em cost} & cost \\
+\hline
+\end{DoxyParams}
+
+
+\-References dsl\-::\-Search\-::\-Change\-Cost(), cost, dsl\-::\-Search\-::\-Eq(), \-Get\-Cost(), dsl\-::\-Vertex\-::in, length, map, \-M\-A\-X, dsl\-::\-Vertex\-::out, scale, vertex\-Map, and width.
+
+
+
+\-Referenced by \-Set\-Map().
+
+\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}!\-Set\-Goal@{\-Set\-Goal}}
+\index{\-Set\-Goal@{\-Set\-Goal}!dsl::GridSearch3D@{dsl\-::\-Grid\-Search3\-D}}
+\subsubsection[{\-Set\-Goal}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Grid\-Search3\-D\-::\-Set\-Goal} (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y, }
+\item[{int}]{z}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1GridSearch3D_a2ae259ead527bb1ce03e98537362a956}
+\-Set goal location in the map 
+\begin{DoxyParams}{\-Parameters}
+{\em x} & x-\/coord \\
+\hline
+{\em y} & y-\/coord \\
+\hline
+{\em z} & z-\/coord \\
+\hline
+\end{DoxyParams}
+
+
+\-References \-Get\-Vertex().
+
+\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}!\-Set\-Map@{\-Set\-Map}}
+\index{\-Set\-Map@{\-Set\-Map}!dsl::GridSearch3D@{dsl\-::\-Grid\-Search3\-D}}
+\subsubsection[{\-Set\-Map}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Grid\-Search3\-D\-::\-Set\-Map} (
+\begin{DoxyParamCaption}
+\item[{const double $\ast$}]{map}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1GridSearch3D_a11ead66a75931f61e5f1c37c6453688c}
+\-Change the costs of all cells at once 
+\begin{DoxyParams}{\-Parameters}
+{\em map} & a length$\ast$width$\ast$height double array containing occupancy data \\
+\hline
+\end{DoxyParams}
+
+
+\-References height, length, \-Set\-Cost(), and width.
+
+\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}!\-Set\-Start@{\-Set\-Start}}
+\index{\-Set\-Start@{\-Set\-Start}!dsl::GridSearch3D@{dsl\-::\-Grid\-Search3\-D}}
+\subsubsection[{\-Set\-Start}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Grid\-Search3\-D\-::\-Set\-Start} (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y, }
+\item[{int}]{z}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1GridSearch3D_a8781b974ca9a5729f37c3c4c2e580048}
+\-Set start location in the map 
+\begin{DoxyParams}{\-Parameters}
+{\em x} & x-\/coord \\
+\hline
+{\em y} & y-\/coord \\
+\hline
+{\em z} & z-\/coord \\
+\hline
+\end{DoxyParams}
+
+
+\-References \-Get\-Vertex().
+
+\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}!\-Smooth\-Path\-Bezier@{\-Smooth\-Path\-Bezier}}
+\index{\-Smooth\-Path\-Bezier@{\-Smooth\-Path\-Bezier}!dsl::GridSearch3D@{dsl\-::\-Grid\-Search3\-D}}
+\subsubsection[{\-Smooth\-Path\-Bezier}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Grid\-Search3\-D\-::\-Smooth\-Path\-Bezier} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Grid\-Path3\-D} \&}]{path, }
+\item[{{\bf \-Grid\-Path3\-D} \&}]{smooth\-Path, }
+\item[{double}]{smoothness}
+\end{DoxyParamCaption}
+) const}\label{classdsl_1_1GridSearch3D_abb6fb1fb4c8d948e24d55b730a8fb9de}
+\-Smooth the path produced by \-Plan with a \-Bezier interpolation 
+\begin{DoxyParams}{\-Parameters}
+{\em path} & an initial obstacle-\/free path (e.\-g. one produced by calling \-Plan(path)) \\
+\hline
+{\em opt\-Path} & a new path resulting from smoothing the original path path \\
+\hline
+{\em smoothness} & smoothness of the curve \\
+\hline
+\end{DoxyParams}
+
+
+\-References dsl\-::\-Grid\-Path3\-D\-::count, dsl\-::\-Grid\-Path3\-D\-::len, dsl\-::\-Grid\-Path3\-D\-::pos, and \-R\-A\-Y\-\_\-\-T\-R\-A\-C\-E\-\_\-\-S\-T\-E\-P.
+
+\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}!\-Smooth\-Path\-Opt\-Cost@{\-Smooth\-Path\-Opt\-Cost}}
+\index{\-Smooth\-Path\-Opt\-Cost@{\-Smooth\-Path\-Opt\-Cost}!dsl::GridSearch3D@{dsl\-::\-Grid\-Search3\-D}}
+\subsubsection[{\-Smooth\-Path\-Opt\-Cost}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Grid\-Search3\-D\-::\-Smooth\-Path\-Opt\-Cost} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Grid\-Path3\-D} \&}]{path, }
+\item[{{\bf \-Grid\-Path3\-D\-Plus\-Time} \&}]{smooth\-Path, }
+\item[{double}]{v, }
+\item[{double}]{time\-Step}
+\end{DoxyParamCaption}
+) const}\label{classdsl_1_1GridSearch3D_a3636ee1303b1a8297bfd25c0322f1d8b}
+\-Smooth the path produced by \-Plan with a clamped cubic spline, choosing the control points in order to minimize a cost function 
+\begin{DoxyParams}{\-Parameters}
+{\em path} & an initial obstacle-\/free path (e.\-g. one produced by calling \-Plan(path)) \\
+\hline
+{\em opt\-Path} & a new path resulting from smoothing the original path path \\
+\hline
+{\em v} & the average velocity along the path \\
+\hline
+{\em time\-Step} & the time between each point along the generated path \\
+\hline
+\end{DoxyParams}
+
+
+\-References dsl\-::\-Grid\-Path3\-D\-::count, \-D\-S\-L3\-D\-\_\-\-O\-C\-C\-U\-P\-I\-E\-D, \-Get\-Cost(), dsl\-::\-Grid\-Path3\-D\-::len, dsl\-::\-Grid\-Path3\-D\-::pos, \-Smooth\-Path\-Spline(), and dsl\-::\-Grid\-Path3\-D\-Plus\-Time\-::times.
+
+\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}!\-Smooth\-Path\-Spline@{\-Smooth\-Path\-Spline}}
+\index{\-Smooth\-Path\-Spline@{\-Smooth\-Path\-Spline}!dsl::GridSearch3D@{dsl\-::\-Grid\-Search3\-D}}
+\subsubsection[{\-Smooth\-Path\-Spline}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Grid\-Search3\-D\-::\-Smooth\-Path\-Spline} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Grid\-Path3\-D} \&}]{path, }
+\item[{{\bf \-Grid\-Path3\-D\-Plus\-Time} \&}]{smooth\-Path, }
+\item[{double}]{v, }
+\item[{double}]{time\-Step}
+\end{DoxyParamCaption}
+) const}\label{classdsl_1_1GridSearch3D_aa33dc458fc2d145a18e2021e883c059a}
+\-Smooth the path produced by \-Plan with a clamped cubic spline 
+\begin{DoxyParams}{\-Parameters}
+{\em path} & an initial obstacle-\/free path (e.\-g. one produced by calling \-Plan(path)) \\
+\hline
+{\em opt\-Path} & a new path resulting from smoothing the original path path \\
+\hline
+{\em v} & the average velocity along the path \\
+\hline
+{\em time\-Step} & the time between each point along the generated path \\
+\hline
+\end{DoxyParams}
+
+
+\-References dsl\-::\-Grid\-Path3\-D\-::count, dsl\-::\-Grid\-Path3\-D\-::len, dsl\-::\-Grid\-Path3\-D\-::pos, and dsl\-::\-Grid\-Path3\-D\-Plus\-Time\-::times.
+
+
+
+\-Referenced by \-Smooth\-Path\-Opt\-Cost().
+
+
+
+\subsection{\-Member \-Data \-Documentation}
+\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}!cost@{cost}}
+\index{cost@{cost}!dsl::GridSearch3D@{dsl\-::\-Grid\-Search3\-D}}
+\subsubsection[{cost}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Grid\-Cost3\-D} {\bf dsl\-::\-Grid\-Search3\-D\-::cost}\hspace{0.3cm}{\ttfamily  [protected]}}\label{classdsl_1_1GridSearch3D_afdd94f2e7d091f11cbdaf1b171847222}
+
+
+cost interface 
+
+
+
+\-Reimplemented from {\bf dsl\-::\-Search} \doxyref{}{p.}{classdsl_1_1Search_af6c350062139fd6d0887c4dd6de40d75}.
+
+
+
+\-Referenced by \-Set\-Cost().
+
+\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}!graph@{graph}}
+\index{graph@{graph}!dsl::GridSearch3D@{dsl\-::\-Grid\-Search3\-D}}
+\subsubsection[{graph}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Graph} {\bf dsl\-::\-Grid\-Search3\-D\-::graph}\hspace{0.3cm}{\ttfamily  [protected]}}\label{classdsl_1_1GridSearch3D_a37f3c79462ee3df5bfa525744f206ea3}
+
+
+graph 
+
+
+
+\-Reimplemented from {\bf dsl\-::\-Search} \doxyref{}{p.}{classdsl_1_1Search_a41367e4af253eeb3aad5deaac1e31753}.
+
+
+
+\-Referenced by \-Add\-Edge(), \-Grid\-Search3\-D(), and \-Remove\-Vertex().
+
+\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}!height@{height}}
+\index{height@{height}!dsl::GridSearch3D@{dsl\-::\-Grid\-Search3\-D}}
+\subsubsection[{height}]{\setlength{\rightskip}{0pt plus 5cm}int {\bf dsl\-::\-Grid\-Search3\-D\-::height}}\label{classdsl_1_1GridSearch3D_a1b2e431cf22e53adb72733d59432ad97}
+
+
+height of cost grid 
+
+
+
+\-Referenced by \-Get\-Cost(), \-Get\-Vertex(), \-Grid\-Search3\-D(), \-Set\-Map(), and $\sim$\-Grid\-Search3\-D().
+
+\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}!length@{length}}
+\index{length@{length}!dsl::GridSearch3D@{dsl\-::\-Grid\-Search3\-D}}
+\subsubsection[{length}]{\setlength{\rightskip}{0pt plus 5cm}int {\bf dsl\-::\-Grid\-Search3\-D\-::length}}\label{classdsl_1_1GridSearch3D_abed307ca7dc5c270ef4069c5450c57a4}
+
+
+length of cost grid 
+
+
+
+\-Referenced by \-Get\-Cost(), \-Get\-Vertex(), \-Grid\-Search3\-D(), \-Opt\-Path(), \-Set\-Cost(), \-Set\-Map(), and $\sim$\-Grid\-Search3\-D().
+
+\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}!map@{map}}
+\index{map@{map}!dsl::GridSearch3D@{dsl\-::\-Grid\-Search3\-D}}
+\subsubsection[{map}]{\setlength{\rightskip}{0pt plus 5cm}double$\ast$ {\bf dsl\-::\-Grid\-Search3\-D\-::map}}\label{classdsl_1_1GridSearch3D_a9525be96df6595e5788c2933c71302e8}
+
+
+cost grid array of size width$\ast$height 
+
+
+
+\-Referenced by \-Get\-Cost(), \-Opt\-Path(), \-Set\-Cost(), and $\sim$\-Grid\-Search3\-D().
+
+\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}!scale@{scale}}
+\index{scale@{scale}!dsl::GridSearch3D@{dsl\-::\-Grid\-Search3\-D}}
+\subsubsection[{scale}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf dsl\-::\-Grid\-Search3\-D\-::scale}}\label{classdsl_1_1GridSearch3D_ab46d8bcfd681739d7e06409a5043aa0b}
+
+
+scale of each cell cost and each transition cost 
+
+
+
+\-Referenced by \-Add\-Edge(), and \-Set\-Cost().
+
+\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}!vertex\-Map@{vertex\-Map}}
+\index{vertex\-Map@{vertex\-Map}!dsl::GridSearch3D@{dsl\-::\-Grid\-Search3\-D}}
+\subsubsection[{vertex\-Map}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Vertex}$\ast$$\ast$ {\bf dsl\-::\-Grid\-Search3\-D\-::vertex\-Map}\hspace{0.3cm}{\ttfamily  [protected]}}\label{classdsl_1_1GridSearch3D_aebca7498409019fc176a87643850bc7e}
+
+
+vertex grid array of size width$\ast$height 
+
+
+
+\-Referenced by \-Get\-Vertex(), \-Grid\-Search3\-D(), \-Set\-Cost(), and $\sim$\-Grid\-Search3\-D().
+
+\index{dsl\-::\-Grid\-Search3\-D@{dsl\-::\-Grid\-Search3\-D}!width@{width}}
+\index{width@{width}!dsl::GridSearch3D@{dsl\-::\-Grid\-Search3\-D}}
+\subsubsection[{width}]{\setlength{\rightskip}{0pt plus 5cm}int {\bf dsl\-::\-Grid\-Search3\-D\-::width}}\label{classdsl_1_1GridSearch3D_a43aec353e9eb9aeafbd5623c0dc53ded}
+
+
+width of cost grid 
+
+
+
+\-Referenced by \-Get\-Cost(), \-Get\-Vertex(), \-Grid\-Search3\-D(), \-Opt\-Path(), \-Set\-Cost(), \-Set\-Map(), and $\sim$\-Grid\-Search3\-D().
+
+
+
+\-The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+/home/matt/dsl/lib/{\bf gridsearch3d.\-h}\item 
+/home/matt/dsl/lib/{\bf gridsearch3d.\-cc}\end{DoxyCompactItemize}

@@ -1,0 +1,348 @@
+\section{dsl\-:\-:\-Vertex \-Class \-Reference}
+\label{classdsl_1_1Vertex}\index{dsl\-::\-Vertex@{dsl\-::\-Vertex}}
+
+
+{\ttfamily \#include $<$vertex.\-h$>$}
+
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+{\bf \-Vertex} (void $\ast${\bf data}=0)
+\item 
+virtual {\bf $\sim$\-Vertex} ()
+\item 
+void {\bf \-Reset} ()
+\item 
+{\bf \-Edge} $\ast$ {\bf \-Find} (const {\bf \-Vertex} \&v, bool {\bf in}) const 
+\end{DoxyCompactItemize}
+\subsection*{\-Public \-Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int {\bf id}
+\begin{DoxyCompactList}\small\item\em vertex id (set internally) \end{DoxyCompactList}\item 
+void $\ast$ {\bf data}
+\begin{DoxyCompactList}\small\item\em application data (optional) \end{DoxyCompactList}\item 
+std\-::map$<$ int, {\bf \-Edge} $\ast$ $>$ {\bf in}
+\begin{DoxyCompactList}\small\item\em map of incoming edges \end{DoxyCompactList}\item 
+std\-::map$<$ int, {\bf \-Edge} $\ast$ $>$ {\bf out}
+\begin{DoxyCompactList}\small\item\em map of outgoing edges \end{DoxyCompactList}\item 
+{\bf \-Vertex} $\ast$ {\bf next}
+\begin{DoxyCompactList}\small\item\em next state in a path (used for tracing paths) \end{DoxyCompactList}\item 
+{\bf \-Vertex} $\ast$ {\bf prev}
+\begin{DoxyCompactList}\small\item\em previous state in a path (used for tracing paths) \end{DoxyCompactList}\item 
+double {\bf rhs}
+\begin{DoxyCompactList}\small\item\em dsl g heuristic values (used internally) \end{DoxyCompactList}\item 
+double {\bf g}
+\begin{DoxyCompactList}\small\item\em dsl rhs heuristic values (used internally) \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{\-Protected \-Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int {\bf t}
+\begin{DoxyCompactList}\small\item\em label (one of \-N\-E\-W,\-O\-P\-E\-N,\-C\-L\-O\-S\-E\-D) \end{DoxyCompactList}\item 
+fibnode\-\_\-t {\bf open\-List\-Node}
+\begin{DoxyCompactList}\small\item\em heap node associated to this vertex \end{DoxyCompactList}\item 
+double {\bf key} [2]
+\begin{DoxyCompactList}\small\item\em heap key \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{\-Static \-Protected \-Attributes}
+\begin{DoxyCompactItemize}
+\item 
+static const int {\bf \-N\-E\-W} = 0
+\begin{DoxyCompactList}\small\item\em open list label \-N\-E\-W \end{DoxyCompactList}\item 
+static const int {\bf \-O\-P\-E\-N} = 1
+\begin{DoxyCompactList}\small\item\em open list label \-O\-P\-E\-N \end{DoxyCompactList}\item 
+static const int {\bf \-C\-L\-O\-S\-E\-D} = 2
+\begin{DoxyCompactList}\small\item\em open list label \-C\-L\-O\-S\-E\-D \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{\-Friends}
+\begin{DoxyCompactItemize}
+\item 
+class {\bf \-Graph}
+\item 
+class {\bf \-Search}
+\item 
+std\-::ostream \& {\bf operator$<$$<$} (std\-::ostream \&os, const {\bf \-Vertex} \&v)
+\item 
+std\-::istream \& {\bf operator$>$$>$} (std\-::istream \&is, {\bf \-Vertex} \&v)
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\-Generic graph vertex containing a list of incoming and outgoing edges as well as information used for graph search algorithms. \-Specific implementations can either extend this class with extra functionality or simply pass a pointer to additional application data.
+
+\-Marin \-Kobilarov -\/-\/ \-Copyright (\-C) 2004 
+
+\subsection{\-Constructor \& \-Destructor \-Documentation}
+\index{dsl\-::\-Vertex@{dsl\-::\-Vertex}!\-Vertex@{\-Vertex}}
+\index{\-Vertex@{\-Vertex}!dsl::Vertex@{dsl\-::\-Vertex}}
+\subsubsection[{\-Vertex}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Vertex\-::\-Vertex} (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{data = {\ttfamily 0}}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1Vertex_aadea5c14ccf996def2282684158ab1f0}
+\-Initialize the vertex with an optional pointer to user data 
+\begin{DoxyParams}{\-Parameters}
+{\em data} & data \\
+\hline
+\end{DoxyParams}
+
+
+\-References \-Reset().
+
+\index{dsl\-::\-Vertex@{dsl\-::\-Vertex}!$\sim$\-Vertex@{$\sim$\-Vertex}}
+\index{$\sim$\-Vertex@{$\sim$\-Vertex}!dsl::Vertex@{dsl\-::\-Vertex}}
+\subsubsection[{$\sim$\-Vertex}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Vertex\-::$\sim$\-Vertex} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  [virtual]}}\label{classdsl_1_1Vertex_ad7a0ce588b7f688dc4488a0f567d9155}
+
+
+\-References in, and out.
+
+
+
+\subsection{\-Member \-Function \-Documentation}
+\index{dsl\-::\-Vertex@{dsl\-::\-Vertex}!\-Find@{\-Find}}
+\index{\-Find@{\-Find}!dsl::Vertex@{dsl\-::\-Vertex}}
+\subsubsection[{\-Find}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Edge} $\ast$ {\bf \-Vertex\-::\-Find} (
+\begin{DoxyParamCaption}
+\item[{const {\bf \-Vertex} \&}]{v, }
+\item[{bool}]{in}
+\end{DoxyParamCaption}
+) const}\label{classdsl_1_1Vertex_a5aa722d8a1a62d8fcf6075e9c433be4b}
+\-Finds an edge that connects this vertex with a given vertex v 
+\begin{DoxyParams}{\-Parameters}
+{\em v} & vertex v \\
+\hline
+{\em in} & whether to look among incoming or outgoing edges \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+the edge or 0 if none 
+\end{DoxyReturn}
+
+
+\-References dsl\-::\-Edge\-::from, out, and dsl\-::\-Edge\-::to.
+
+\index{dsl\-::\-Vertex@{dsl\-::\-Vertex}!\-Reset@{\-Reset}}
+\index{\-Reset@{\-Reset}!dsl::Vertex@{dsl\-::\-Vertex}}
+\subsubsection[{\-Reset}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf \-Vertex\-::\-Reset} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1Vertex_a9f75c0a26a8f598a0071a86acd2b862a}
+\-Reset to initial conditions (only the id is kept) 
+
+\-References g, \-I\-N\-F, key, \-N\-E\-W, next, open\-List\-Node, prev, rhs, and t.
+
+
+
+\-Referenced by \-Vertex().
+
+
+
+\subsection{\-Friends \-And \-Related \-Function \-Documentation}
+\index{dsl\-::\-Vertex@{dsl\-::\-Vertex}!\-Graph@{\-Graph}}
+\index{\-Graph@{\-Graph}!dsl::Vertex@{dsl\-::\-Vertex}}
+\subsubsection[{\-Graph}]{\setlength{\rightskip}{0pt plus 5cm}friend class {\bf \-Graph}\hspace{0.3cm}{\ttfamily  [friend]}}\label{classdsl_1_1Vertex_afab89afd724f1b07b1aaad6bdc61c47a}
+\index{dsl\-::\-Vertex@{dsl\-::\-Vertex}!operator$<$$<$@{operator$<$$<$}}
+\index{operator$<$$<$@{operator$<$$<$}!dsl::Vertex@{dsl\-::\-Vertex}}
+\subsubsection[{operator$<$$<$}]{\setlength{\rightskip}{0pt plus 5cm}std\-::ostream\& operator$<$$<$ (
+\begin{DoxyParamCaption}
+\item[{std\-::ostream \&}]{os, }
+\item[{const {\bf \-Vertex} \&}]{v}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  [friend]}}\label{classdsl_1_1Vertex_aa80cb53b0a61b605b5e10d5b3fe9d505}
+\-Output the vertex to a stream 
+\begin{DoxyParams}{\-Parameters}
+{\em os} & output stream \\
+\hline
+{\em v} & vertex \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+the output stream 
+\end{DoxyReturn}
+\index{dsl\-::\-Vertex@{dsl\-::\-Vertex}!operator$>$$>$@{operator$>$$>$}}
+\index{operator$>$$>$@{operator$>$$>$}!dsl::Vertex@{dsl\-::\-Vertex}}
+\subsubsection[{operator$>$$>$}]{\setlength{\rightskip}{0pt plus 5cm}std\-::istream\& operator$>$$>$ (
+\begin{DoxyParamCaption}
+\item[{std\-::istream \&}]{is, }
+\item[{{\bf \-Vertex} \&}]{v}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  [friend]}}\label{classdsl_1_1Vertex_ad0a68acc39e3ef903add7e66757cf158}
+\-Input the vertex from a stream 
+\begin{DoxyParams}{\-Parameters}
+{\em is} & input stream \\
+\hline
+{\em v} & vertex \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{\-Returns}
+the input stream 
+\end{DoxyReturn}
+\index{dsl\-::\-Vertex@{dsl\-::\-Vertex}!\-Search@{\-Search}}
+\index{\-Search@{\-Search}!dsl::Vertex@{dsl\-::\-Vertex}}
+\subsubsection[{\-Search}]{\setlength{\rightskip}{0pt plus 5cm}friend class {\bf \-Search}\hspace{0.3cm}{\ttfamily  [friend]}}\label{classdsl_1_1Vertex_aea88561fddd2e924cebf793f0cfdc8b6}
+
+
+\subsection{\-Member \-Data \-Documentation}
+\index{dsl\-::\-Vertex@{dsl\-::\-Vertex}!\-C\-L\-O\-S\-E\-D@{\-C\-L\-O\-S\-E\-D}}
+\index{\-C\-L\-O\-S\-E\-D@{\-C\-L\-O\-S\-E\-D}!dsl::Vertex@{dsl\-::\-Vertex}}
+\subsubsection[{\-C\-L\-O\-S\-E\-D}]{\setlength{\rightskip}{0pt plus 5cm}const int {\bf dsl\-::\-Vertex\-::\-C\-L\-O\-S\-E\-D} = 2\hspace{0.3cm}{\ttfamily  [static, protected]}}\label{classdsl_1_1Vertex_a6f1927e13f5c9c52fe241d379790ecc4}
+
+
+open list label \-C\-L\-O\-S\-E\-D 
+
+
+
+\-Referenced by dsl\-::\-Search\-::\-Remove().
+
+\index{dsl\-::\-Vertex@{dsl\-::\-Vertex}!data@{data}}
+\index{data@{data}!dsl::Vertex@{dsl\-::\-Vertex}}
+\subsubsection[{data}]{\setlength{\rightskip}{0pt plus 5cm}void$\ast$ {\bf dsl\-::\-Vertex\-::data}}\label{classdsl_1_1Vertex_a2c6f027591db54c5fbf5e50e27def3a0}
+
+
+application data (optional) 
+
+
+
+\-Referenced by dsl\-::\-Grid\-Cost\-::\-Heur(), dsl\-::\-Grid\-Cost3\-D\-::\-Heur(), dsl\-::\-Grid\-Search\-::\-Plan(), dsl\-::\-Grid\-Search3\-D\-::\-Plan(), dsl\-::\-Grid\-Cost\-::\-Real(), dsl\-::\-Grid\-Cost3\-D\-::\-Real(), dsl\-::\-Grid\-Search\-::$\sim$\-Grid\-Search(), and dsl\-::\-Grid\-Search3\-D\-::$\sim$\-Grid\-Search3\-D().
+
+\index{dsl\-::\-Vertex@{dsl\-::\-Vertex}!g@{g}}
+\index{g@{g}!dsl::Vertex@{dsl\-::\-Vertex}}
+\subsubsection[{g}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf dsl\-::\-Vertex\-::g}}\label{classdsl_1_1Vertex_a1792e5abf07174d4e24e5dd3d3fb6e12}
+
+
+dsl rhs heuristic values (used internally) 
+
+
+
+\-Referenced by dsl\-::\-Search\-::\-Calculate\-Ext\-Key(), dsl\-::\-Search\-::\-Compute\-Shortest\-Path(), dsl\-::\-Search\-::\-Min\-Succ(), dsl\-::operator$<$$<$(), dsl\-::\-Search\-::\-Plan(), dsl\-::\-Graph\-::\-Remove\-Edge(), \-Reset(), and dsl\-::\-Search\-::\-Update\-Vertex().
+
+\index{dsl\-::\-Vertex@{dsl\-::\-Vertex}!id@{id}}
+\index{id@{id}!dsl::Vertex@{dsl\-::\-Vertex}}
+\subsubsection[{id}]{\setlength{\rightskip}{0pt plus 5cm}int {\bf dsl\-::\-Vertex\-::id}}\label{classdsl_1_1Vertex_ade0c7c448fddd603cdeb8d1775f3ae7a}
+
+
+vertex id (set internally) 
+
+
+
+\-Referenced by dsl\-::\-Graph\-::\-Add\-Vertex(), dsl\-::\-Graph\-::\-Exists(), dsl\-::operator$<$$<$(), and dsl\-::\-Graph\-::\-Remove\-Vertex().
+
+\index{dsl\-::\-Vertex@{dsl\-::\-Vertex}!in@{in}}
+\index{in@{in}!dsl::Vertex@{dsl\-::\-Vertex}}
+\subsubsection[{in}]{\setlength{\rightskip}{0pt plus 5cm}std\-::map$<$int, {\bf \-Edge}$\ast$$>$ {\bf dsl\-::\-Vertex\-::in}}\label{classdsl_1_1Vertex_a0366cdb27e1674f10b033c5cad9cfe71}
+
+
+map of incoming edges 
+
+
+
+\-Referenced by dsl\-::\-Graph\-::\-Add\-Edge(), dsl\-::\-Search\-::\-Compute\-Shortest\-Path(), dsl\-::operator$<$$<$(), dsl\-::\-Search\-::\-Plan(), dsl\-::\-Graph\-::\-Remove\-Edge(), dsl\-::\-Graph\-::\-Remove\-Vertex(), dsl\-::\-Grid\-Search\-::\-Set\-Cost(), dsl\-::\-Grid\-Search3\-D\-::\-Set\-Cost(), and $\sim$\-Vertex().
+
+\index{dsl\-::\-Vertex@{dsl\-::\-Vertex}!key@{key}}
+\index{key@{key}!dsl::Vertex@{dsl\-::\-Vertex}}
+\subsubsection[{key}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf dsl\-::\-Vertex\-::key}[2]\hspace{0.3cm}{\ttfamily  [protected]}}\label{classdsl_1_1Vertex_a0ada3f69f585f98e0e3e4a078c979eac}
+
+
+heap key 
+
+
+
+\-Referenced by dsl\-::\-Search\-::\-Calculate\-Key(), dsl\-::\-Search\-::\-Compute\-Shortest\-Path(), dsl\-::\-Search\-::\-Insert(), dsl\-::operator$<$$<$(), \-Reset(), dsl\-::\-Search\-::\-Set\-Goal(), dsl\-::\-Search\-::\-Top\-Key(), and dsl\-::\-Search\-::\-Update().
+
+\index{dsl\-::\-Vertex@{dsl\-::\-Vertex}!\-N\-E\-W@{\-N\-E\-W}}
+\index{\-N\-E\-W@{\-N\-E\-W}!dsl::Vertex@{dsl\-::\-Vertex}}
+\subsubsection[{\-N\-E\-W}]{\setlength{\rightskip}{0pt plus 5cm}const int {\bf dsl\-::\-Vertex\-::\-N\-E\-W} = 0\hspace{0.3cm}{\ttfamily  [static, protected]}}\label{classdsl_1_1Vertex_a44275282e5f7b0be43bcc153621f1f6d}
+
+
+open list label \-N\-E\-W 
+
+
+
+\-Referenced by \-Reset().
+
+\index{dsl\-::\-Vertex@{dsl\-::\-Vertex}!next@{next}}
+\index{next@{next}!dsl::Vertex@{dsl\-::\-Vertex}}
+\subsubsection[{next}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Vertex}$\ast$ {\bf dsl\-::\-Vertex\-::next}}\label{classdsl_1_1Vertex_a8d1304ddb4aac965291b30f25d8a24a4}
+
+
+next state in a path (used for tracing paths) 
+
+
+
+\-Referenced by dsl\-::operator$<$$<$(), dsl\-::\-Grid\-Search\-::\-Plan(), dsl\-::\-Search\-::\-Plan(), dsl\-::\-Grid\-Search3\-D\-::\-Plan(), and \-Reset().
+
+\index{dsl\-::\-Vertex@{dsl\-::\-Vertex}!\-O\-P\-E\-N@{\-O\-P\-E\-N}}
+\index{\-O\-P\-E\-N@{\-O\-P\-E\-N}!dsl::Vertex@{dsl\-::\-Vertex}}
+\subsubsection[{\-O\-P\-E\-N}]{\setlength{\rightskip}{0pt plus 5cm}const int {\bf dsl\-::\-Vertex\-::\-O\-P\-E\-N} = 1\hspace{0.3cm}{\ttfamily  [static, protected]}}\label{classdsl_1_1Vertex_a76be5b53d16bd35ef36992609b05b5e1}
+
+
+open list label \-O\-P\-E\-N 
+
+
+
+\-Referenced by dsl\-::\-Search\-::\-Insert\-Ext(), dsl\-::\-Search\-::\-Update(), and dsl\-::\-Search\-::\-Update\-Vertex().
+
+\index{dsl\-::\-Vertex@{dsl\-::\-Vertex}!open\-List\-Node@{open\-List\-Node}}
+\index{open\-List\-Node@{open\-List\-Node}!dsl::Vertex@{dsl\-::\-Vertex}}
+\subsubsection[{open\-List\-Node}]{\setlength{\rightskip}{0pt plus 5cm}fibnode\-\_\-t {\bf dsl\-::\-Vertex\-::open\-List\-Node}\hspace{0.3cm}{\ttfamily  [protected]}}\label{classdsl_1_1Vertex_a407f820d27408e3716ca42347d3a432f}
+
+
+heap node associated to this vertex 
+
+
+
+\-Referenced by dsl\-::\-Search\-::\-Insert\-Ext(), dsl\-::operator$<$$<$(), dsl\-::\-Search\-::\-Remove(), dsl\-::\-Graph\-::\-Remove\-Edge(), \-Reset(), and dsl\-::\-Search\-::\-Update().
+
+\index{dsl\-::\-Vertex@{dsl\-::\-Vertex}!out@{out}}
+\index{out@{out}!dsl::Vertex@{dsl\-::\-Vertex}}
+\subsubsection[{out}]{\setlength{\rightskip}{0pt plus 5cm}std\-::map$<$int, {\bf \-Edge}$\ast$$>$ {\bf dsl\-::\-Vertex\-::out}}\label{classdsl_1_1Vertex_a8eece6b931c93f951100d2ab988c8666}
+
+
+map of outgoing edges 
+
+
+
+\-Referenced by dsl\-::\-Graph\-::\-Add\-Edge(), \-Find(), dsl\-::\-Search\-::\-Min\-Succ(), dsl\-::operator$<$$<$(), dsl\-::\-Search\-::\-Plan(), dsl\-::\-Graph\-::\-Remove\-Edge(), dsl\-::\-Graph\-::\-Remove\-Vertex(), dsl\-::\-Grid\-Search\-::\-Set\-Cost(), dsl\-::\-Grid\-Search3\-D\-::\-Set\-Cost(), and $\sim$\-Vertex().
+
+\index{dsl\-::\-Vertex@{dsl\-::\-Vertex}!prev@{prev}}
+\index{prev@{prev}!dsl::Vertex@{dsl\-::\-Vertex}}
+\subsubsection[{prev}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Vertex}$\ast$ {\bf dsl\-::\-Vertex\-::prev}}\label{classdsl_1_1Vertex_a872a93b3aff52d54e65d2346f95f46e3}
+
+
+previous state in a path (used for tracing paths) 
+
+
+
+\-Referenced by dsl\-::\-Search\-::\-Plan(), and \-Reset().
+
+\index{dsl\-::\-Vertex@{dsl\-::\-Vertex}!rhs@{rhs}}
+\index{rhs@{rhs}!dsl::Vertex@{dsl\-::\-Vertex}}
+\subsubsection[{rhs}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf dsl\-::\-Vertex\-::rhs}}\label{classdsl_1_1Vertex_ad9a72f64c36b5f7fa4f3521d3012a2ff}
+
+
+dsl g heuristic values (used internally) 
+
+
+
+\-Referenced by dsl\-::\-Search\-::\-Calculate\-Ext\-Key(), dsl\-::\-Search\-::\-Compute\-Shortest\-Path(), dsl\-::operator$<$$<$(), dsl\-::\-Search\-::\-Plan(), dsl\-::\-Graph\-::\-Remove\-Edge(), \-Reset(), dsl\-::\-Search\-::\-Set\-Goal(), and dsl\-::\-Search\-::\-Update\-Vertex().
+
+\index{dsl\-::\-Vertex@{dsl\-::\-Vertex}!t@{t}}
+\index{t@{t}!dsl::Vertex@{dsl\-::\-Vertex}}
+\subsubsection[{t}]{\setlength{\rightskip}{0pt plus 5cm}int {\bf dsl\-::\-Vertex\-::t}\hspace{0.3cm}{\ttfamily  [protected]}}\label{classdsl_1_1Vertex_a37774ca86c886bfd93a2b5e1f22328b5}
+
+
+label (one of \-N\-E\-W,\-O\-P\-E\-N,\-C\-L\-O\-S\-E\-D) 
+
+
+
+\-Referenced by dsl\-::\-Search\-::\-Insert\-Ext(), dsl\-::operator$<$$<$(), dsl\-::\-Search\-::\-Remove(), \-Reset(), dsl\-::\-Search\-::\-Update(), and dsl\-::\-Search\-::\-Update\-Vertex().
+
+
+
+\-The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+/home/matt/dsl/lib/{\bf vertex.\-h}\item 
+/home/matt/dsl/lib/{\bf vertex.\-cc}\end{DoxyCompactItemize}

@@ -1,0 +1,57 @@
+\section{/home/matt/dsl/lib/gridsearch3d.cc \-File \-Reference}
+\label{gridsearch3d_8cc}\index{/home/matt/dsl/lib/gridsearch3d.\-cc@{/home/matt/dsl/lib/gridsearch3d.\-cc}}
+{\ttfamily \#include $<$assert.\-h$>$}\*
+{\ttfamily \#include $<$math.\-h$>$}\*
+{\ttfamily \#include $<$stdlib.\-h$>$}\*
+{\ttfamily \#include $<$iostream$>$}\*
+{\ttfamily \#include $<$string.\-h$>$}\*
+{\ttfamily \#include \char`\"{}gridsearch3d.\-h\char`\"{}}\*
+{\ttfamily \#include \char`\"{}spline.\-h\char`\"{}}\*
+\subsection*{\-Defines}
+\begin{DoxyCompactItemize}
+\item 
+\#define {\bf \-M\-A\-X}(a, b)~(a$>$b?a\-:b)
+\item 
+\#define {\bf \-N\-B\-R\-\_\-\-C\-O\-U\-N\-T}~26
+\item 
+\#define {\bf \-S\-Q\-R\-T2}~1.\-414213562373095
+\item 
+\#define {\bf \-S\-Q\-R\-T3}~1.\-73205080757
+\item 
+\#define {\bf \-R\-A\-Y\-\_\-\-T\-R\-A\-C\-E\-\_\-\-S\-T\-E\-P}~0.\-05
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Define \-Documentation}
+\index{gridsearch3d.\-cc@{gridsearch3d.\-cc}!\-M\-A\-X@{\-M\-A\-X}}
+\index{\-M\-A\-X@{\-M\-A\-X}!gridsearch3d.cc@{gridsearch3d.\-cc}}
+\subsubsection[{\-M\-A\-X}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-M\-A\-X}(
+\begin{DoxyParamCaption}
+\item[{}]{a, }
+\item[{}]{b}
+\end{DoxyParamCaption}
+)~(a$>$b?a\-:b)}\label{gridsearch3d_8cc_afa99ec4acc4ecb2dc3c2d05da15d0e3f}
+
+
+\-Referenced by dsl\-::\-Grid\-Search3\-D\-::\-Add\-Edge(), dsl\-::\-Grid\-Search3\-D\-::\-Grid\-Search3\-D(), and dsl\-::\-Grid\-Search3\-D\-::\-Set\-Cost().
+
+\index{gridsearch3d.\-cc@{gridsearch3d.\-cc}!\-N\-B\-R\-\_\-\-C\-O\-U\-N\-T@{\-N\-B\-R\-\_\-\-C\-O\-U\-N\-T}}
+\index{\-N\-B\-R\-\_\-\-C\-O\-U\-N\-T@{\-N\-B\-R\-\_\-\-C\-O\-U\-N\-T}!gridsearch3d.cc@{gridsearch3d.\-cc}}
+\subsubsection[{\-N\-B\-R\-\_\-\-C\-O\-U\-N\-T}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-N\-B\-R\-\_\-\-C\-O\-U\-N\-T}~26}\label{gridsearch3d_8cc_a11a86d7f840460b5ff808e0882a8d5ca}
+
+
+\-Referenced by dsl\-::\-Grid\-Search3\-D\-::\-Grid\-Search3\-D().
+
+\index{gridsearch3d.\-cc@{gridsearch3d.\-cc}!\-R\-A\-Y\-\_\-\-T\-R\-A\-C\-E\-\_\-\-S\-T\-E\-P@{\-R\-A\-Y\-\_\-\-T\-R\-A\-C\-E\-\_\-\-S\-T\-E\-P}}
+\index{\-R\-A\-Y\-\_\-\-T\-R\-A\-C\-E\-\_\-\-S\-T\-E\-P@{\-R\-A\-Y\-\_\-\-T\-R\-A\-C\-E\-\_\-\-S\-T\-E\-P}!gridsearch3d.cc@{gridsearch3d.\-cc}}
+\subsubsection[{\-R\-A\-Y\-\_\-\-T\-R\-A\-C\-E\-\_\-\-S\-T\-E\-P}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-R\-A\-Y\-\_\-\-T\-R\-A\-C\-E\-\_\-\-S\-T\-E\-P}~0.\-05}\label{gridsearch3d_8cc_a80cdef6e452f5b61415ca47e137f1b46}
+
+
+\-Referenced by dsl\-::\-Grid\-Search3\-D\-::\-Opt\-Path(), and dsl\-::\-Grid\-Search3\-D\-::\-Smooth\-Path\-Bezier().
+
+\index{gridsearch3d.\-cc@{gridsearch3d.\-cc}!\-S\-Q\-R\-T2@{\-S\-Q\-R\-T2}}
+\index{\-S\-Q\-R\-T2@{\-S\-Q\-R\-T2}!gridsearch3d.cc@{gridsearch3d.\-cc}}
+\subsubsection[{\-S\-Q\-R\-T2}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-S\-Q\-R\-T2}~1.\-414213562373095}\label{gridsearch3d_8cc_a514396dd60fa0621c83072091fb2a0cd}
+\index{gridsearch3d.\-cc@{gridsearch3d.\-cc}!\-S\-Q\-R\-T3@{\-S\-Q\-R\-T3}}
+\index{\-S\-Q\-R\-T3@{\-S\-Q\-R\-T3}!gridsearch3d.cc@{gridsearch3d.\-cc}}
+\subsubsection[{\-S\-Q\-R\-T3}]{\setlength{\rightskip}{0pt plus 5cm}\#define {\bf \-S\-Q\-R\-T3}~1.\-73205080757}\label{gridsearch3d_8cc_ae42978afd835c3a1f70d409a1b5f5a39}

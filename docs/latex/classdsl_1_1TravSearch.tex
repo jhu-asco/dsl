@@ -1,0 +1,77 @@
+\section{dsl\-:\-:\-Trav\-Search \-Class \-Reference}
+\label{classdsl_1_1TravSearch}\index{dsl\-::\-Trav\-Search@{dsl\-::\-Trav\-Search}}
+
+
+{\ttfamily \#include $<$travsearch.\-h$>$}
+
+\-Inheritance diagram for dsl\-:\-:\-Trav\-Search\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{classdsl_1_1TravSearch}
+\end{center}
+\end{figure}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+{\bf \-Trav\-Search} (int {\bf width}, int {\bf height}, const double $\ast${\bf map}=0, double {\bf scale}=1.\-0)
+\item 
+virtual double {\bf \-Calc\-Edge\-Cost} (double v1cost, double v2cost, double elength)
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Constructor \& \-Destructor \-Documentation}
+\index{dsl\-::\-Trav\-Search@{dsl\-::\-Trav\-Search}!\-Trav\-Search@{\-Trav\-Search}}
+\index{\-Trav\-Search@{\-Trav\-Search}!dsl::TravSearch@{dsl\-::\-Trav\-Search}}
+\subsubsection[{\-Trav\-Search}]{\setlength{\rightskip}{0pt plus 5cm}{\bf \-Trav\-Search\-::\-Trav\-Search} (
+\begin{DoxyParamCaption}
+\item[{int}]{width, }
+\item[{int}]{height, }
+\item[{const double $\ast$}]{map = {\ttfamily 0}, }
+\item[{double}]{scale = {\ttfamily 1.0}}
+\end{DoxyParamCaption}
+)}\label{classdsl_1_1TravSearch_a7477da4cc72f1b04fa591b5f7e61591d}
+\-The planner allocates all states in the beginning a valid map of size width$\ast$height should be provided scale is used to multiply each cell value and each neighbor transition value before they are used for planning 
+\begin{DoxyParams}{\-Parameters}
+{\em width} & width \\
+\hline
+{\em height} & height \\
+\hline
+{\em map} & a double array of size width$\ast$height containing occupancy info (optional) \\
+\hline
+{\em scale} & the size of each cell (default is 1.\-0) \\
+\hline
+\end{DoxyParams}
+
+
+\-References dsl\-::\-Graph\-::\-Add\-Edge(), \-Calc\-Edge\-Cost(), dsl\-::\-Grid\-Search\-::graph, dsl\-::\-Grid\-Search\-::height, dsl\-::\-Grid\-Search\-::\-N\-B\-R\-\_\-\-C\-O\-S\-T\-S\-\_\-, \-N\-B\-R\-\_\-\-C\-O\-U\-N\-T, dsl\-::\-Grid\-Search\-::\-N\-B\-R\-\_\-\-O\-F\-F\-S\-E\-T\-S, dsl\-::\-Grid\-Search\-::vertex\-Map, and dsl\-::\-Grid\-Search\-::width.
+
+
+
+\subsection{\-Member \-Function \-Documentation}
+\index{dsl\-::\-Trav\-Search@{dsl\-::\-Trav\-Search}!\-Calc\-Edge\-Cost@{\-Calc\-Edge\-Cost}}
+\index{\-Calc\-Edge\-Cost@{\-Calc\-Edge\-Cost}!dsl::TravSearch@{dsl\-::\-Trav\-Search}}
+\subsubsection[{\-Calc\-Edge\-Cost}]{\setlength{\rightskip}{0pt plus 5cm}double {\bf \-Trav\-Search\-::\-Calc\-Edge\-Cost} (
+\begin{DoxyParamCaption}
+\item[{double}]{v1cost, }
+\item[{double}]{v2cost, }
+\item[{double}]{elength}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  [virtual]}}\label{classdsl_1_1TravSearch_a053d3010eab8b70299ed437d542efdfb}
+\-Calculates the cost (usually a height) gradient between two vertices. param v1cost cost of \char`\"{}from\char`\"{} vertex param v2cost cost of \char`\"{}to\char`\"{} vertex param ecost cost of edge 
+
+\-Reimplemented from {\bf dsl\-::\-Grid\-Search} \doxyref{}{p.}{classdsl_1_1GridSearch_ac903ddc2775df35bdb60d9c855841af9}.
+
+
+
+\-References dsl\-::\-Grid\-Search\-::scale.
+
+
+
+\-Referenced by \-Trav\-Search().
+
+
+
+\-The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+/home/matt/dsl/lib/{\bf travsearch.\-h}\item 
+/home/matt/dsl/lib/{\bf travsearch.\-cc}\end{DoxyCompactItemize}

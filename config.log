@@ -1,3 +1,0 @@
-file /home/marin/projects/dsl/SConstruct,line 86:
-	Configure(confdir = .sconf_temp)
-

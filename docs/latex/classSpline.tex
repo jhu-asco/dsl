@@ -1,0 +1,144 @@
+\section{\-Spline$<$ \-X, \-Y $>$ \-Class \-Template \-Reference}
+\label{classSpline}\index{\-Spline$<$ X, Y $>$@{\-Spline$<$ X, Y $>$}}
+
+
+{\ttfamily \#include $<$spline.\-h$>$}
+
+\subsection*{\-Classes}
+\begin{DoxyCompactItemize}
+\item 
+class {\bf \-Element}
+\end{DoxyCompactItemize}
+\subsection*{\-Public \-Member \-Functions}
+\begin{DoxyCompactItemize}
+\item 
+{\bf \-Spline} ()
+\item 
+{\bf \-Spline} (const std\-::vector$<$ \-X $>$ \&x, const std\-::vector$<$ \-Y $>$ \&y)
+\item 
+virtual {\bf $\sim$\-Spline} ()
+\item 
+\-Y {\bf operator[$\,$]} (const \-X \&x) const 
+\item 
+\-Y {\bf interpolate} (const \-X \&x) const 
+\item 
+std\-::vector$<$ \-Y $>$ {\bf operator[$\,$]} (const std\-::vector$<$ \-X $>$ \&xx) const 
+\item 
+std\-::vector$<$ \-Y $>$ {\bf interpolate} (const std\-::vector$<$ \-X $>$ \&xx) const 
+\end{DoxyCompactItemize}
+\subsection*{\-Protected \-Types}
+\begin{DoxyCompactItemize}
+\item 
+typedef {\bf \-Element} {\bf element\-\_\-type}
+\end{DoxyCompactItemize}
+\subsection*{\-Protected \-Attributes}
+\begin{DoxyCompactItemize}
+\item 
+std\-::vector$<$ {\bf element\-\_\-type} $>$ {\bf m\-Elements}
+\end{DoxyCompactItemize}
+
+
+\subsection{\-Detailed \-Description}
+\subsubsection*{template$<$typename \-X, typename \-Y$>$class Spline$<$ X, Y $>$}
+
+\-Templated on type of \-X, \-Y. \-X and \-Y must have operator +, -\/, $\ast$, /. \-Y must have defined a constructor that takes a scalar. 
+
+\subsection{\-Member \-Typedef \-Documentation}
+\index{\-Spline@{\-Spline}!element\-\_\-type@{element\-\_\-type}}
+\index{element\-\_\-type@{element\-\_\-type}!Spline@{\-Spline}}
+\subsubsection[{element\-\_\-type}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename \-X, typename \-Y$>$ typedef {\bf \-Element} {\bf \-Spline}$<$ \-X, \-Y $>$\-::{\bf element\-\_\-type}\hspace{0.3cm}{\ttfamily  [protected]}}\label{classSpline_a0e5f568df00822e6467ad4b6ae6907f1}
+
+
+\subsection{\-Constructor \& \-Destructor \-Documentation}
+\index{\-Spline@{\-Spline}!\-Spline@{\-Spline}}
+\index{\-Spline@{\-Spline}!Spline@{\-Spline}}
+\subsubsection[{\-Spline}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename \-X, typename \-Y$>$ {\bf \-Spline}$<$ \-X, \-Y $>$\-::{\bf \-Spline} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  [inline]}}\label{classSpline_ac97ca6fde5f351cbe739a291de6cfa40}
+\-An empty, invalid spline \index{\-Spline@{\-Spline}!\-Spline@{\-Spline}}
+\index{\-Spline@{\-Spline}!Spline@{\-Spline}}
+\subsubsection[{\-Spline}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename \-X, typename \-Y$>$ {\bf \-Spline}$<$ \-X, \-Y $>$\-::{\bf \-Spline} (
+\begin{DoxyParamCaption}
+\item[{const std\-::vector$<$ \-X $>$ \&}]{x, }
+\item[{const std\-::vector$<$ \-Y $>$ \&}]{y}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  [inline]}}\label{classSpline_a9202b2897674c1877b2287f83a3079e9}
+\-A spline with x and y values 
+
+\-References \-Spline$<$ X, Y $>$\-::m\-Elements.
+
+\index{\-Spline@{\-Spline}!$\sim$\-Spline@{$\sim$\-Spline}}
+\index{$\sim$\-Spline@{$\sim$\-Spline}!Spline@{\-Spline}}
+\subsubsection[{$\sim$\-Spline}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename \-X, typename \-Y$>$ virtual {\bf \-Spline}$<$ \-X, \-Y $>$\-::$\sim${\bf \-Spline} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  [inline, virtual]}}\label{classSpline_a4345b257b90292036e0a4cc2809ddac1}
+
+
+\subsection{\-Member \-Function \-Documentation}
+\index{\-Spline@{\-Spline}!interpolate@{interpolate}}
+\index{interpolate@{interpolate}!Spline@{\-Spline}}
+\subsubsection[{interpolate}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename \-X, typename \-Y$>$ \-Y {\bf \-Spline}$<$ \-X, \-Y $>$\-::{\bf interpolate} (
+\begin{DoxyParamCaption}
+\item[{const \-X \&}]{x}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily  [inline]}}\label{classSpline_ad8594d762a6673e573d38aba5bef70ec}
+
+
+\-References \-Spline$<$ X, Y $>$\-::m\-Elements.
+
+
+
+\-Referenced by \-Spline$<$ X, Y $>$\-::operator[$\,$]().
+
+\index{\-Spline@{\-Spline}!interpolate@{interpolate}}
+\index{interpolate@{interpolate}!Spline@{\-Spline}}
+\subsubsection[{interpolate}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename \-X, typename \-Y$>$ std\-::vector$<$\-Y$>$ {\bf \-Spline}$<$ \-X, \-Y $>$\-::{\bf interpolate} (
+\begin{DoxyParamCaption}
+\item[{const std\-::vector$<$ \-X $>$ \&}]{xx}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily  [inline]}}\label{classSpline_aec162530d74514a6bc57d1cd8d7fe116}
+
+
+\-References \-Spline$<$ X, Y $>$\-::m\-Elements.
+
+\index{\-Spline@{\-Spline}!operator[$\,$]@{operator[]}}
+\index{operator[$\,$]@{operator[]}!Spline@{\-Spline}}
+\subsubsection[{operator[]}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename \-X, typename \-Y$>$ \-Y {\bf \-Spline}$<$ \-X, \-Y $>$\-::operator[$\,$] (
+\begin{DoxyParamCaption}
+\item[{const \-X \&}]{x}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily  [inline]}}\label{classSpline_a52fd94178e1e0cb612bdb018acc1fee6}
+
+
+\-References \-Spline$<$ X, Y $>$\-::interpolate().
+
+\index{\-Spline@{\-Spline}!operator[$\,$]@{operator[]}}
+\index{operator[$\,$]@{operator[]}!Spline@{\-Spline}}
+\subsubsection[{operator[]}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename \-X, typename \-Y$>$ std\-::vector$<$\-Y$>$ {\bf \-Spline}$<$ \-X, \-Y $>$\-::operator[$\,$] (
+\begin{DoxyParamCaption}
+\item[{const std\-::vector$<$ \-X $>$ \&}]{xx}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily  [inline]}}\label{classSpline_abdd648dce89434bacb38309eadf13106}
+
+
+\-References \-Spline$<$ X, Y $>$\-::interpolate().
+
+
+
+\subsection{\-Member \-Data \-Documentation}
+\index{\-Spline@{\-Spline}!m\-Elements@{m\-Elements}}
+\index{m\-Elements@{m\-Elements}!Spline@{\-Spline}}
+\subsubsection[{m\-Elements}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename \-X, typename \-Y$>$ std\-::vector$<${\bf element\-\_\-type}$>$ {\bf \-Spline}$<$ \-X, \-Y $>$\-::{\bf m\-Elements}\hspace{0.3cm}{\ttfamily  [protected]}}\label{classSpline_aec12d605758ea834a7de781781de7e95}
+
+
+\-Referenced by \-Spline$<$ X, Y $>$\-::interpolate(), and \-Spline$<$ X, Y $>$\-::\-Spline().
+
+
+
+\-The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+/home/matt/dsl/lib/{\bf spline.\-h}\end{DoxyCompactItemize}
