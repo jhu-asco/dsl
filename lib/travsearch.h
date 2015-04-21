@@ -40,7 +40,7 @@ namespace dsl {
 
   class TravSearch : public GridSearch
   {
- public:
+  public:
     
     /**
      * The planner allocates all states in the beginning

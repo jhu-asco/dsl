@@ -44,6 +44,12 @@
 
 namespace dsl {
 
+
+  // cell neighbor connectivity
+  // this can be either 4 (faster,less accurate) or 8 (slower, more accurate) 
+  #define NBR_COUNT 8
+  #define SQRT2 1.414213562373095
+
   /**
    *  Path containing a list of grid points
    */
@@ -71,7 +77,7 @@ namespace dsl {
      * @param map a double array of size width*height containing occupancy info (optional)
      * @param scale the size of each cell (default is 1.0)
      */
-    GridSearch(int width, int height, const double *map = 0, double scale = 1.0);
+    GridSearch(int width, int height, const double *map = 0, double scale = 1.0, bool setup_edges = true);
     
     
     virtual ~GridSearch();
@@ -171,6 +177,10 @@ namespace dsl {
     double *map;                       ///< cost grid array of size width*height
     
   protected:
+    // the order of these matters
+    const static int NBR_OFFSETS[8*2];
+    const static double NBR_COSTS_[8];
+
     Graph graph;
     GridCost cost;
   
