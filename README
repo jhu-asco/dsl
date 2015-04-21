@@ -1,1 +1,3 @@
-To generate html documentation, use "make doc".  The files will be output to the docs subdirectory in your build folder.
+Go to http://jhu-asco.github.io/dsl/docs/html/index.html for more information.
+
+To generate html documentation yourself, use "make doc".  The files will be output to the docs subdirectory in your build folder.
