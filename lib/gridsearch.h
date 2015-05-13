@@ -131,9 +131,10 @@ namespace dsl {
      * Optimize the path produces by Plan
      * @param path an initial obstacle-free path (e.g. one produced by calling Plan(path))
      * @param optPath a new path resulting from optimizing the original path path (i.e. a producing a shorter 
+     * @param freeCost treat cells with cost <= freeCost as free
      * path with minimal number of obstacle-free segments)
      */
-    void OptPath(const GridPath &path, GridPath &optPath) const;
+    void OptPath(const GridPath &path, GridPath &optPath, double freeCost = 0) const;
 
     /**
      * Useful method to get the graph vertex at position (x,y)

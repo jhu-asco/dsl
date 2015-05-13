@@ -232,7 +232,7 @@ void GridSearch::Plan(GridPath& path)
 
 #define RAY_TRACE_STEP 1.0
 
-void GridSearch::OptPath(const GridPath &path, GridPath &optPath) const
+void GridSearch::OptPath(const GridPath &path, GridPath &optPath, double freeCost) const
 {
   double x, y, x0, y0, x1, y1, x2, y2, n, d;
   double dx0, dy0;
@@ -282,7 +282,7 @@ void GridSearch::OptPath(const GridPath &path, GridPath &optPath) const
       for (d = RAY_TRACE_STEP; d < n; d += RAY_TRACE_STEP) {
 	x = dx1*d;
 	y = dy1*d;
-	if (map[((int)(y0 + y))*width + (int)(x0 + x)]) {
+	if (map[((int)(y0 + y))*width + (int)(x0 + x)] > freeCost) {
 	  pos[2*count] = (int)x1;
 	  pos[2*count + 1] = (int)y1;
 	  count++;
