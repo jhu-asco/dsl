@@ -48,7 +48,7 @@
  * - To test >: cd test; bin/test ../bin/map.ppm (look at the generated ppm images to view the result)
  *
  * \subsection Class Reference
- * <a href="https://jshare.johnshopkins.edu/mkobila1/projects/dsl/html/hierarchy.html">Class hierarchy</a>
+ * <a href="../../docs/html/hierarchy.html">Class hierarchy</a>
  *
  * \subsection Usage
  *  The underlying structure is a regular directed graph

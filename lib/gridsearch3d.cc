@@ -374,7 +374,7 @@ void GridSearch3D::SmoothPathOptCost(const GridPath3D &path, GridPath3DPlusTime 
   Spline<double, double> spxOpt;
   Spline<double, double> spyOpt;
   Spline<double, double> spzOpt;
-  double totalTimeOpt;
+  double totalTimeOpt = 0;
   double minCost = 999999999;
   for(int i = 0; i < 200000; i++)
   {

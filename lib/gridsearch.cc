@@ -17,25 +17,20 @@ using namespace std;
 using namespace dsl;
 
 #define MAX(a,b) (a>b?a:b)
-
 // cell neighbor connectivity
 // this can be either 4 (faster,less accurate) or 8 (slower, more accurate) 
 #define NBR_COUNT 8
 #define SQRT2 1.414213562373095
 
-// the order of these matters
-static int NBR_OFFSETS[8*2] = {-1,-1, 0,-1, 1,-1, -1,0, 1,0, -1,1, 0,1 ,1,1};
-static double NBR_COSTS_[8] = {SQRT2,  1.0, SQRT2, 1.0, 1.0, SQRT2, 1.0, SQRT2};
+const int GridSearch::NBR_OFFSETS[8*2] = {-1,-1, 0,-1, 1,-1, -1,0, 1,0, -1,1, 0,1 ,1,1};
+const double GridSearch::NBR_COSTS_[8] = {SQRT2,  1.0, SQRT2, 1.0, 1.0, SQRT2, 1.0, SQRT2};
 
-//static int NBR_OFFSETS[8*2] = {1,0, 0,1, -1,0, 0,-1, 1,1, -1,1, -1,-1, 1,-1};
-//static double NBR_COSTS_[8] = {1.0, 1.0, 1.0, 1.0, SQRT2, SQRT2, SQRT2, SQRT2};
-
-
-GridSearch::GridSearch(int width, int height, const double *map, double scale) : 
+GridSearch::GridSearch(int width, int height, EdgeCost* edgeCost, const double *map, double scale) : 
   Search(graph, cost),
   width(width),
   height(height), 
-  scale(scale)
+  scale(scale),
+  edgeCost(edgeCost)
 {
   int x, y, i, nbr, nx, ny, ni;
   int* pos;
@@ -65,28 +60,29 @@ GridSearch::GridSearch(int width, int height, const double *map, double scale) :
     }
   }
 
+
   // create all edges
   i = 0;
   for (y = 0; y < height; ++y) {
     for (x = 0; x < width; ++x, ++i) {    
       for (nbr = 0; nbr < NBR_COUNT; ++nbr) {
-	nx = x + NBR_OFFSETS[2*nbr];
-	ny = y + NBR_OFFSETS[2*nbr+1];
-	if (nx < 0 || ny < 0 || nx >= width || ny >= height)
-	  continue;
-	ni = ny*width + nx;
+        nx = x + NBR_OFFSETS[2*nbr];
+        ny = y + NBR_OFFSETS[2*nbr+1];
+        if (nx < 0 || ny < 0 || nx >= width || ny >= height)
+          continue;
+        ni = ny*width + nx;
         // create an edge b/n vertices at pos. i and ni
 
         Vertex *from = vertexMap[i];
         Vertex *to = vertexMap[ni];
         
-        
-
-        Edge* edge = new Edge(from, to, scale*(MAX(this->map[i], this->map[ni]) + NBR_COSTS_[nbr]));
+        double ecost = edgeCost->CalcEdgeCost(this->map[i], this->map[ni], NBR_COSTS_[nbr]);
+        assert(ecost >= 0);
+        //Edge* edge = new Edge(from, to, scale*(MAX(this->map[i], this->map[ni]) + NBR_COSTS_[nbr]));
+        Edge* edge = new Edge(from, to, scale*ecost);
         
 
         graph.AddEdge(*edge);
-
         //        from->out[edge->id] = edge;
         //        to->in[edge->id] = edge;
         //        edges.push_back(edge);
@@ -95,7 +91,6 @@ GridSearch::GridSearch(int width, int height, const double *map, double scale) :
     }
   }
 }
-
 
 void GridSearch::AddEdge(int x1, int y1, int x2, int y2)
 {  
@@ -148,7 +143,6 @@ void GridSearch::SetCost(int x, int y, double cost)
 {
   std::map<int, Edge*>::iterator ein, eout;
 
-  assert(cost >= 0);
   
   int i = y*width + x;
  
@@ -161,10 +155,33 @@ void GridSearch::SetCost(int x, int y, double cost)
   ein = vertexMap[i]->in.begin();
   eout = vertexMap[i]->out.begin();
   for (;ein != vertexMap[i]->in.end(); ein++)
-    ChangeCost(*ein->second, cost > 10 ? 10000 : 0);
+  {
+    int* pos = static_cast<int*>((*ein).second->from->data);
+
+    int dx = x-pos[0];
+    int dy = y-pos[1];
+    
+    double ecost = edgeCost->CalcEdgeCost(GetCost(pos[0], pos[1]), cost, sqrt(dx*dx + dy*dy));
+    assert(ecost >= 0);
+    ChangeCost(*ein->second, scale*ecost);
+  }
 
   for (;eout != vertexMap[i]->out.end(); eout++)
-    ChangeCost(*eout->second, cost > 10 ? 10000 : 0);
+  {
+    int* pos = static_cast<int*>((*eout).second->to->data);
+
+    int dx = x-pos[0];
+    int dy = y-pos[1];
+
+    double ecost = edgeCost->CalcEdgeCost(GetCost(pos[0], pos[1]), cost, sqrt(dx*dx + dy*dy));
+    assert(ecost >= 0);
+    ChangeCost(*eout->second, scale*ecost);
+  }
+  //for (;ein != vertexMap[i]->in.end(); ein++)
+  //  ChangeCost(*ein->second, cost > 10 ? 10000 : 0);
+
+  //for (;eout != vertexMap[i]->out.end(); eout++)
+  //  ChangeCost(*eout->second, cost > 10 ? 10000 : 0);
 }
 
 void GridSearch::SetMap(const double *map)
@@ -215,7 +232,7 @@ void GridSearch::Plan(GridPath& path)
 
 #define RAY_TRACE_STEP 1.0
 
-void GridSearch::OptPath(const GridPath &path, GridPath &optPath) const
+void GridSearch::OptPath(const GridPath &path, GridPath &optPath, double freeCost) const
 {
   double x, y, x0, y0, x1, y1, x2, y2, n, d;
   double dx0, dy0;
@@ -265,7 +282,7 @@ void GridSearch::OptPath(const GridPath &path, GridPath &optPath) const
       for (d = RAY_TRACE_STEP; d < n; d += RAY_TRACE_STEP) {
 	x = dx1*d;
 	y = dy1*d;
-	if (map[((int)(y0 + y))*width + (int)(x0 + x)]) {
+	if (map[((int)(y0 + y))*width + (int)(x0 + x)] > freeCost) {
 	  pos[2*count] = (int)x1;
 	  pos[2*count + 1] = (int)y1;
 	  count++;

@@ -1,17 +1,4 @@
-macro(append_subdir_files variable dirname)
-  get_directory_property(holder DIRECTORY ${dirname} DEFINITION ${variable})
-  foreach(depfile ${holder})
-    list(APPEND ${variable} "${dirname}/${depfile}")
-  endforeach()
-endmacro()
-
-
-#add_subdirectory (dgc)
-#append_subdir_files(sources dgc)
-#append_subdir_files(headers dgc)
-
-add_library(dsl SHARED ${sources}
-                       fibheap.c 
+add_library(dsl SHARED fibheap.c 
                        vertex.cc
                        edge.cc
                        graph.cc
@@ -19,21 +6,11 @@ add_library(dsl SHARED ${sources}
                        search.cc
                        gridcost.cc
                        gridcost3d.cc
-                       gridcost3dbezier.cc
-                       gridcost3dspline.cc
-                       gridcost3dprm.cc
+                       travedgecost.cc
+                       distedgecost.cc
                        gridsearch.cc
-                       gridsearch3d.cc
-                       gridsearch3dvel.cc
-                       gridsearch3dvelb.cc
-                       gridsearch3dvelprm.cc
-                       gridsearch3dvels.cc
-                       particleprm.cc
-                       trajectory.cc
-                       state.cc
-                       system.cc)
+                       gridsearch3d.cc)
 
-target_link_libraries(dsl ${LIBS})
 
 SET_TARGET_PROPERTIES(dsl
                       PROPERTIES
@@ -43,8 +20,7 @@ SET_TARGET_PROPERTIES(dsl
 INSTALL(TARGETS dsl
         DESTINATION lib)
 
-INSTALL(FILES ${headers}
-              fibheap.h
+INSTALL(FILES fibheap.h
               libiberty.h
               ansidecl.h
               vertex.h
@@ -54,18 +30,10 @@ INSTALL(FILES ${headers}
               search.h
               gridcost.h
               gridcost3d.h
-              gridcost3dbezier.h
-              gridcost3dspline.h
-              gridcost3dprm.h
+              edgecost.h
+              travedgecost.h
+              distedgecost.h
               gridsearch.h
               gridsearch3d.h
-              gridsearch3dvel.h
-              gridsearch3dvelb.h
-              gridsearch3dvelprm.h
-              gridsearch3dvels.h
               spline.h
-              particleprm.h
-              trajectory.h
-              state.h
-              system.h
               DESTINATION include/dsl)              

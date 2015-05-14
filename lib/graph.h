@@ -6,8 +6,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef GRAPH_H
-#define GRAPH_H
+#ifndef DSL_GRAPH_H
+#define DSL_GRAPH_H
 
 #include "vertex.h"
 #include "edge.h"

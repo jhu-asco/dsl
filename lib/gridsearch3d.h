@@ -14,14 +14,12 @@
 #include "gridcost3d.h"
 
 /**
- *  Grid based D* Lite, extends graph-based D* Lite.
+ *  Grid based D* Lite in 3D, extends graph-based D* Lite.
  *  The class maps grid cell costs and the transition costs b/n two cells
  *  into graph edge costs of the base Search class
  *
  *  The cell transition costs are hardcoded as the euclidean distance
- *  b/n the centers of the cells (i.e. each cell has 8 neighbors:
- *  the neighbors at N,S,W,E have transition cost of 1, and the 
- *  neighbors at NE, SE, NW, SW have transition costs of sqrt(2)
+ *  b/n the centers of the cells (i.e. each cell has 26 neighbors)
  *  These transition costs are added to the maximum of the values of
  *  two neighboring cells to compute the cost of their connecting edge.
  *  Finally that cost is multiplied by the variable scale.
@@ -29,7 +27,7 @@
  *
  *  The planner is used as follows:
  *
- *  1) GridSearch(map, width, height)
+ *  1) GridSearch3D(map, width, height)
  *  2) SetStart(x, y)
  *  3) SetGoal(x, y)
  *  4) Plan(path) and OptPath(path, optPath) -- to plan a path and optimize it
@@ -39,7 +37,7 @@
  *  8) goto 4
  * 
  *
- *  Author: Marin Kobilarov (c) 2004 mkobilar(at)robotics.usc.edu
+ *  Author: Matt Sheckells (c) 2014 msheckells(at)jhu.edu
  */
 
 #define DSL3D_OCCUPIED 1e10

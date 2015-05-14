@@ -11,6 +11,7 @@
 
 #include "search.h"
 #include "gridcost.h"
+#include "edgecost.h"
 
 /**
  *  Grid based D* Lite, extends graph-based D* Lite.
@@ -44,6 +45,8 @@
 
 namespace dsl {
 
+
+
   /**
    *  Path containing a list of grid points
    */
@@ -71,7 +74,7 @@ namespace dsl {
      * @param map a double array of size width*height containing occupancy info (optional)
      * @param scale the size of each cell (default is 1.0)
      */
-    GridSearch(int width, int height, const double *map = 0, double scale = 1.0);
+    GridSearch(int width, int height, EdgeCost* edgeCost, const double *map = 0, double scale = 1.0);
     
     
     virtual ~GridSearch();
@@ -128,9 +131,10 @@ namespace dsl {
      * Optimize the path produces by Plan
      * @param path an initial obstacle-free path (e.g. one produced by calling Plan(path))
      * @param optPath a new path resulting from optimizing the original path path (i.e. a producing a shorter 
+     * @param freeCost treat cells with cost <= freeCost as free
      * path with minimal number of obstacle-free segments)
      */
-    void OptPath(const GridPath &path, GridPath &optPath) const;
+    void OptPath(const GridPath &path, GridPath &optPath, double freeCost = 0) const;
 
     /**
      * Useful method to get the graph vertex at position (x,y)
@@ -155,7 +159,6 @@ namespace dsl {
      * @param y2 to y-coordiante
      */    
     void AddEdge(int x1, int y1, int x2, int y2);
-    
 
     int width;                         ///< width of cost grid
     int height;                        ///< height of cost grid
@@ -163,8 +166,13 @@ namespace dsl {
     double *map;                       ///< cost grid array of size width*height
     
   protected:
+    // the order of these matters
+    const static int NBR_OFFSETS[8*2];
+    const static double NBR_COSTS_[8];
+
     Graph graph;
     GridCost cost;
+    EdgeCost* edgeCost;
   
     Vertex **vertexMap;                ///< vertex grid array of size width*height
   };
