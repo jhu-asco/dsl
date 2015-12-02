@@ -11,7 +11,6 @@
 
 #include "search.h"
 #include "gridcost.h"
-#include "edgecost.h"
 
 /**
  *  Grid based D* Lite, extends graph-based D* Lite.
@@ -59,7 +58,14 @@ namespace dsl {
     double len;        ///< length of path (sum of eucl. distances b/n points)
   };
   
-
+  class VertexGridData
+  {
+  public:
+  VertexGridData(): cost(0) {p[0] = 0; p[1] = 0;};
+    int p[2];
+    double cost;
+  };
+  
   class GridSearch : public Search
   {
  public:
@@ -71,10 +77,12 @@ namespace dsl {
      * before they are used for planning
      * @param width width
      * @param height height
+     * @param gridcost cost function to use on grid cells
      * @param map a double array of size width*height containing occupancy info (optional)
      * @param scale the size of each cell (default is 1.0)
      */
-    GridSearch(int width, int height, EdgeCost* edgeCost, const double *map = 0, double scale = 1.0);
+    GridSearch(int width, int height, const GridCost& gridcost, const double *map = 0,
+      double scale = 1.0);
     
     
     virtual ~GridSearch();
@@ -171,8 +179,7 @@ namespace dsl {
     const static double NBR_COSTS_[8];
 
     Graph graph;
-    GridCost cost;
-    EdgeCost* edgeCost;
+    const GridCost& cost;
   
     Vertex **vertexMap;                ///< vertex grid array of size width*height
   };

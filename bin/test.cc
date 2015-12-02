@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "gridsearch.h"
-#include "distedgecost.h"
 
 using namespace dsl;
 using namespace std;
@@ -85,7 +84,8 @@ int main(int argc, char** argv)
   memcpy(mapPath, chmap, width*height);
 
   // create planner
-  GridSearch gdsl(width, height, new DistEdgeCost(), map);
+  GridCost gcost;
+  GridSearch gdsl(width, height, gcost, map);
   gdsl.SetStart(0, height/2);
   gdsl.SetGoal(width - 1, height/2);
   // plan

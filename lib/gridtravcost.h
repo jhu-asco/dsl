@@ -6,10 +6,10 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_TRAVEDGECOST_H
-#define DSL_TRAVEDGECOST_H
+#ifndef DSL_GRIDTRAVCOST_H
+#define DSL_GRIDTRAVCOST_H
 
-#include "edgecost.h"
+#include "gridcost.h"
 
 /**
  *  Calculates the edge cost as the height gradient between two vertices 
@@ -20,18 +20,11 @@
 
 namespace dsl {
 
-  class TravEdgeCost : public EdgeCost
+  class GridTravCost : public GridCost
   {
   public:
     
-    
-    /**
-     * Calculates the cost (usually a height) gradient between two vertices.
-     * @param v1cost cost of "from" vertex  
-     * @param v2cost cost of "to" vertex  
-     * @param ecost cost of edge
-     */
-    virtual double CalcEdgeCost(double v1cost, double v2cost, double elength);
+    double Real(const Vertex &va, const Vertex &vb) const;       
   };
 }
 

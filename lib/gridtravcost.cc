@@ -10,15 +10,20 @@
 #include <math.h>
 #include <stdlib.h>
 #include <iostream>
-#include "travedgecost.h"
+#include "gridtravcost.h"
+#include "gridsearch.h"
 
 using namespace std;
 using namespace dsl;
 
 
-double TravEdgeCost::CalcEdgeCost(double v1cost, double v2cost, double elength)
+double Real(const Vertex &va, const Vertex &vb)
 {
-  assert(elength > 0);
-  return fabs(v2cost- v1cost)/elength;
-}
+  VertexGridData* adat = ( VertexGridData* )va.data;
+  VertexGridData* bdat = ( VertexGridData* )vb.data;
+  int dx = bdat->p[0]-adat->p[0];
+  int dy = bdat->p[1]-adat->p[1];
+  double elength = sqrt(dx*dx + dy*dy);
+  return fabs(bdat->cost-adat->cost)/elength;
+}    
 

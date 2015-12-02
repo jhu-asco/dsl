@@ -25,15 +25,14 @@ using namespace dsl;
 const int GridSearch::NBR_OFFSETS[8*2] = {-1,-1, 0,-1, 1,-1, -1,0, 1,0, -1,1, 0,1 ,1,1};
 const double GridSearch::NBR_COSTS_[8] = {SQRT2,  1.0, SQRT2, 1.0, 1.0, SQRT2, 1.0, SQRT2};
 
-GridSearch::GridSearch(int width, int height, EdgeCost* edgeCost, const double *map, double scale) : 
-  Search(graph, cost),
+GridSearch::GridSearch(int width, int height, const GridCost& gridcost, const double *map, double scale) :
+  Search(graph, gridcost),
   width(width),
   height(height), 
   scale(scale),
-  edgeCost(edgeCost)
+  cost(gridcost)
 {
   int x, y, i, nbr, nx, ny, ni;
-  int* pos;
 
   int s = width*height;
 
@@ -51,10 +50,13 @@ GridSearch::GridSearch(int width, int height, EdgeCost* edgeCost, const double *
   i = 0;
   for (y = 0; y < height; ++y) {
     for (x = 0; x < width; ++x, ++i) {
-      pos = new int[2];
-      pos[0] = x;
-      pos[1] = y;
-      vertexMap[i] = new Vertex(pos);
+      VertexGridData* vgd = new VertexGridData();
+      vgd->p[0] = x;
+      vgd->p[1] = y;
+      vgd->cost = this->map[i];
+      vertexMap[i] = new Vertex(vgd);
+      //VertexGridData* vgdt = ( VertexGridData* )vertexMap[i]->data;
+      //std::cout << vgdt->p[0] << " " << vgdt->p[1] << " " << vgdt->cost << std::endl;
       graph.AddVertex(*vertexMap[i]);
                   //      this->vertices.push_back();
     }
@@ -76,10 +78,13 @@ GridSearch::GridSearch(int width, int height, EdgeCost* edgeCost, const double *
         Vertex *from = vertexMap[i];
         Vertex *to = vertexMap[ni];
         
-        double ecost = edgeCost->CalcEdgeCost(this->map[i], this->map[ni], NBR_COSTS_[nbr]);
-        assert(ecost >= 0);
-        //Edge* edge = new Edge(from, to, scale*(MAX(this->map[i], this->map[ni]) + NBR_COSTS_[nbr]));
-        Edge* edge = new Edge(from, to, scale*ecost);
+        // 
+        //double ecost = edgeCost->CalcEdgeCost(this->map[i], this->map[ni], NBR_COSTS_[nbr]);
+        //assert(ecost >= 0);
+        double ecost = scale*gridcost.Real(*from,*to);
+        std::cout << ecost << std::endl;
+        Edge* edge = new Edge(from, to, ecost);
+        //Edge* edge = new Edge(from, to, scale*ecost);
         
 
         graph.AddEdge(*edge);
@@ -109,7 +114,7 @@ void GridSearch::AddEdge(int x1, int y1, int x2, int y2)
 GridSearch::~GridSearch()
 {
   for (int i = 0; i < width*height; ++i) {
-    delete[] (int*)vertexMap[i]->data;
+    delete[] (VertexGridData*)vertexMap[i]->data;
     vertexMap[i]->data = 0;
   }
   delete[] vertexMap;
@@ -119,6 +124,8 @@ GridSearch::~GridSearch()
 
 double GridSearch::GetCost(int x, int y) const
 {
+  if (x < 0 || x >= width || y < 0 || y >= height)
+    return 0;
   return map[y*width + x];
 }
 
@@ -150,32 +157,34 @@ void GridSearch::SetCost(int x, int y, double cost)
   if (Eq(cost, this->map[i]))
     return;
   this->map[i] = cost;
-  
+  VertexGridData* v_data = (VertexGridData*)vertexMap[i]->data;
+  v_data->cost = cost;  
+
   // fix all connected edges
   ein = vertexMap[i]->in.begin();
   eout = vertexMap[i]->out.begin();
   for (;ein != vertexMap[i]->in.end(); ein++)
   {
-    int* pos = static_cast<int*>((*ein).second->from->data);
+    //int* pos = static_cast<int*>((*ein).second->from->data);
 
-    int dx = x-pos[0];
-    int dy = y-pos[1];
+    //int dx = x-pos[0];
+    //int dy = y-pos[1];
     
-    double ecost = edgeCost->CalcEdgeCost(GetCost(pos[0], pos[1]), cost, sqrt(dx*dx + dy*dy));
-    assert(ecost >= 0);
-    ChangeCost(*ein->second, scale*ecost);
+    //double ecost = edgeCost->CalcEdgeCost(GetCost(pos[0], pos[1]), cost, sqrt(dx*dx + dy*dy));
+    //assert(ecost >= 0);
+    ChangeCost(*ein->second, scale*this->cost.Real(*((*ein).second->from), *(vertexMap[i])));
   }
 
   for (;eout != vertexMap[i]->out.end(); eout++)
   {
-    int* pos = static_cast<int*>((*eout).second->to->data);
+    //int* pos = static_cast<int*>((*eout).second->to->data);
 
-    int dx = x-pos[0];
-    int dy = y-pos[1];
+    //int dx = x-pos[0];
+    //int dy = y-pos[1];
 
-    double ecost = edgeCost->CalcEdgeCost(GetCost(pos[0], pos[1]), cost, sqrt(dx*dx + dy*dy));
-    assert(ecost >= 0);
-    ChangeCost(*eout->second, scale*ecost);
+    //double ecost = edgeCost->CalcEdgeCost(GetCost(pos[0], pos[1]), cost, sqrt(dx*dx + dy*dy));
+    //assert(ecost >= 0);
+    ChangeCost(*eout->second, scale*this->cost.Real(*(vertexMap[i]), *((*eout).second->to)));
   }
   //for (;ein != vertexMap[i]->in.end(); ein++)
   //  ChangeCost(*ein->second, cost > 10 ? 10000 : 0);
@@ -199,11 +208,15 @@ void GridSearch::SetMap(const double *map)
 
 void GridSearch::SetStart(int x, int y)
 {
+  if (x < 0 || x >= width || y < 0 || y >= height)
+    return;
   Search::SetStart(*vertexMap[y*width + x]);
 }
 
 void GridSearch::SetGoal(int x, int y)
 {
+  if (x < 0 || x >= width || y < 0 || y >= height)
+    return;
   Search::SetGoal(*vertexMap[y*width + x]);
 }
 
@@ -219,7 +232,7 @@ void GridSearch::Plan(GridPath& path)
   path.pos = (int*)realloc(path.pos, count*2*sizeof(int));
   path.count = count;
   for (i = 0; i < count; ++i) {
-    pos1 = (int*)cur->data;   
+    pos1 = ((VertexGridData*)cur->data)->p;   
     memcpy(&path.pos[2*i], pos1, 2*sizeof(int));
     if (i > 0) {
       len += sqrt((pos1[0]-pos0[0])*(pos1[0]-pos0[0]) + (pos1[1]-pos0[1])*(pos1[1]-pos0[1]));
