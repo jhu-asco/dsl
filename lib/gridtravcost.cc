@@ -17,7 +17,7 @@ using namespace std;
 using namespace dsl;
 
 
-double Real(const Vertex &va, const Vertex &vb)
+double GridTravCost::Real(const Vertex &va, const Vertex &vb) const
 {
   VertexGridData* adat = ( VertexGridData* )va.data;
   VertexGridData* bdat = ( VertexGridData* )vb.data;
