@@ -24,6 +24,8 @@ using namespace dsl;
 
 const int GridSearch::NBR_OFFSETS[8*2] = {-1,-1, 0,-1, 1,-1, -1,0, 1,0, -1,1, 0,1 ,1,1};
 const double GridSearch::NBR_COSTS_[8] = {SQRT2,  1.0, SQRT2, 1.0, 1.0, SQRT2, 1.0, SQRT2};
+  
+
 
 GridSearch::GridSearch(int width, int height, const GridCost& gridcost, const double *map, double scale) :
   Search(graph, gridcost),
@@ -44,17 +46,18 @@ GridSearch::GridSearch(int width, int height, const GridCost& gridcost, const do
     memset(this->map, 0, s*sizeof(double));
 
   // this will be used to map grid coordinates to dsl graph vertices
-  vertexMap = new Vertex*[s];
+  vertexMap = new Cell2dVertex*[s];
   
   // create all vertices
   i = 0;
   for (y = 0; y < height; ++y) {
     for (x = 0; x < width; ++x, ++i) {
-      VertexGridData* vgd = new VertexGridData();
-      vgd->p[0] = x;
-      vgd->p[1] = y;
-      vgd->cost = this->map[i];
-      vertexMap[i] = new Vertex(vgd);
+      //      VertexGridData* vgd = new VertexGridData();
+      Cell2d cell(x, y, this->map[i]);
+        //      vgd->p[0] = x;
+        //      vgd->p[1] = y;
+        //      vgd->cost = this->map[i];
+      vertexMap[i] = new Vertex<Cell2d>(cell);
       //VertexGridData* vgdt = ( VertexGridData* )vertexMap[i]->data;
       //std::cout << vgdt->p[0] << " " << vgdt->p[1] << " " << vgdt->cost << std::endl;
       graph.AddVertex(*vertexMap[i]);
@@ -75,15 +78,15 @@ GridSearch::GridSearch(int width, int height, const GridCost& gridcost, const do
         ni = ny*width + nx;
         // create an edge b/n vertices at pos. i and ni
 
-        Vertex *from = vertexMap[i];
-        Vertex *to = vertexMap[ni];
+        Cell2dVertex *from = vertexMap[i];
+        Cell2dVertex *to = vertexMap[ni];
         
         // 
         //double ecost = edgeCost->CalcEdgeCost(this->map[i], this->map[ni], NBR_COSTS_[nbr]);
         //assert(ecost >= 0);
-        double ecost = scale*gridcost.Real(*from,*to);
+        double ecost = scale*gridcost.Real(from->data,to->data);
         std::cout << ecost << std::endl;
-        Edge* edge = new Edge(from, to, ecost);
+        Edge<Cell2d>* edge = new Edge<Cell2d>(from, to, ecost);
         //Edge* edge = new Edge(from, to, scale*ecost);
         
 
@@ -99,14 +102,14 @@ GridSearch::GridSearch(int width, int height, const GridCost& gridcost, const do
 
 void GridSearch::AddEdge(int x1, int y1, int x2, int y2)
 {  
-  Vertex *from = GetVertex(x1, y1);
-  Vertex *to = GetVertex(x2, y2);
+  Cell2dVertex *from = GetVertex(x1, y1);
+  Cell2dVertex *to = GetVertex(x2, y2);
   if (!from || !to)
     return;
   
   double dx = x2-x1;
   double dy = y2-y1;
-  Edge* edge = new Edge(from, to, sqrt(dx*dx + dy*dy)); 
+  Edge<Cell2d>* edge = new Edge<Cell2d>(from, to, sqrt(dx*dx + dy*dy)); 
   graph.AddEdge(*edge);
 }
 
@@ -114,8 +117,8 @@ void GridSearch::AddEdge(int x1, int y1, int x2, int y2)
 GridSearch::~GridSearch()
 {
   for (int i = 0; i < width*height; ++i) {
-    delete[] (VertexGridData*)vertexMap[i]->data;
-    vertexMap[i]->data = 0;
+    // delete[] (VertexGridData*)vertexMap[i]->data;
+    //     vertexMap[i]->data = 0;
   }
   delete[] vertexMap;
   delete[] map;
@@ -130,7 +133,7 @@ double GridSearch::GetCost(int x, int y) const
 }
 
 
-Vertex* GridSearch::GetVertex(int x, int y) const
+Cell2dVertex* GridSearch::GetVertex(int x, int y) const
 {
   if (x < 0 || x >= width || y < 0 || y >= height)
     return 0;
@@ -140,7 +143,7 @@ Vertex* GridSearch::GetVertex(int x, int y) const
 
 void GridSearch::RemoveVertex(int x, int y)
 {
-  Vertex *v = GetVertex(x, y);
+  Cell2dVertex *v = GetVertex(x, y);
   if (v)
     graph.RemoveVertex(*v);
 }
@@ -148,7 +151,7 @@ void GridSearch::RemoveVertex(int x, int y)
 
 void GridSearch::SetCost(int x, int y, double cost)
 {
-  std::map<int, Edge*>::iterator ein, eout;
+  std::map<int, Edge<Cell2d>*>::iterator ein, eout;
 
   
   int i = y*width + x;
@@ -157,8 +160,9 @@ void GridSearch::SetCost(int x, int y, double cost)
   if (Eq(cost, this->map[i]))
     return;
   this->map[i] = cost;
-  VertexGridData* v_data = (VertexGridData*)vertexMap[i]->data;
-  v_data->cost = cost;  
+  //  VertexGridData* v_data = (VertexGridData*)vertexMap[i]->data;
+  Cell2d &v_data = vertexMap[i]->data;
+  v_data.cost = cost;  
 
   // fix all connected edges
   ein = vertexMap[i]->in.begin();
@@ -172,7 +176,7 @@ void GridSearch::SetCost(int x, int y, double cost)
     
     //double ecost = edgeCost->CalcEdgeCost(GetCost(pos[0], pos[1]), cost, sqrt(dx*dx + dy*dy));
     //assert(ecost >= 0);
-    ChangeCost(*ein->second, scale*this->cost.Real(*((*ein).second->from), *(vertexMap[i])));
+    ChangeCost(*ein->second, scale*this->cost.Real(ein->second->from->data, vertexMap[i]->data));
   }
 
   for (;eout != vertexMap[i]->out.end(); eout++)
@@ -184,7 +188,7 @@ void GridSearch::SetCost(int x, int y, double cost)
 
     //double ecost = edgeCost->CalcEdgeCost(GetCost(pos[0], pos[1]), cost, sqrt(dx*dx + dy*dy));
     //assert(ecost >= 0);
-    ChangeCost(*eout->second, scale*this->cost.Real(*(vertexMap[i]), *((*eout).second->to)));
+    ChangeCost(*eout->second, scale*this->cost.Real(vertexMap[i]->data, (*eout).second->to->data));
   }
   //for (;ein != vertexMap[i]->in.end(); ein++)
   //  ChangeCost(*ein->second, cost > 10 ? 10000 : 0);
@@ -222,22 +226,25 @@ void GridSearch::SetGoal(int x, int y)
 
 void GridSearch::Plan(GridPath& path)
 {
-  int count;
   double len = 0;
-  Vertex *cur = start;
-  int *pos1 = 0, *pos0 = 0;
+  Cell2dVertex *cur = start;
   int i;
 
-  count = Search::Plan();
-  path.pos = (int*)realloc(path.pos, count*2*sizeof(int));
-  path.count = count;
+  int count = Search<Cell2d>::Plan();
+  path.cells.clear();
+  //  path.pos = (int*)realloc(path.pos, count*2*sizeof(int));
+  //  path.count = count;
+  Cell2d prevCell;
   for (i = 0; i < count; ++i) {
-    pos1 = ((VertexGridData*)cur->data)->p;   
-    memcpy(&path.pos[2*i], pos1, 2*sizeof(int));
+    //    pos1 = ((VertexGridData*)cur->data)->p;   
+    Cell2d cell(cur->data);
+    //    pos1 = cur->data.p;
+    // memcpy(&path.pos[2*i], pos1, 2*sizeof(int));
     if (i > 0) {
-      len += sqrt((pos1[0]-pos0[0])*(pos1[0]-pos0[0]) + (pos1[1]-pos0[1])*(pos1[1]-pos0[1]));
+      len += cur->data.Distance(prevCell);
     }
-    pos0 = pos1;
+    prevCell = cur->data;
+    path.cells.push_back(cur->data);
     cur = cur->next;
   }
   path.len = len;
@@ -253,12 +260,13 @@ void GridSearch::OptPath(const GridPath &path, GridPath &optPath, double freeCos
   int i;
   int count = 1;
   double len = 0;
-  int pos[2*path.count];
+  //  int pos[2*path.count];
+
+  optPath.cells.clear();
+  optPath.len = 0;
 
   if (path.len == 2) {
-    optPath.pos = (int*)realloc(optPath.pos, 4*sizeof(int));
-    memcpy(optPath.pos, path.pos, 4*sizeof(int));
-    optPath.count = 2;
+    optPath.cells = path.cells;
     optPath.len = path.len;
     return;
   }
@@ -266,39 +274,41 @@ void GridSearch::OptPath(const GridPath &path, GridPath &optPath, double freeCos
   x2 = 0;
   y2 = 0;
 
-  x0 = path.pos[0];
-  y0 = path.pos[1];
-  x1 = path.pos[2];
-  y1 = path.pos[3];
+  x0 = path.cells[0].p[0];
+  y0 = path.cells[0].p[1];
+  x1 = path.cells[1].p[0];
+  y1 = path.cells[1].p[1];
   dx0 = x1 - x0;
   dy0 = y1 - y0;
   n = sqrt(dx0*dx0 + dy0*dy0);
   dx0 /= n;
   dy0 /= n;
 
-  pos[0] = (int)x0;
-  pos[1] = (int)y0;
+  //  pos[0] = (int)x0;
+  //  pos[1] = (int)y0;
+
+  Cell2d cur((int)x0, (int)y0);
+  optPath.cells.push_back(cur);
   
-  for (i = 1; i < path.count - 1; ++i) {
-    x1 = path.pos[2*i];
-    y1 = path.pos[2*i + 1];
-    x2 = path.pos[2*(i+1)];
-    y2 = path.pos[2*(i+1)+1];
+  for (i = 1; i < path.cells.size() - 1; ++i) {
+    x1 = path.cells[i].p[0];
+    y1 = path.cells[i].p[1];
+    x2 = path.cells[i+1].p[0];
+    y2 = path.cells[i+1].p[1];
     dx1 = x2 - x0;
     dy1 = y2 - y0;
     n = sqrt(dx1*dx1 + dy1*dy1);
     assert(n > .7);
     dx1 /= n;
     dy1 /= n;
-    if (fabs((dx0-dx1)*(dx0-dx1) + (dy0-dy1)*(dy0-dy1)) > .00001) {
+    if (fabs((dx0-dx1)*(dx0-dx1) + (dy0-dy1)*(dy0-dy1)) > 1e-6) {
       n = sqrt((x0-x2)*(x0-x2) + (y0-y2)*(y0-y2));
       for (d = RAY_TRACE_STEP; d < n; d += RAY_TRACE_STEP) {
 	x = dx1*d;
 	y = dy1*d;
 	if (map[((int)(y0 + y))*width + (int)(x0 + x)] > freeCost) {
-	  pos[2*count] = (int)x1;
-	  pos[2*count + 1] = (int)y1;
-	  count++;
+	  Cell2d cell((int)x1, (int)y1);
+          optPath.cells.push_back(cell);
 	  len += sqrt((x1-x0)*(x1-x0) + (y1-y0)*(y1-y0));
 	  x0 = x1;
 	  y0 = y1;
@@ -313,13 +323,9 @@ void GridSearch::OptPath(const GridPath &path, GridPath &optPath, double freeCos
     }
   }
   
-  pos[2*count] = (int)x2;
-  pos[2*count + 1] = (int)y2;
+  Cell2d cell((int)x2, (int)y2);
+  optPath.cells.push_back(cell);
+
   len += sqrt((x2-x0)*(x2-x0) + (y2-y0)*(y2-y0));
-  count++;
-  optPath.pos = (int*)realloc(optPath.pos, count*2*sizeof(int));
-  memcpy(optPath.pos, pos, count*2*sizeof(int));
-  optPath.count = count;
   optPath.len = len;
 }
-

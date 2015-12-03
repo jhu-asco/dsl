@@ -7,32 +7,23 @@
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "gridcost.h"
-#include "gridsearch.h"
 #include <cmath>
 
 using namespace dsl;
 
 
-double GridCost::Real(const Vertex &a, const Vertex &b) const
+double GridCost::Real(const Cell2d &a, const Cell2d &b) const
 {
-  VertexGridData* va_dat = (VertexGridData*)a.data;
-  VertexGridData* vb_dat = (VertexGridData*)b.data;
-  double vcosta = va_dat->cost;
-  double vcostb = vb_dat->cost;
-  int dx = va_dat->p[0] - vb_dat->p[0];
-  int dy = va_dat->p[1] - vb_dat->p[1];
-  return sqrt(dx*dx + dy*dy)*(1+0.5*vcosta+0.5*vcostb);
+  int dx = a.p[0] - b.p[0];
+  int dy = a.p[1] - b.p[1];
+  return sqrt(dx*dx + dy*dy)*(1 + 0.5*a.cost + 0.5*b.cost);
 }
 
 
-double GridCost::Heur(const Vertex &a, const Vertex &b) const
+double GridCost::Heur(const Cell2d &a, const Cell2d &b) const
 {
-  VertexGridData* va_dat = (VertexGridData*)a.data;
-  VertexGridData* vb_dat = (VertexGridData*)b.data;
-  int* s1pos = va_dat->p;
-  int* s2pos = vb_dat->p;
-  double dx = fabs((double)(s1pos[0] - s2pos[0]));
-  double dy = fabs((double)(s1pos[1] - s2pos[1]));
+  double dx = fabs((double)(a.p[0] - b.p[0]));
+  double dy = fabs((double)(a.p[1] - b.p[1]));
   if (dx > dy)
     return dx;
   else

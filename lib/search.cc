@@ -87,7 +87,7 @@ void Search::SetGoal(const Vertex &s)
   // set goal
   goal = (Vertex*)&s;
   goal->rhs = 0;
-  goal->key[0] = cost.Heur(*start, *goal);
+  goal->key[0] = cost.Heur(start->data, goal->data);
   goal->key[1] = 0;
   InsertExt(*goal, goal->key);
 }
@@ -231,7 +231,7 @@ int Search::Plan()
     last = start;
 
   if (changedEdges.size()) {
-    km += (cost.Heur(*last, *start));
+    km += (cost.Heur(last->data, start->data));
     last = start;
     vector<Edge*>::iterator ei;
     for (ei = changedEdges.begin(); ei != changedEdges.end(); ++ei) {
@@ -298,7 +298,7 @@ Vertex* Search::MinSucc(double *minRhs, const Vertex &s)
     double val = edge->cost + s_->g;
 #ifdef DSL_GOAL_BIAS
     if (val < minVal || 
-	(val == minVal && minSucc && cost.Real(*s_, *goal) < cost.Real(*minSucc, *goal))) {
+	(val == minVal && minSucc && cost.Real(s_->data, goal->data) < cost.Real(minSucc->data, goal->data))) {
 #else
    if (val < minVal) {
 #endif
@@ -320,7 +320,7 @@ double* Search::CalculateExtKey(double *key, Vertex &s)
     key[1] = INF;
   } else {
     assert(start);
-    key[0] = m + cost.Heur(*start, s) + km;
+    key[0] = m + cost.Heur(start->data, s.data) + km;
     key[1] = m;
   }
 

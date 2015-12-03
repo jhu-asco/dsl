@@ -9,9 +9,6 @@
 #ifndef DSL_COST_H
 #define DSL_COST_H
 
-#include "vertex.h"
-
-
 namespace dsl {
   /**
    * Interface defining the cost b/n two vertices.
@@ -29,6 +26,7 @@ namespace dsl {
    *
    * Author: Marin Kobilarov -- Copyright (C) 2004
    */
+  template<class T>
   class Cost {
   public:
     /**
@@ -36,23 +34,29 @@ namespace dsl {
      * (should be admissible, i.e. less than the real minimum distance)
      * b/n two vertices.
      * Subclasses must provide this function
-     * @param va first vertex
-     * @param vb second vertex
+     * @param va first vertex data
+     * @param vb second vertex data
      * @return heuristic distance (optimal cost)
      */
-    virtual double Heur(const Vertex &va, const Vertex &vb) const = 0;
+    virtual double Heur(const T& va, const T& vb) const = 0;
     
     
     /**
      * Real best possible distance b/n two vertices.
      * Subclasses should optionally provide this function.
      * By default it is the heuristic function + epsilon 
-     * @param va first vertex
-     * @param vb second vertex
+     * @param va first vertex data
+     * @param vb second vertex data
      * @return real minimum possible cost b/n va and vb
      */
-    virtual double Real(const Vertex &va, const Vertex &vb) const;
+    virtual double Real(const T& va, const T& vb) const;
   };
+  
+  template<class T>
+    double Cost<T>::Real(const T& va, const T& vb) const {
+    return Heur(va, vb) + 1e-10;
+  }
+
 }
 
 #endif

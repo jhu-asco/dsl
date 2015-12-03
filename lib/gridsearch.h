@@ -11,6 +11,7 @@
 
 #include "search.h"
 #include "gridcost.h"
+#include <vector>
 
 /**
  *  Grid based D* Lite, extends graph-based D* Lite.
@@ -44,7 +45,7 @@
 
 namespace dsl {
 
-
+  typedef Vertex<Cell2d> Cell2dVertex;
 
   /**
    *  Path containing a list of grid points
@@ -52,12 +53,13 @@ namespace dsl {
   class GridPath
   {
   public:
-  GridPath() : pos(0), count(0), len(0) {};
-    int *pos;          ///< (x,y) point position array of size 2*count
-    int count;         ///< number of points along the path 
+  GridPath() : len(0) {};
+    std::vector<Cell2d> cells;
+    //    int *pos;          ///< (x,y) point position array of size 2*count
+    //    int count;         ///< number of points along the path 
     double len;        ///< length of path (sum of eucl. distances b/n points)
   };
-  
+  /*  
   class VertexGridData
   {
   public:
@@ -65,8 +67,8 @@ namespace dsl {
     int p[2];
     double cost;
   };
-  
-  class GridSearch : public Search
+  */
+  class GridSearch : public Search<Cell2d>
   {
  public:
     
@@ -142,7 +144,7 @@ namespace dsl {
      * @param freeCost treat cells with cost <= freeCost as free
      * path with minimal number of obstacle-free segments)
      */
-    void OptPath(const GridPath &path, GridPath &optPath, double freeCost = 0) const;
+    void OptPath(const GridPath &path, GridPath &optPath, double freeCost = 1e-6) const;
 
     /**
      * Useful method to get the graph vertex at position (x,y)
@@ -150,7 +152,7 @@ namespace dsl {
      * @param y y-coordiante
      * @return corresponding vertex or 0 if none there
      */
-    Vertex* GetVertex(int x, int y) const; 
+    Vertex<Cell2d>* GetVertex(int x, int y) const; 
 
     /**
      * Useful method to remove a vertex at (x,y)
@@ -178,10 +180,10 @@ namespace dsl {
     const static int NBR_OFFSETS[8*2];
     const static double NBR_COSTS_[8];
 
-    Graph graph;
+    Graph<Cell2d> graph;
     const GridCost& cost;
   
-    Vertex **vertexMap;                ///< vertex grid array of size width*height
+    Vertex<Cell2d> **vertexMap;                ///< vertex grid array of size width*height
   };
 }
 
