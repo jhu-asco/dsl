@@ -22,8 +22,15 @@
 
 namespace dsl {
 
-  class Graph;
-  class Edge;
+
+  template<class T>
+    class Graph;
+
+  template<class T>
+    class Search;
+
+  template<class T>
+    class Edge;
   
   /**
    *  Generic graph vertex containing a list of incoming and outgoing edges
@@ -34,16 +41,21 @@ namespace dsl {
    *
    *  Marin Kobilarov -- Copyright (C) 2004
    */
-  class Vertex
-  {
+  template<class T>
+    class Vertex {
   public:
+    
+    /**
+     * Initialize the vertex
+     */
+    Vertex();
     
     /**
      * Initialize the vertex with an optional pointer to user
      * data
      * @param data data
      */
-    Vertex(void *data = 0);
+    Vertex(const T& data);
     
     virtual ~Vertex();
     
@@ -59,16 +71,17 @@ namespace dsl {
      * @param in whether to look among incoming or outgoing edges
      * @return the edge or 0 if none
      */
-    Edge* Find(const Vertex &v, bool in) const;
-
-    int id;                   ///< vertex id (set internally)
-
-    void *data;               ///< application data (optional)
-    std::map<int, Edge*> in;  ///< map of incoming edges
-    std::map<int, Edge*> out; ///< map of outgoing edges
+    Edge<T>* Find(const Vertex<T> &v, bool in) const;
     
-    Vertex *next;             ///< next state in a path (used for tracing paths)
-    Vertex *prev;             ///< previous state in a path (used for tracing paths)
+    int id;                   ///< vertex id (set internally)
+    
+    T data;                   ///< data
+    
+    std::map<int, Edge<T>*> in;  ///< map of incoming edges
+    std::map<int, Edge<T>*> out; ///< map of outgoing edges
+    
+    Vertex<T> *next;             ///< next state in a path (used for tracing paths)
+    Vertex<T> *prev;             ///< previous state in a path (used for tracing paths)
     
     double rhs;               ///< dsl g heuristic values (used internally)
     double g;                 ///< dsl rhs heuristic values (used internally)
@@ -83,35 +96,119 @@ namespace dsl {
     fibnode_t openListNode;   ///< heap node associated to this vertex
     double key[2];            ///< heap key
     
-#ifdef DSL_DSTAR_MIN
-    Vertex *r;                ///< pointer to a state (from focussed D*)
-#endif
+    Vertex<T> *r;                ///< pointer to a state (from focussed D*)
     
   private:
     static int s_id;          ///< id counter
 
-    friend class Graph;
-    friend class Search;
+    friend class Graph<T>;
+
+    friend class Search<T>;
     
-    friend std::ostream& operator<<(std::ostream &os, const Vertex &v);
-    friend std::istream& operator>>(std::istream &is, Vertex &v);    
+    //    friend std::ostream& perator<<(std::ostream &os, const Vertex<T> &v);
+
+    //    friend std::istream& operator>>(std::istream &is, Vertex<T> &v);    
   };
 
-  /**
-   * Output the vertex to a stream
-   * @param os output stream
-   * @param v vertex
-   * @return the output stream
-   */
-  std::ostream& operator<<(std::ostream &os, const Vertex &v);
+  
+  template<class T>
+    int Vertex<T>::s_id = 0;
+  
+  template<class T>
+    Vertex<T>::Vertex() : 
+  id(s_id) {
+    Reset();
+    ++s_id;
+  }
+  
+  template<class T>
+    Vertex<T>::Vertex(const T& data) : 
+  id(s_id), data(data) {
+    Reset();
+    ++s_id;
+  }
+  
+  template<typename T>
+    Vertex<T>::~Vertex() {
+    in.clear();
+    out.clear();
+  }
+  
+  template<typename T>    
+    void Vertex<T>::Reset() {
+    next = 0;
+    prev = 0;
+    rhs = g = INF;
+    t = Vertex<T>::NEW;
+    openListNode = 0;
+    key[0] = key[1] = INF;
+    
 
-  /**
+    r = 0;
+  }
+  
+  template<class T>
+    Edge<T>* Vertex<T>::Find(const Vertex<T> &v, bool in) const {
+
+    typename std::map<int, Edge<T>*>::const_iterator it;
+    
+    if (in)
+      for (it = this->in.begin(); it != this->in.end(); ++it) {
+        Edge<T> *e = it->second;
+        if (e->from == &v)
+          return e;
+      }
+    else
+      for (it = this->out.begin(); it != this->out.end(); ++it) {
+        Edge<T> *e = it->second;
+        if (e->to == &v)
+          return e;
+      }
+    return 0;
+  }
+  /*
+  template<typename T>
+  std::ostream& operator<<(std::ostream &os, const Vertex<T> &v)
+  {
+    os << v.id << " ";
+    std::map<int, Edge<T>*>::const_iterator it;
+    os << "[";
+    for (it = v.in.begin(); it != v.in.end(); ++it) {
+      os << it->second->id << " ";
+    }
+    os << "]<-*->[";
+    for (it = v.out.begin(); it != v.out.end(); ++it) {
+      os << it->second->id << " ";
+    }
+    os << "] ";
+
+    if (v.next)
+      os << v.next->id << " ";
+    else 
+      os << "-1 ";
+    
+    os << "rhs=" << v.rhs << " g=" << v.g << " t=" << v.t << " node=" << v.openListNode << " key=(" << v.key[0] << "," << v.key[1] << ")" << std::endl;;
+    
+
+    return os;
+  };
+  */  
+
+ /**
    * Input the vertex from a stream
    * @param is input stream
    * @param v vertex
    * @return the input stream
+  template<typename T>
+   std::istream& operator>>(std::istream &is, Vertex<T> &v)
+  {   
+    return is;
+  }
    */
-  std::istream& operator>>(std::istream &is, Vertex &v);
+
+
 }
+
+
 
 #endif

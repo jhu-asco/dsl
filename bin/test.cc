@@ -93,11 +93,11 @@ int main(int argc, char** argv)
   gdsl.Plan(path);
   time = timer_us(&timer);
   printf("plan path time= %ld\n", time);
-  printf("path: count=%d len=%f\n", path.count, path.len);
+  printf("path: count=%d len=%f\n", path.cells.size(), path.len);
   // print results
-  for (i = 0; i < path.count; ++i) {
-    printf("(%d,%d) ", path.pos[2*i], path.pos[2*i+1]);
-    mapPath[path.pos[2*i+1]*width + path.pos[2*i]] = 2;
+  for (i = 0; i < path.cells.size(); ++i) {
+    printf("(%d,%d) ",  path.cells[i].p[0], path.cells[i].p[1]);
+    mapPath[ path.cells[i].p[1]*width +  path.cells[i].p[0]] = 2;
   }
   printf("\n");
   for (y = 0; y < height; ++y) {
@@ -137,7 +137,7 @@ int main(int argc, char** argv)
   gdsl.Plan(path);
   time = timer_us(&timer);
   printf("replan path time= %ld us\n", time);
-  printf("path: count=%d len=%f\n", path.count, path.len);
+  printf("path: count=%d len=%f\n", path.cells.size(), path.len);
   fflush(stdout);
   
 
@@ -159,17 +159,17 @@ int main(int argc, char** argv)
   gdsl.OptPath(path, optPath);
   time = timer_us(&timer);
   printf("opt path time= %ld us\n", time);
-  printf("optPath: count=%d len=%f\n", optPath.count, optPath.len);
+  printf("optPath: count=%d len=%f\n", optPath.cells.size(), optPath.len);
   
-  for (i = 0; i < path.count; ++i) {
-    printf("(%d,%d) ", path.pos[2*i], path.pos[2*i+1]);
-    mapPath[path.pos[2*i+1]*width + path.pos[2*i]] = 2;
+  for (i = 0; i < path.cells.size(); ++i) {
+    printf("(%d,%d) ", path.cells[i].p[0], path.cells[i].p[1]);
+    mapPath[path.cells[i].p[1]*width + path.cells[i].p[0]] = 2;
   }
   printf("\n");
-  for (i = 0; i < optPath.count; ++i) {
-    printf("(%d,%d) ", optPath.pos[2*i], optPath.pos[2*i+1]);
+  for (i = 0; i < optPath.cells.size(); ++i) {
+    printf("(%d,%d) ", optPath.cells[i].p[0], optPath.cells[i].p[1]);
     fflush(stdout);
-    mapPath[optPath.pos[2*i+1]*width + optPath.pos[2*i]] = 3;
+    mapPath[optPath.cells[i].p[1]*width + optPath.cells[i].p[0]] = 3;
   }
   printf("\n");
   for (y = 0; y < height; ++y) {

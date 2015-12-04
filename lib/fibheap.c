@@ -34,8 +34,14 @@ Boston, MA 02111-1307, USA.  */
 #include "libiberty.h"
 #include "fibheap.h"
 
-extern int FIBHEAPKEY_SIZE;
-extern fibheapkey_t FIBHEAPKEY_MIN;
+#define INF (1e16)
+
+int FIBHEAPKEY_SIZE = 2*sizeof(double);
+fibheapkey_t FIBHEAPKEY_MIN = (void*)(double[2]){-INF, -INF};
+
+//extern int FIBHEAPKEY_SIZE;
+//extern fibheapkey_t FIBHEAPKEY_MIN;
+
 extern int fibkey_compare(fibheapkey_t key1, fibheapkey_t key2);
 
 static void fibheap_ins_root PARAMS ((fibheap_t, fibnode_t));
