@@ -217,11 +217,13 @@ namespace dsl {
 
 #define DSL_MIN(a,b) ((a<b)?(a):(b))
   
-  // these are needed by fibheap
-  int FIBHEAPKEY_SIZE = 2*sizeof(double);
-  fibheapkey_t FIBHEAPKEY_MIN = (void*)(double[2]){-INF, -INF};
   
-  extern "C" int fibkey_compare(fibheapkey_t a, fibheapkey_t b)
+  // these are needed by fibheap
+  extern int FIBHEAPKEY_SIZE;// = 2*sizeof(double);
+  extern fibheapkey_t FIBHEAPKEY_MIN;// = (void*)(double[2]){-INF, -INF};
+  
+  extern "C" int fibkey_compare(fibheapkey_t a, fibheapkey_t b);
+  /*
   {
     assert(a); assert(b);
     double* af = (double *)a;
@@ -232,7 +234,7 @@ namespace dsl {
       return 0;
     return 1;
   }
-  
+  */
   
   template<class T>
     Search<T>::Search(Graph<T> &graph, const Cost<T> &cost) : 

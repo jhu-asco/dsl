@@ -59,15 +59,7 @@ namespace dsl {
     //    int count;         ///< number of points along the path 
     double len;        ///< length of path (sum of eucl. distances b/n points)
   };
-  /*  
-  class VertexGridData
-  {
-  public:
-  VertexGridData(): cost(0) {p[0] = 0; p[1] = 0;};
-    int p[2];
-    double cost;
-  };
-  */
+
   class GridSearch : public Search<Cell2d>
   {
  public:

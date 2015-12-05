@@ -13,23 +13,19 @@ using namespace dsl;
 
 #define MAX(a,b) (a>b?a:b)
 
-double GridCost3D::Real(const Vertex &a, const Vertex &b) const
+double GridCost3D::Real(const Cell3d &a, const Cell3d &b) const
 {
-  int* s1pos = (int*)a.data;
-  int* s2pos = (int*)b.data;
-  double dx = s1pos[0] - s2pos[0];
-  double dy = s1pos[1] - s2pos[1];
-  double dz = s1pos[2] - s2pos[2];
-  return sqrt(dx*dx + dy*dy + dz*dz);
+  double dx = a.p[0] - b.p[0];
+  double dy = a.p[1] - b.p[1];
+  double dz = a.p[2] - b.p[2];
+  return sqrt(dx*dx + dy*dy + dz*dz)*(1+ 0.5*a.cost + 0.5*b.cost);
 }
 
 
-double GridCost3D::Heur(const Vertex &a, const Vertex &b) const
+double GridCost3D::Heur(const Cell3d &a, const Cell3d &b) const
 {
-  int* s1pos = (int*)a.data;
-  int* s2pos = (int*)b.data;
-  double dx = fabs((double)(s1pos[0] - s2pos[0]));
-  double dy = fabs((double)(s1pos[1] - s2pos[1]));
-  double dz = fabs((double)(s1pos[2] - s2pos[2]));
+  double dx = fabs((double)(a.p[0] - b.p[0]));
+  double dy = fabs((double)(a.p[1] - b.p[1]));
+  double dz = fabs((double)(a.p[2] - b.p[2]));
   return MAX(dz,MAX(dx,dy));
 }

@@ -24,7 +24,7 @@ namespace dsl {
   {
   public:
     
-    double Real(const Vertex &va, const Vertex &vb) const;       
+    double Real(const Cell2d &va, const Cell2d &vb) const;       
   };
 }
 

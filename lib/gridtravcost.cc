@@ -11,19 +11,16 @@
 #include <stdlib.h>
 #include <iostream>
 #include "gridtravcost.h"
-#include "gridsearch.h"
 
 using namespace std;
 using namespace dsl;
 
 
-double GridTravCost::Real(const Vertex &va, const Vertex &vb) const
+double GridTravCost::Real(const Cell2d &va, const Cell2d &vb) const
 {
-  VertexGridData* adat = ( VertexGridData* )va.data;
-  VertexGridData* bdat = ( VertexGridData* )vb.data;
-  int dx = bdat->p[0]-adat->p[0];
-  int dy = bdat->p[1]-adat->p[1];
+  int dx = vb.p[0]-va.p[0];
+  int dy = vb.p[1]-va.p[1];
   double elength = sqrt(dx*dx + dy*dy);
-  return fabs(bdat->cost-adat->cost)/elength;
+  return fabs(vb.cost-va.cost)/elength;
 }    
 

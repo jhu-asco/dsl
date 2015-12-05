@@ -85,7 +85,6 @@ GridSearch::GridSearch(int width, int height, const GridCost& gridcost, const do
         //double ecost = edgeCost->CalcEdgeCost(this->map[i], this->map[ni], NBR_COSTS_[nbr]);
         //assert(ecost >= 0);
         double ecost = scale*gridcost.Real(from->data,to->data);
-        std::cout << ecost << std::endl;
         Edge<Cell2d>* edge = new Edge<Cell2d>(from, to, ecost);
         //Edge* edge = new Edge(from, to, scale*ecost);
         
@@ -109,7 +108,7 @@ void GridSearch::AddEdge(int x1, int y1, int x2, int y2)
   
   double dx = x2-x1;
   double dy = y2-y1;
-  Edge<Cell2d>* edge = new Edge<Cell2d>(from, to, sqrt(dx*dx + dy*dy)); 
+  Edge<Cell2d>* edge = new Edge<Cell2d>(from, to, scale*cost.Real(from->data, to->data)); 
   graph.AddEdge(*edge);
 }
 
@@ -237,7 +236,7 @@ void GridSearch::Plan(GridPath& path)
   Cell2d prevCell;
   for (i = 0; i < count; ++i) {
     //    pos1 = ((VertexGridData*)cur->data)->p;   
-    Cell2d cell(cur->data);
+    //Cell2d cell(cur->data);
     //    pos1 = cur->data.p;
     // memcpy(&path.pos[2*i], pos1, 2*sizeof(int));
     if (i > 0) {

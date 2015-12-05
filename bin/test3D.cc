@@ -50,9 +50,9 @@ void save_map_with_path(unsigned const char* map, int width, int height, GridPat
   for (i = 0; i < width*height; i++, ind+=3) {
     data[ind] = data[ind+1] = data[ind+2] = (map[i]);
   }
-  for(i = 0; i < path.count; i++){
-    int pidx = path.pos[3*i+1]*width + path.pos[3*i];
-    data[3*pidx] = path.pos[3*i+2]*255/50;
+  for(i = 0; i < path.cells.size(); i++){
+    int pidx = path.cells[i].p[1]*width + path.cells[i].p[0];
+    data[3*pidx] = path.cells[i].p[2]*255/50;
     data[3*pidx+1] = 0;
     data[3*pidx+2] = 0;
   }
@@ -136,7 +136,7 @@ int main(int argc, char** argv)
   if (argc<2) {
     cout << "Usage: $./test3D map.ppm" << endl;
     cout << "\t\t where map.ppm is a map graphics file" << endl;
-    cout << "\t\t output will be written to graphics files path1.ppm and path2.ppm" << endl;
+    cout << "\t\t output will be written to graphics files path1.ppm" << endl;
     return 0;
   }
   assert(argc >= 2);
@@ -146,6 +146,8 @@ int main(int argc, char** argv)
   chmap = load_heightmap(&length, &width, argv[1]);
   
   cout << "Height map loaded" << endl;
+  cout << "length=" << length << endl;
+  cout << "width=" << width << endl;
 
   GridPath3D path, optPath;
   unsigned char mapPath[length*width];
@@ -177,8 +179,17 @@ int main(int argc, char** argv)
   // create planner
   GridSearch3D gdsl(length, width, height, map);
   cout << "Initialized planner" << endl;
-  gdsl.SetStart(length/4, width/2, 15);
-  gdsl.SetGoal(5*length/8, width/4-10, 25);
+  int startx = length/4;
+  int starty = width/2;
+  int startz = 15;
+  int goalx = 5*length/8;
+  int goaly = width/4 - 10;
+  int goalz = 25;
+  gdsl.SetStart(startx, starty, startz);
+  gdsl.SetGoal(goalx, goaly, goalz);
+  printf("start (%d,%d,%d) \n", startx, starty, startz);
+  printf("goal (%d,%d,%d) \n", goalx, goaly, goalz);
+  
 
   cout << "Setup planner" << endl;
 
@@ -187,12 +198,12 @@ int main(int argc, char** argv)
   gdsl.Plan(path);
   time = timer_us(&timer);
   printf("plan path time= %ld\n", time);
-  printf("path: count=%d len=%f\n", path.count, path.len);
+  printf("path: count=%d len=%f\n", path.cells.size(), path.len);
   // print results
   
   
-  for (i = 0; i < path.count; ++i) {
-    printf("(%f,%f,%f) ", path.pos[3*i], path.pos[3*i+1], path.pos[3*i+2]);
+  for (i = 0; i < path.cells.size(); ++i) {
+    printf("(%d,%d,%d) \n", path.cells[i].p[0], path.cells[i].p[1], path.cells[i].p[2]);
     //mapPath[path.pos[3*i+1]*length + path.pos[3*i]] = path.pos[3*i+2]*255/50;
   }
   /*
