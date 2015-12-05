@@ -1,2 +1,8 @@
+01/03/2004 Marin Kobilarov
+Original Version
+
 08/29/2014 Matt Sheckells
 Added GridSearch3D class
+
+01/12/2015 Marin Kobilarov
+Converted to templated library

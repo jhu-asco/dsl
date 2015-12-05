@@ -91,7 +91,7 @@ namespace dsl {
     std::map<int, Vertex<T>*> vertices;    ///< all vertices
 
   protected:
-    Search<T> *search;                     ///< search operating on this graph
+    Search<T> *search;                     ///< search operating on this graph, this is necessary since in D*, we can remove/add edges to the graph, or change their costs, and the search will be updated accordingly though this field, so that next time it is run it will replan quickly
 
   private:
     friend class Search<T>;

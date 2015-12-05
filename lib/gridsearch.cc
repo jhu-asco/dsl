@@ -85,7 +85,7 @@ GridSearch::GridSearch(int width, int height, const GridCost& gridcost, const do
         //double ecost = edgeCost->CalcEdgeCost(this->map[i], this->map[ni], NBR_COSTS_[nbr]);
         //assert(ecost >= 0);
         double ecost = scale*gridcost.Real(from->data,to->data);
-        std::cout << ecost << std::endl;
+        // std::cout << ecost << std::endl;
         Edge<Cell2d>* edge = new Edge<Cell2d>(from, to, ecost);
         //Edge* edge = new Edge(from, to, scale*ecost);
         
@@ -250,15 +250,13 @@ void GridSearch::Plan(GridPath& path)
   path.len = len;
 }
 
-#define RAY_TRACE_STEP 1.0
+#define RAY_TRACE_STEP 1
 
 void GridSearch::OptPath(const GridPath &path, GridPath &optPath, double freeCost) const
 {
   double x, y, x0, y0, x1, y1, x2, y2, n, d;
   double dx0, dy0;
   double dx1, dy1;
-  int i;
-  int count = 1;
   double len = 0;
   //  int pos[2*path.count];
 
@@ -290,7 +288,7 @@ void GridSearch::OptPath(const GridPath &path, GridPath &optPath, double freeCos
   Cell2d cur((int)x0, (int)y0);
   optPath.cells.push_back(cur);
   
-  for (i = 1; i < path.cells.size() - 1; ++i) {
+  for (unsigned int i = 1; i < path.cells.size() - 1; ++i) {
     x1 = path.cells[i].p[0];
     y1 = path.cells[i].p[1];
     x2 = path.cells[i+1].p[0];
@@ -301,12 +299,16 @@ void GridSearch::OptPath(const GridPath &path, GridPath &optPath, double freeCos
     assert(n > .7);
     dx1 /= n;
     dy1 /= n;
-    if (fabs((dx0-dx1)*(dx0-dx1) + (dy0-dy1)*(dy0-dy1)) > 1e-6) {
+    if (fabs((dx0-dx1)*(dx0-dx1) + (dy0-dy1)*(dy0-dy1)) > 1e-16) {
       n = sqrt((x0-x2)*(x0-x2) + (y0-y2)*(y0-y2));
       for (d = RAY_TRACE_STEP; d < n; d += RAY_TRACE_STEP) {
-	x = dx1*d;
-	y = dy1*d;
-	if (map[((int)(y0 + y))*width + (int)(x0 + x)] > freeCost) {
+	x = x0 + dx1*d;
+	y = y0 + dy1*d;
+        assert(x > 0);
+        assert(y > 0);
+        int yi = min((int)round(y), height - 1);
+        int xi = min((int)round(x), width - 1);
+	if (map[yi*width + xi] > freeCost) {
 	  Cell2d cell((int)x1, (int)y1);
           optPath.cells.push_back(cell);
 	  len += sqrt((x1-x0)*(x1-x0) + (y1-y0)*(y1-y0));
@@ -329,3 +331,4 @@ void GridSearch::OptPath(const GridPath &path, GridPath &optPath, double freeCos
   len += sqrt((x2-x0)*(x2-x0) + (y2-y0)*(y2-y0));
   optPath.len = len;
 }
+

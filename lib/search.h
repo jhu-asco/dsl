@@ -37,22 +37,22 @@
  * The package provides a general implementation based
  * on an underlying directed graph (graph ops are done using a fibonacci heap
  * for faster key modifications)
- * as well as a grid-based implementation (derived from the graph-based one) for
+ * as well as a grid/lattice-based implementation (derived from the graph-based one) for
  * search in an environment composed of cells of different "traversibility cost."
  * 
  * The library is easy to use and extend. Included is a test executable
  * that demonstrates a typical path planning scenario.
  * 
- * \subsection Installation
  * \subsection Build requirements
  *  g++; cmake
  *
- * \subsubsection Download
+ * \subsection Installation
  *
- * - download: <a href="../../dsl-1.0.0-Source.tar.gz">dsl-1.0.0-Source.tar.gz</a>
- * - To unzip   >: tar xfz dsl-1.0.0-Source.tar.gz
- * - To compile >: cd dsl-1.0.0-Source; mkdir build; cd build; cmake ..; make
- * - To test >: cd test; bin/test ../bin/map.ppm (look at the generated ppm images to view the result)
+ * - Get the source and cd into main directory 
+ * - To compile:
+ * - $mkdir build; cd build; cmake ..; make
+ * - To test:
+ * - $bin/test ../bin/map.ppm (look at the generated ppm images to view the result)
  *
  * \subsection Class Reference
  * <a href="../../docs/html/hierarchy.html">Class hierarchy</a>
@@ -79,6 +79,8 @@
  *      as well as total number of heap accesses. In essense, the gain in
  *      efficiency comes from delaying certain heap operations.
  *      For simple environments there's no siginificant difference
+ *  - the ability to dynamically add/remove vertices and edges to enable
+ *      anytime implemnetation
  *
  *
  *   The planner is usually used as follows:
@@ -138,6 +140,18 @@ namespace dsl {
      * @return total number of vertices along the path
      */
     int Plan();
+
+
+    /**
+     * Plan an initial path from start to goal, or if any cost
+     * changes are detected since it was last called (any 
+     * calls to ChangeCost()) then it replans. 
+     * Internally calls Plan()
+     * The generated path is set in the provided vector
+     * @param path the optimal path
+     * @return total cost
+     */
+    double Plan(std::vector<Edge<T>*> &path);
     
     
     /**
@@ -207,7 +221,7 @@ namespace dsl {
 
   public:
     bool dstarMin;   ///< whether to use focussed D* -style min extraction: this was discovered to reduce vertex expansion (false by default)
-    bool goalBias;   ///< whether to employ goal bias heuristic (false by default)  
+    bool goalBias;   ///< whether to employ goal bias heuristic: this can speed-up the search in easier environments (false by default)  
 
 
   private:
@@ -305,25 +319,25 @@ namespace dsl {
   }
   
 
-  //#define STDOUT_DEBUG
+  //#define DSL_STDOUT_DEBUG
   
   template<class T>
     void Search<T>::UpdateVertex(Vertex<T> &u) {
-#ifdef STDOUT_DEBUG
+#ifdef DSL_STDOUT_DEBUG
     printf("UpdateVertex: begin\n");
 #endif
     if (u.g != u.rhs && u.t == Vertex<T>::OPEN) {
-#ifdef STDOUT_DEBUG
+#ifdef DSL_STDOUT_DEBUG
       printf("UpdateVertex: 1\n");
 #endif
       Update(u);
     } else if (u.g != u.rhs && u.t != Vertex<T>::OPEN) {
-#ifdef STDOUT_DEBUG
+#ifdef DSL_STDOUT_DEBUG
       printf("UpdateVertex: 2\n");
 #endif
       Insert(u);
     } else if (u.g == u.rhs && u.t == Vertex<T>::OPEN) {
-#ifdef STDOUT_DEBUG
+#ifdef DSL_STDOUT_DEBUG
       printf("UpdateVertex: 3\n");
 #endif
       Remove(u);
@@ -342,7 +356,7 @@ namespace dsl {
     
     graph.search = this;
     
-#ifdef STDOUT_DEBUG
+#ifdef DSL_STDOUT_DEBUG
     printf("ComputeShortestPath: begin\n");
 #endif  
     
@@ -354,7 +368,7 @@ namespace dsl {
     
     while(TopKey() && (fibkey_compare(TopKey(), CalculateKey(*start)) < 0 || start->rhs != start->g)) {
       u = Top();
-#ifdef STDOUT_DEBUG
+#ifdef DSL_STDOUT_DEBUG
       printf("ComputeShortestPath:Top() -> ");// u->Print(stdout);
 #endif
       
@@ -362,7 +376,7 @@ namespace dsl {
       kold[1] = u->key[1];
       
       if (fibkey_compare(kold, CalculateKey(*u)) < 0) {
-#ifdef STDOUT_DEBUG  
+#ifdef DSL_STDOUT_DEBUG  
         printf("ComputeShortestPath: 1 -> ");
         printf("old:[%.2f %.2f]\nnew:[%.2f %.2f]\n", kold[0],kold[1], u->key[0], u->key[1]);
 #endif
@@ -370,7 +384,7 @@ namespace dsl {
         Update(*u);
       } else
       if (u->g > u->rhs) {
-#ifdef STDOUT_DEBUG
+#ifdef DSL_STDOUT_DEBUG
         printf("ComputeShortestPath: 2\n");
 #endif
         
@@ -385,7 +399,7 @@ namespace dsl {
           UpdateVertex(*s);
         }
       } else {
-#ifdef STDOUT_DEBUG
+#ifdef DSL_STDOUT_DEBUG
         printf("ComputeShortestPath: 3\n");
 #endif
         
@@ -407,7 +421,24 @@ namespace dsl {
       }
     }
   }
-  
+
+
+  template<class T>
+    double Search<T>::Plan(std::vector<Edge<T>*> &path) {
+ 
+    path.clear();
+    Plan();
+    Vertex<T> *cur = start;
+    double len = 0;
+    do {
+      Edge<T>* edge = cur->Find(cur->next, false); 
+      assert(edge);
+      len += edge->cost;
+      path.push_back(edge);      
+      cur = cur->next;
+    } while(cur != goal);
+    return len;
+  }
   
   template<class T>
     int Search<T>::Plan() {

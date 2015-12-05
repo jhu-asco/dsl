@@ -73,11 +73,10 @@ int main(int argc, char** argv)
   char mapPath[width*height];
   struct timeval timer;
   long time;
-  int i;
 
   // create a map
   double map[width*height];
-  for (i = 0; i < width*height; ++i)
+  for (int i = 0; i < width*height; ++i)
     map[i] = 1000*(double)chmap[i];
 
   // this is just for display
@@ -93,10 +92,10 @@ int main(int argc, char** argv)
   gdsl.Plan(path);
   time = timer_us(&timer);
   printf("plan path time= %ld\n", time);
-  printf("path: count=%d len=%f\n", path.cells.size(), path.len);
+  printf("path: count=%lu len=%f\n", path.cells.size(), path.len);
   // print results
-  for (i = 0; i < path.cells.size(); ++i) {
-    printf("(%d,%d) ",  path.cells[i].p[0], path.cells[i].p[1]);
+  for (unsigned int i = 0; i < path.cells.size(); ++i) {
+    //    printf("(%d,%d) ",  path.cells[i].p[0], path.cells[i].p[1]);
     mapPath[ path.cells[i].p[1]*width +  path.cells[i].p[0]] = 2;
   }
   printf("\n");
@@ -117,15 +116,13 @@ int main(int argc, char** argv)
 
   // simulate closing the narrow passage
   if (0) {
-    // one way
+    // by increasing the cost drastically
     gdsl.SetCost(29,18,1000);
     gdsl.SetCost(30,18,1000);
     gdsl.SetCost(31,18,1000);
   } else {
-    // a better way
-    //    gdsl.RemoveVertex(29,18);
+    // a better way: by simply removing the passage
     gdsl.RemoveVertex(30,18);
-    //    gdsl.RemoveVertex(31,18);
   }
 
   // this is just for display
@@ -137,7 +134,7 @@ int main(int argc, char** argv)
   gdsl.Plan(path);
   time = timer_us(&timer);
   printf("replan path time= %ld us\n", time);
-  printf("path: count=%d len=%f\n", path.cells.size(), path.len);
+  printf("path: count=%lu len=%f\n", path.cells.size(), path.len);
   fflush(stdout);
   
 
@@ -159,16 +156,16 @@ int main(int argc, char** argv)
   gdsl.OptPath(path, optPath);
   time = timer_us(&timer);
   printf("opt path time= %ld us\n", time);
-  printf("optPath: count=%d len=%f\n", optPath.cells.size(), optPath.len);
+  printf("optPath: count=%lu len=%f\n", optPath.cells.size(), optPath.len);
   
-  for (i = 0; i < path.cells.size(); ++i) {
-    printf("(%d,%d) ", path.cells[i].p[0], path.cells[i].p[1]);
+  for (unsigned int i = 0; i < path.cells.size(); ++i) {
+    // printf("(%d,%d) ", path.cells[i].p[0], path.cells[i].p[1]);
     mapPath[path.cells[i].p[1]*width + path.cells[i].p[0]] = 2;
   }
   printf("\n");
-  for (i = 0; i < optPath.cells.size(); ++i) {
-    printf("(%d,%d) ", optPath.cells[i].p[0], optPath.cells[i].p[1]);
-    fflush(stdout);
+  for (unsigned int i = 0; i < optPath.cells.size(); ++i) {
+    // printf("(%d,%d) ", optPath.cells[i].p[0], optPath.cells[i].p[1]);
+    // fflush(stdout);
     mapPath[optPath.cells[i].p[1]*width + optPath.cells[i].p[0]] = 3;
   }
   printf("\n");
