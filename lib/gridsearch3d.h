@@ -43,6 +43,7 @@
 #define DSL3D_OCCUPIED 1e10
 
 namespace dsl {
+  typedef Vertex<Cell3d> Cell3dVertex;
 
   /**
    *  Path containing a list of grid points
@@ -54,8 +55,9 @@ namespace dsl {
     GridPath3D(const GridPath3D&);
     virtual ~GridPath3D();
    
-    double *pos;          ///< (x,y,z) point position array of size 3*count
-    int count;         ///< number of points along the path 
+    //double *pos;          ///< (x,y,z) point position array of size 3*count
+    //int count;         ///< number of points along the path 
+    std::vector<Cell3d> cells;
     double len;        ///< length of path (sum of eucl. distances b/n points)
 
     void AppendPath(GridPath3D &p);
@@ -70,11 +72,11 @@ namespace dsl {
     virtual ~GridPath3DPlusTime(); 
     
     void AppendPath(GridPath3DPlusTime &p);
-    
-    double *times;
+    std::vector<double> times;
+    //double *times;
   };  
 
-  class GridSearch3D : public Search
+  class GridSearch3D : public Search<Cell3d>
   {
  public:
     
@@ -189,7 +191,7 @@ namespace dsl {
      * @param z z-coordinate
      * @return corresponding vertex or 0 if none there
      */
-    Vertex* GetVertex(int x, int y, int z) const; 
+    Cell3dVertex* GetVertex(int x, int y, int z) const; 
 
     /**
      * Useful method to remove a vertex at (x,y)
@@ -217,10 +219,10 @@ namespace dsl {
     double *map;                       ///< cost grid array of size width*height
     
   protected:
-    Graph graph;
+    Graph<Cell3d> graph;
     GridCost3D cost;
   
-    Vertex **vertexMap;                ///< vertex grid array of size width*height
+    Vertex<Cell3d> **vertexMap;                ///< vertex grid array of size width*height
   };
 }
 

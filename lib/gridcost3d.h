@@ -10,6 +10,7 @@
 #define DSL_GRIDCOST3D_H
 
 #include "cost.h"
+#include "cell3d.h"
 
 namespace dsl {
   /**
@@ -17,10 +18,10 @@ namespace dsl {
    *
    * Author: Marin Kobilarov -- Copyright (C) 2004
    */
-  class GridCost3D : public Cost {
+  class GridCost3D : public Cost<Cell3d> {
   public:
-    double Heur(const Vertex &va, const Vertex &vb) const;       
-    double Real(const Vertex &va, const Vertex &vb) const;    
+    double Heur(const Cell3d &va, const Cell3d &vb) const;       
+    double Real(const Cell3d &va, const Cell3d &vb) const;    
   };
 }
 
