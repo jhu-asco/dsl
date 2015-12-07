@@ -27,7 +27,21 @@ namespace dsl {
       
       return sqrt(dx*dx + dy*dy + dz*dz);
     }
-    
+
+    /**
+     * Operator to access points
+     * @param index : Index of the elemen accessing 0 or 1 or 3
+     * @return returns the the value of the cell at the index. If out of bounds, returns -1.
+   */
+    int operator [](int index)
+    {
+      if(index == 0 || index == 1 || index == 3)
+      {
+        return p[index];
+      }
+      return -1;
+    }   
+
     int p[3];
     double cost;
   };
