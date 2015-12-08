@@ -30,12 +30,12 @@ namespace dsl {
 
     /**
      * Operator to access points
-     * @param index : Index of the elemen accessing 0 or 1 or 3
+     * @param index : Index of the elemen accessing 0 or 1 or 2
      * @return returns the the value of the cell at the index. If out of bounds, returns -1.
    */
     int operator [](int index)
     {
-      if(index == 0 || index == 1 || index == 3)
+      if(index == 0 || index == 1 || index == 2)
       {
         return p[index];
       }
