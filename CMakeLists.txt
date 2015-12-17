@@ -3,11 +3,7 @@ project (dsl)
 
 include_directories(lib)
 
-ADD_DEFINITIONS(-g -O2 -Wall -W)
-
-add_subdirectory (lib) 
-add_subdirectory (bin) 
-#add_subdirectory (docs) 
+ADD_DEFINITIONS(-g -O -Wall -W -Wno-unused-parameter -Wno-unused-variable)
 
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Dynamic D* Lite Graph Search Library")
 SET(CPACK_PACKAGE_VENDOR "Marin Kobilarov")
@@ -19,8 +15,10 @@ SET(CPACK_PACKAGE_VERSION_PATCH "0")
 SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
 #SET(CPACK_STRIP_FILES "bin/MyExecutable")
 #SET(CPACK_SOURCE_STRIP_FILES "")
-SET(CPACK_PACKAGE_EXECUTABLES test "Test search")
+SET(CPACK_PACKAGE_EXECUTABLES test2d "2D grid test search")
 
+find_package(Eigen3 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIR})
 
 # add a target to generate API documentation with Doxygen
 find_package(Doxygen)
@@ -32,6 +30,11 @@ if(DOXYGEN_FOUND)
     COMMENT "Generating API documentation with Doxygen" VERBATIM
   )
 endif(DOXYGEN_FOUND)
+
+add_subdirectory (lib) 
+add_subdirectory (bin) 
+#add_subdirectory (docs)
+
 
 INSTALL(FILES dsl.pc
         DESTINATION lib/pkgconfig)

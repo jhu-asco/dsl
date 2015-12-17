@@ -6,26 +6,24 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_GRIDTRAVCOST_H
-#define DSL_GRIDTRAVCOST_H
+#ifndef DSL_GRIDCOST_H
+#define DSL_GRIDCOST_H
 
-#include "gridcost.h"
-
-/**
- *  Calculates the edge cost as the height gradient between two vertices 
- *
- *  Author: Matt Sheckells (c) 2015 msheckells(at)jhu.edu
- */
-
+#include "cost.h"
+#include "cell2d.h"
 
 namespace dsl {
 
-  class GridTravCost : public GridCost<2>
-  {
-  public:    
-    double Real(const Cell<2> &va, const Cell<2> &vb) const;       
+  /**
+   * Grid cost interface.
+   *
+   * Author: Marin Kobilarov -- Copyright (C) 2004
+   */
+  class GridCost : public Cost<Cell2d> {
+  public:
+    double Heur(const Cell2d &va, const Cell2d &vb) const;       
+    double Real(const Cell2d &va, const Cell2d &vb) const;    
   };
 }
-
 
 #endif

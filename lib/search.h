@@ -52,7 +52,7 @@
  * - To compile:
  * - $mkdir build; cd build; cmake ..; make
  * - To test:
- * - $bin/test ../bin/map.ppm (look at the generated ppm images to view the result)
+ * - $bin/test2d ../bin/map2.ppm (look at the generated ppm images to view the result)
  *
  * \subsection Class Reference
  * <a href="../../docs/html/hierarchy.html">Class hierarchy</a>
@@ -80,7 +80,7 @@
  *      efficiency comes from delaying certain heap operations.
  *      For simple environments there's no siginificant difference
  *  - the ability to dynamically add/remove vertices and edges to enable
- *      anytime implemnetation
+ *      anytime and incremental implemnetation
  *
  *
  *   The planner is usually used as follows:
@@ -106,10 +106,10 @@
 
 namespace dsl {
 
-  template<class T>
+  template<class Tv, class Te = bool>
     class Search {
   public:
-    
+  
     /**
      * Initialize dsl with a graph and a cost interface
      * @param graph graph (the method will modify the nodes in the graph
@@ -118,7 +118,7 @@ namespace dsl {
      *                     edge costs would not be changed)
      * @param cost cost interface
      */
-    Search(Graph<T> &graph, const Cost<T> &cost);
+    Search(Graph<Tv, Te> &graph, const Cost<Tv, Te> &cost);
     
     virtual ~Search();
     
@@ -151,14 +151,14 @@ namespace dsl {
      * @param path the optimal path
      * @return total cost
      */
-    double Plan(std::vector<Edge<T>*> &path);
+    double Plan(std::vector<Edge<Tv, Te>*> &path);
     
     
     /**
      * Set start state
      * @param v start vertex
      */
-    void SetStart(const Vertex<T> &v);
+    void SetStart(const Vertex<Tv, Te> &v);
     
     
     /**
@@ -166,7 +166,7 @@ namespace dsl {
      * this also resets the planner
      * @param v goal vertex
      */
-    void SetGoal(const Vertex<T> &v);
+    void SetGoal(const Vertex<Tv, Te> &v);
     
     
     /**
@@ -174,26 +174,32 @@ namespace dsl {
      * @param e edge
      * @param cost new cost
      */
-    void ChangeCost(Edge<T> &e, double cost);
+    void ChangeCost(Edge<Tv, Te> &e, double cost);
         
     /**
      * Set epsilon: this is used to compare cell costs
      * @param eps precision (1e-10 by default)
      */
     void SetEps(double eps) { this->eps = eps; }
+  
+    virtual bool Expand(Vertex<Tv, Te> &v, bool fwd = true) { return true; }
+
+    int Vertices() const { return graph.vertices.size(); }
+  
+    int Edges() const { return graph.edges.size(); }
 
   protected:
     
-    void UpdateVertex(Vertex<T>& u);
+    void UpdateVertex(Vertex<Tv, Te>& u);
     void ComputeShortestPath();
-    Vertex<T>* MinSucc(double *minRhs, const Vertex<T>& v);
-    double* CalculateExtKey(double *key, Vertex<T>& v);
-    double* CalculateKey(Vertex<T>& v);
-    void Insert(Vertex<T>& v);
-    void InsertExt(Vertex<T>& v, double *key);
-    void Update(Vertex<T>& v);
-    void Remove(Vertex<T>& v);
-    Vertex<T>* Top();
+    Vertex<Tv, Te>* MinSucc(double *minRhs, const Vertex<Tv, Te>& v);
+    double* CalculateExtKey(double *key, Vertex<Tv, Te>& v);
+    double* CalculateKey(Vertex<Tv, Te>& v);
+    void Insert(Vertex<Tv, Te>& v);
+    void InsertExt(Vertex<Tv, Te>& v, double *key);
+    void Update(Vertex<Tv, Te>& v);
+    void Remove(Vertex<Tv, Te>& v);
+    Vertex<Tv, Te>* Top();
     double* TopKey();
 
     /**
@@ -205,14 +211,14 @@ namespace dsl {
     bool Eq(double a, double b) const { return fabs(a - b) < eps; }
     
 
-    Graph<T> &graph;                     ///< graph
-    const Cost<T> &cost;                 ///< cost interface
+    Graph<Tv, Te> &graph;                     ///< graph
+    const Cost<Tv, Te> &cost;                 ///< cost interface
    
-    std::vector<Edge<T>*> changedEdges;  ///< newly changed edges
+    std::vector<Edge<Tv, Te>*> changedEdges;  ///< newly changed edges
     
-    Vertex<T> *start;                    ///< start state
-    Vertex<T> *goal;                     ///< goal state
-    Vertex<T> *last;                     ///< last state
+    Vertex<Tv, Te> *start;                    ///< start state
+    Vertex<Tv, Te> *goal;                     ///< goal state
+    Vertex<Tv, Te> *last;                     ///< last state
 
     double km;                        ///< km variable
     fibheap_t openList;               ///< fibonacci heap
@@ -225,7 +231,7 @@ namespace dsl {
 
 
   private:
-    friend class Graph<T>;
+    friend class Graph<Tv, Te>;
   };
 
 
@@ -250,8 +256,8 @@ namespace dsl {
   }
   */
   
-  template<class T>
-    Search<T>::Search(Graph<T> &graph, const Cost<T> &cost) : 
+  template<class Tv, class Te>
+    Search<Tv, Te>::Search(Graph<Tv, Te> &graph, const Cost<Tv, Te> &cost) : 
   graph(graph),
     cost(cost),
     start(0), 
@@ -267,17 +273,17 @@ namespace dsl {
   
 
 
-  template<class T>
-    Search<T>::~Search() {
+  template<class Tv, class Te>
+    Search<Tv, Te>::~Search() {
     fibheap_delete(openList);
     changedEdges.clear();
   }
 
 
 
-  template<class T>
-    void Search<T>::Reset() {
-    typename std::map<int,Vertex<T>*>::iterator vi;
+  template<class Tv, class Te>
+    void Search<Tv, Te>::Reset() {
+    typename std::map<int,Vertex<Tv, Te>*>::iterator vi;
     for (vi = graph.vertices.begin(); vi != graph.vertices.end(); ++vi) {
       vi->second->Reset();
     }
@@ -287,14 +293,16 @@ namespace dsl {
   }
 
   
-  template<class T>
-    void Search<T>::SetStart(const Vertex<T> &s) {
-    start = (Vertex<T>*)&s;
+  template<class Tv, class Te>
+    void Search<Tv, Te>::SetStart(const Vertex<Tv, Te> &s) {
+    start = (Vertex<Tv, Te>*)&s;
+  //    if (!start->expanded)
+    //Expand(*start);
   }
   
 
-  template<class T>
-    void Search<T>::SetGoal(const Vertex<T> &s) {
+  template<class Tv, class Te>
+    void Search<Tv, Te>::SetGoal(const Vertex<Tv, Te> &s) {
     if (!start) {
       std::cout << "[W] Search::SetGoal: start should be set first!" << std::endl;
       return;
@@ -303,7 +311,7 @@ namespace dsl {
     // reset planner
     Reset();
     // set goal
-    goal = (Vertex<T>*)&s;
+    goal = (Vertex<Tv, Te>*)&s;
     goal->rhs = 0;
     goal->key[0] = cost.Heur(start->data, goal->data);
     goal->key[1] = 0;
@@ -311,8 +319,8 @@ namespace dsl {
   }
   
 
-  template<class T>
-    void Search<T>::ChangeCost(Edge<T> &edge, double cost) {
+  template<class Tv, class Te>
+    void Search<Tv, Te>::ChangeCost(Edge<Tv, Te> &edge, double cost) {
     if (Eq(cost, edge.cost))
       return;
     edge.costChange = cost - edge.cost;
@@ -321,24 +329,29 @@ namespace dsl {
   }
   
 
-  //#define DSL_STDOUT_DEBUG
+  //  #define DSL_STDOUT_DEBUG
   
-  template<class T>
-    void Search<T>::UpdateVertex(Vertex<T> &u) {
+  template<class Tv, class Te>
+    void Search<Tv, Te>::UpdateVertex(Vertex<Tv, Te> &u) {
+
+    //    Expand(u, true);
+    //    Expand(u, false);
+
+
 #ifdef DSL_STDOUT_DEBUG
     printf("UpdateVertex: begin\n");
 #endif
-    if (u.g != u.rhs && u.t == Vertex<T>::OPEN) {
+    if (u.g != u.rhs && u.t == Vertex<Tv, Te>::OPEN) {
 #ifdef DSL_STDOUT_DEBUG
       printf("UpdateVertex: 1\n");
 #endif
       Update(u);
-    } else if (u.g != u.rhs && u.t != Vertex<T>::OPEN) {
+    } else if (u.g != u.rhs && u.t != Vertex<Tv, Te>::OPEN) {
 #ifdef DSL_STDOUT_DEBUG
       printf("UpdateVertex: 2\n");
 #endif
       Insert(u);
-    } else if (u.g == u.rhs && u.t == Vertex<T>::OPEN) {
+    } else if (u.g == u.rhs && u.t == Vertex<Tv, Te>::OPEN) {
 #ifdef DSL_STDOUT_DEBUG
       printf("UpdateVertex: 3\n");
 #endif
@@ -347,14 +360,14 @@ namespace dsl {
   }
 
 
-  template<class T>
-    void Search<T>::ComputeShortestPath() {
-    Vertex<T> *u;
-    Vertex<T> *s;
+  template<class Tv, class Te>
+    void Search<Tv, Te>::ComputeShortestPath() {
+    Vertex<Tv, Te> *u;
+    Vertex<Tv, Te> *s;
     double kold[2];
     double gOld;
-    typename std::map<int, Edge<T>*>::iterator ei;
-    Edge<T>* edge;
+    typename std::map<int, Edge<Tv, Te>*>::iterator ei;
+    Edge<Tv, Te>* edge;
     
     graph.search = this;
     
@@ -370,6 +383,12 @@ namespace dsl {
     
     while(TopKey() && (fibkey_compare(TopKey(), CalculateKey(*start)) < 0 || start->rhs != start->g)) {
       u = Top();
+      
+      //      std::cout << u->id << std::endl;
+      Expand(*u, false);      
+
+      //      Expand(*u, true);
+      
 #ifdef DSL_STDOUT_DEBUG
       printf("ComputeShortestPath:Top() -> ");// u->Print(stdout);
 #endif
@@ -392,9 +411,9 @@ namespace dsl {
         
         u->g = u->rhs;
         Remove(*u);
-        
+
         for (ei = u->in.begin(); ei != u->in.end(); ++ei) {
-          edge = (Edge<T>*)ei->second;
+          edge = (Edge<Tv, Te>*)ei->second;
           s = edge->from;
           if (s != goal)
             s->rhs = DSL_MIN(s->rhs, edge->cost + u->g);
@@ -409,11 +428,13 @@ namespace dsl {
         u->g = INF;
         
         for (ei = u->in.begin(); ei != u->in.end(); ++ei) {
-          edge = (Edge<T>*)ei->second;
-          s = edge->from;
+          edge = (Edge<Tv, Te>*)ei->second;
+          s = edge->from;          
+          
           if (Eq(s->rhs, edge->cost + gOld))
             if (s != goal)
-              MinSucc(&s->rhs, *s);
+              MinSucc(&s->rhs, *s);           
+          
           UpdateVertex(*s);
         }
         
@@ -425,15 +446,15 @@ namespace dsl {
   }
 
 
-  template<class T>
-    double Search<T>::Plan(std::vector<Edge<T>*> &path) {
+  template<class Tv, class Te>
+    double Search<Tv, Te>::Plan(std::vector<Edge<Tv, Te>*> &path) {
  
     path.clear();
     Plan();
-    Vertex<T> *cur = start;
+    Vertex<Tv, Te> *cur = start;
     double len = 0;
     do {
-      Edge<T>* edge = cur->Find(cur->next, false); 
+      Edge<Tv, Te>* edge = cur->Find(*cur->next, false); 
       assert(edge);
       len += edge->cost;
       path.push_back(edge);      
@@ -442,15 +463,16 @@ namespace dsl {
     return len;
   }
   
-  template<class T>
-    int Search<T>::Plan() {
+  template<class Tv, class Te>
+    int Search<Tv, Te>::Plan() {
     
-    Vertex<T>* cur = start;
-    Vertex<T> *u, *v;
+    Vertex<Tv, Te>* cur = start;
+    Vertex<Tv, Te> *u, *v;
     int count = 1;
     
     assert(start);
     
+    /*
     if (!start->out.size()) {
       std::cerr << "[W] Search::Plan: start vertex has no outgoing edges!" << std::endl;
       return 0;
@@ -460,6 +482,7 @@ namespace dsl {
       std::cerr << "[W] Search::Plan: goal vertex has no incoming edges!" << std::endl;
       return 0;
     }
+    */
     
     if (!last)
       last = start;
@@ -467,9 +490,9 @@ namespace dsl {
     if (changedEdges.size()) {
       km += (cost.Heur(last->data, start->data));
       last = start;
-      typename std::vector<Edge<T>*>::iterator ei;
+      typename std::vector<Edge<Tv, Te>*>::iterator ei;
       for (ei = changedEdges.begin(); ei != changedEdges.end(); ++ei) {
-        Edge<T>* edge = *ei;
+        Edge<Tv, Te>* edge = *ei;
         u = edge->from;
         v = edge->to;
         
@@ -493,7 +516,7 @@ namespace dsl {
     ComputeShortestPath();
     
     do {
-      Vertex<T> *next = MinSucc(0, *cur);
+      Vertex<Tv, Te> *next = MinSucc(0, *cur);
       cur->next = next;
       if (!next) {
         break;
@@ -516,19 +539,21 @@ namespace dsl {
     return count;
   }
   
-  template<class T>
-    Vertex<T>* Search<T>::MinSucc(double *minRhs, const Vertex<T> &s) {
+  template<class Tv, class Te>
+    Vertex<Tv, Te>* Search<Tv, Te>::MinSucc(double *minRhs, const Vertex<Tv, Te> &s) {
     
+    // Expand((Vertex<Tv, Te>&)s, true);
+
     double minVal = INF;
-    Vertex<T>* minSucc = NULL;
-    Vertex<T>* s_;
-    typename std::map<int, Edge<T>*>::const_iterator ei;
-    Edge<T> *edge;
-    
+    Vertex<Tv, Te>* minSucc = NULL;
+    Vertex<Tv, Te>* s_;
+    typename std::map<int, Edge<Tv, Te>*>::const_iterator ei;
+    Edge<Tv, Te> *edge;    
+
     for (ei = s.out.begin(); ei != s.out.end(); ++ei) {
-      edge = (Edge<T>*)ei->second;
+      edge = (Edge<Tv, Te>*)ei->second;
       s_ = edge->to;
-      
+
       double val = edge->cost + s_->g;
 
       if (goalBias) {
@@ -549,8 +574,8 @@ namespace dsl {
     return minSucc;
   }
   
-  template<class T>
-    double* Search<T>::CalculateExtKey(double *key, Vertex<T> &s) {
+  template<class Tv, class Te>
+    double* Search<Tv, Te>::CalculateExtKey(double *key, Vertex<Tv, Te> &s) {
     
     double m = DSL_MIN(s.g, s.rhs);
     if (m == INF) {
@@ -565,31 +590,35 @@ namespace dsl {
     return key;
   }
   
-  template<class T>
-    double* Search<T>::CalculateKey(Vertex<T> &s) {
+  template<class Tv, class Te>
+    double* Search<Tv, Te>::CalculateKey(Vertex<Tv, Te> &s) {
     return CalculateExtKey(s.key, s);
   }
   
-  template<class T>
-    void Search<T>::Insert(Vertex<T> &s) {
+  template<class Tv, class Te>
+    void Search<Tv, Te>::Insert(Vertex<Tv, Te> &s) {
     InsertExt(s, CalculateExtKey(s.key, s));
   }
   
-  template<class T>
-    void Search<T>::InsertExt(Vertex<T> &s, double *key) {
+  template<class Tv, class Te>
+    void Search<Tv, Te>::InsertExt(Vertex<Tv, Te> &s, double *key) {
     
     if (dstarMin) {
       s.r = start;
     } else {
       s.openListNode = fibheap_insert(openList, (void*)key, &s);
-      s.t = Vertex<T>::OPEN;
+      s.t = Vertex<Tv, Te>::OPEN;
     }
   }
   
-  template<class T>
-    void Search<T>::Update(Vertex<T> &s) {
+  template<class Tv, class Te>
+    void Search<Tv, Te>::Update(Vertex<Tv, Te> &s) {
+
+    // Expand(s, false);
+    //    Expand(s, true);
+
     double key[2];
-    assert(s.t == Vertex<T>::OPEN);
+    // assert(s.t == Vertex<Tv, Te>::OPEN);
     CalculateExtKey(key, s);
     
     if (dstarMin) {
@@ -611,21 +640,21 @@ namespace dsl {
   }
   
   
-  template<class T>
-    void Search<T>::Remove(Vertex<T> &s) {
-    if (s.t == Vertex<T>::CLOSED)
+  template<class Tv, class Te>
+    void Search<Tv, Te>::Remove(Vertex<Tv, Te> &s) {
+    if (s.t == Vertex<Tv, Te>::CLOSED)
       return;
     
-    s.t = Vertex<T>::CLOSED;
+    s.t = Vertex<Tv, Te>::CLOSED;
     if (s.openListNode)
       fibheap_delete_node(openList, s.openListNode);
   }
   
-  template<class T>
-    Vertex<T>* Search<T>::Top()  {
+  template<class Tv, class Te>
+    Vertex<Tv, Te>* Search<Tv, Te>::Top()  {
     if (dstarMin) {
-      Vertex<T>* s;
-      while((s = (Vertex<T>*)fibheap_min(openList))) {
+      Vertex<Tv, Te>* s;
+      while((s = (Vertex<Tv, Te>*)fibheap_min(openList))) {
         if (s->r != start)
           Update(*s);
         else
@@ -633,13 +662,13 @@ namespace dsl {
       }
       return NULL;
     } else {
-      return (Vertex<T>*)fibheap_min(openList);
+      return (Vertex<Tv, Te>*)fibheap_min(openList);
     }
   }
   
-  template<class T>
-    double* Search<T>::TopKey() {  
-    Vertex<T>* s = Top();
+  template<class Tv, class Te>
+    double* Search<Tv, Te>::TopKey() {  
+    Vertex<Tv, Te>* s = Top();
     if (!s)
       return NULL;
     return s->key;

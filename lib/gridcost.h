@@ -10,7 +10,7 @@
 #define DSL_GRIDCOST_H
 
 #include "cost.h"
-#include "cell2d.h"
+#include "gridpath.h"
 
 namespace dsl {
 
@@ -19,10 +19,18 @@ namespace dsl {
    *
    * Author: Marin Kobilarov -- Copyright (C) 2004
    */
-  class GridCost : public Cost<Cell2d> {
+  template<int n>
+    class GridCost : public Cost<Cell<n>, GridPath<n> > {
   public:
-    double Heur(const Cell2d &va, const Cell2d &vb) const;       
-    double Real(const Cell2d &va, const Cell2d &vb) const;    
+    double Real(const Cell<n> &a, const Cell<n> &b) const {
+      // default real cost is euclidean distance + average cell cost multiplied by Euclidean distance
+      return (1 + (a.cost + b.cost)/2)*(a.c - b.c).norm();
+    }
+
+    double Heur(const Cell<n> &a, const Cell<n> &b) const {
+      // default Heuristic cost is the Euclidean distance
+      return (a.c - b.c).norm();
+    }
   };
 }
 

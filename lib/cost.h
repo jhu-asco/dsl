@@ -26,7 +26,7 @@ namespace dsl {
    *
    * Author: Marin Kobilarov -- Copyright (C) 2004
    */
-  template<class T>
+  template<class Tv, class Te = bool>
   class Cost {
   public:
     /**
@@ -38,7 +38,7 @@ namespace dsl {
      * @param vb second vertex data
      * @return heuristic distance (optimal cost)
      */
-    virtual double Heur(const T& va, const T& vb) const = 0;
+    virtual double Heur(const Tv& va, const Tv& vb) const = 0;
     
     
     /**
@@ -49,14 +49,13 @@ namespace dsl {
      * @param vb second vertex data
      * @return real minimum possible cost b/n va and vb
      */
-    virtual double Real(const T& va, const T& vb) const;
+    virtual double Real(const Tv& va, const Tv& vb) const = 0;
   };
   
-  template<class T>
-    double Cost<T>::Real(const T& va, const T& vb) const {
-    return Heur(va, vb) + 1e-10;
-  }
-
+  //  template<class Tv, class Te>
+  //    double Cost<T>::Real(const T& va, const T& vb) const {
+  //    return Heur(va, vb) + 1e-10;
+  //  }
 }
 
 #endif

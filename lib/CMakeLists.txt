@@ -1,14 +1,14 @@
 add_library(dsl SHARED fibheap.c 
-#                       vertex.cc
-#                       edge.cc
-#                       graph.cc
-#                       cost.cc
                        search.cc
-                       gridcost.cc
+                       utils.cc
+                       grid2d.cc
+                       cargrid.cc
+                       grid2dconnectivity.cc
+                       carconnectivity.cc
                        gridcost3d.cc
                        gridtravcost.cc
-                       gridsearch.cc
                        gridsearch3d.cc
+                       carcost.cc
 )
 
 
@@ -28,9 +28,19 @@ INSTALL(FILES fibheap.h
               graph.h
               cost.h
               search.h
+              utils.h
+              cell.h
+              grid.h
               gridcost.h
-              cell2d.h
+              gridconnectivity.h
+              lineconnectivity.h
+              carconnectivity.h
+              carcost.h
+              cargrid.h
               gridcost3d.h
+              carcost.h
+              grid2d.h
+              grid2dconnectivity.h
               gridtravcost.h
               gridsearch.h
               gridsearch3d.h

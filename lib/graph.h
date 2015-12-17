@@ -14,16 +14,18 @@
 
 namespace dsl {
 
-  template<class T>
+  template<class Tv, class Te>
     class Search;
   
   /**
    * Generic graph data structure using hashtables for
-   * storing vertices and edges for quick add/remove ops
+   * storing vertices and edges for quick add/remove ops.
+   * Each vertex stores data of type Tv and each edge stores data of type Te,
+   * edge data is optional and defaults to the simplest data type, i.e. a bool.   
    * 
-   * Author: Marin Kobilarov -- Copyright (C) 2004 
+   * Author: Marin Kobilarov
    */                                           
-  template<class T>
+  template<class Tv, class Te = bool>
     class Graph {
   public:
     
@@ -39,7 +41,7 @@ namespace dsl {
      * No other graph elements are modified.
      * @param v vertex
      */
-    void AddVertex(Vertex<T> &v);
+    void AddVertex(Vertex<Tv, Te> &v);
     
     
     /**
@@ -50,7 +52,7 @@ namespace dsl {
      * @param re remove edges? (true by default)
      * @param del delete/free all removed data? (false by default)
      */
-    void RemoveVertex(Vertex<T> &v, bool re = true, bool del = false);
+    void RemoveVertex(Vertex<Tv, Te> &v, bool re = true, bool del = false);
     
     
     /**
@@ -60,7 +62,7 @@ namespace dsl {
      * list of edges
      * @param e edge
      */
-    void AddEdge(Edge<T> &e);
+    void AddEdge(Edge<Tv, Te> &e);
     
     
     /**
@@ -78,45 +80,45 @@ namespace dsl {
      *            we care more about speed rather than memory; and these will be
      *            deleted when the graph object is deleted anyways)
      */
-    void RemoveEdge(Edge<T> &e, bool update = true, bool del = false);
+    void RemoveEdge(Edge<Tv, Te> &e, bool update = true, bool del = false);
 
     /**
      * Checks if a vertex exists
      * @param v the vertex
      * @return true if present in the graph
      */
-    bool Exists(const Vertex<T> &v) const;
+    bool Exists(const Vertex<Tv, Te> &v) const;
     
-    std::map<int, Edge<T>*> edges;         ///< all edges
-    std::map<int, Vertex<T>*> vertices;    ///< all vertices
+    std::map<int, Edge<Tv, Te>*> edges;         ///< all edges
+    std::map<int, Vertex<Tv, Te>*> vertices;    ///< all vertices
 
   protected:
-    Search<T> *search;                     ///< search operating on this graph, this is necessary since in D*, we can remove/add edges to the graph, or change their costs, and the search will be updated accordingly though this field, so that next time it is run it will replan quickly
+    Search<Tv, Te> *search;                     ///< search operating on this graph, this is necessary since in D*, we can remove/add edges to the graph, or change their costs, and the search will be updated accordingly though this field, so that next time it is run it will replan quickly
 
   private:
-    friend class Search<T>;
+    friend class Search<Tv, Te>;
   };
 
 
-  template<typename T>
-    Graph<T>::Graph() : search(0) {
+  template<class Tv, class Te>
+    Graph<Tv, Te>::Graph() : search(0) {
   }
   
 
-  template<class T>
-  Graph<T>::~Graph() {
+  template<class Tv, class Te>
+  Graph<Tv, Te>::~Graph() {
   }
   
-  template<class T>
-    void Graph<T>::AddVertex(Vertex<T> &v) {
+  template<class Tv, class Te>
+    void Graph<Tv, Te>::AddVertex(Vertex<Tv, Te> &v) {
     vertices[v.id] = &v; 
   }
   
-  template<class T>
-    void Graph<T>::RemoveVertex(Vertex<T> &v, bool re, bool del) {
+  template<class Tv, class Te>
+    void Graph<Tv, Te>::RemoveVertex(Vertex<Tv, Te> &v, bool re, bool del) {
     //  cout << "RemoveVretex: <" << endl;
     if (re) {
-      typename std::map<int, Edge<T>*>::iterator i;
+      typename std::map<int, Edge<Tv, Te>*>::iterator i;
       // remove all incoming edges
       for (i = v.in.begin(); i != v.in.end(); ++i)
         RemoveEdge(*i->second, true, del);
@@ -138,8 +140,8 @@ namespace dsl {
       delete &v;
   }
 
-  template<class T>
-    void Graph<T>::AddEdge(Edge<T> &e) {
+  template<class Tv, class Te>
+    void Graph<Tv, Te>::AddEdge(Edge<Tv, Te> &e) {
     // attach to start node
     if (e.from)
       e.from->out[e.id] = &e;
@@ -158,12 +160,12 @@ namespace dsl {
   }
   
 
-  template<class T>
-    void Graph<T>::RemoveEdge(Edge<T> &e, bool update, bool del) {
+  template<class Tv, class Te>
+    void Graph<Tv, Te>::RemoveEdge(Edge<Tv, Te> &e, bool update, bool del) {
     // if there's an active search
     if (update && search && search->last) {
-      Vertex<T> *u = e.from;
-      Vertex<T> *v = e.to;
+      Vertex<Tv, Te> *u = e.from;
+      Vertex<Tv, Te> *v = e.to;
       
       double cost = e.cost;
       e.costChange = INF - cost;
@@ -196,8 +198,8 @@ namespace dsl {
       delete &e;
   }
   
-  template<class T>
-  bool Graph<T>::Exists(const Vertex<T> &v) const {
+  template<class Tv, class Te>
+  bool Graph<Tv, Te>::Exists(const Vertex<Tv, Te> &v) const {
     return (vertices.find(v.id) != vertices.end());
   }  
   
