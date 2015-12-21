@@ -6,23 +6,19 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_GRIDCOST_H
-#define DSL_GRIDCOST_H
+#ifndef DSL_GRID3D_H
+#define DSL_GRID3D_H
 
-#include "cost.h"
-#include "cell2d.h"
+#include "grid.h"
 
 namespace dsl {
-
-  /**
-   * Grid cost interface.
-   *
-   * Author: Marin Kobilarov -- Copyright (C) 2004
-   */
-  class GridCost : public Cost<Cell2d> {
+  
+  class Grid3d : public Grid<3> {
   public:
-    double Heur(const Cell2d &va, const Cell2d &vb) const;       
-    double Real(const Cell2d &va, const Cell2d &vb) const;    
+    
+    Grid3d(int length, int width, int height, double *map, 
+           double sx, double sy, double sz, double costScale,
+           double maxCost = 1);
   };
 }
 

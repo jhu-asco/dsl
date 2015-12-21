@@ -14,6 +14,7 @@
 #include "gridconnectivity.h"
 #include "gridpath.h"
 #include "grid.h"
+#include "spline.h"
 #include <vector>
 #include <iostream>
 
@@ -159,7 +160,12 @@ namespace dsl {
      */
     void OptPath(const GridPath<n> &path, GridPath<n> &optPath, 
                  double freeCost = 1e-3, double traceStep = -1.0) const;
-    
+    /*
+    void SplinePath(const GridPath<n> &path, std::vector<Vectornd>& splinePath, 
+                 //GridPath<n> &splineCells,
+                 double traceStep = 0.1,
+                 double scaling = 0.1) const;
+    */
   protected:
 
     Graph<Cell<n>, GridPath<n> > graph;        ///< the underlying graph
@@ -430,7 +436,6 @@ namespace dsl {
       optPath.len = path.len;
       return;
     }
-    
     typename vector<Cell<n> >::const_iterator it0;
     it0 = path.cells.begin();
     typename vector<Cell<n> >::const_iterator it1;
@@ -487,6 +492,60 @@ namespace dsl {
     //  len += sqrt((x2-x0)*(x2-x0) + (y2-y0)*(y2-y0));
     //  optPath.len = len;
   }
+
+  
+  //template<int n>
+  //  void GridSearch<n>::SplinePath(const GridPath<n> &path, std::vector<Vectornd> &splinePath, 
+  //                              /*GridPath<n> &splineCells, */
+  //                              double traceStep, double scaling) const {
+  //  std::vector<double> steps(path.cells.size()); 
+  //  std::vector<std::vector<double> > pts(n, std::vector<double>(path.cells.size()));
+  //  for(int i = 0; i < path.cells.size(); i++)
+  //  {
+  //    steps[i] = i*scaling;
+  //    for(int j = 0; j < n; j++)
+  //    {
+  //      pts[j][i] = path.cells[i].c(j);
+  //    }
+  //  }
+
+  //  std::vector<Spline<double, double> > sps;
+  //  for(int i = 0; i < n; i++)
+  //  {
+  //    sps.push_back(Spline<double, double>(steps, pts[i]));
+  //  }
+  //  int count = (path.cells.size()-1)/traceStep;
+  //  splinePath.resize(count);
+  //  //splineCells.cells.resize(count);
+  //  //splineCells.len = 0;
+
+  //  for(int i = 0; i < count; i++)
+  //  {
+  //    Vectornd pti;
+  //    for(int j = 0; j < n; j++)
+  //    {
+  //      pti(j) = sps[j][i*traceStep*scaling];
+  //    }
+  //    splinePath[i] = pti;
+
+  //    //std::cout << i*traceStep << std::endl;
+  //    //std::cout << pti.transpose() << std::endl;
+  //    /*
+  //    Cell<n>* cell = grid.Get(splinePath[i]);
+  //    if(!cell)
+  //    {
+  //      std::cout << "dsl::SplinePath: Cell does not exist" << std::endl;
+  //      return;
+  //    }
+  //    splineCells.cells[i] = *(grid.Get(splinePath[i]));
+  //    if(i > 0)
+  //    {
+  //      splineCells.len += (splineCells.cells[i].c-splineCells.cells[i-1].c).norm();
+  //    }
+  //    */
+  //  }
+  //}
+    
 
   template<int n>
     double GridSearch<n>::GetCost(const Vectornd &x) const {
