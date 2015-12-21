@@ -4,7 +4,11 @@
 #include <sys/time.h>
 #include <stdlib.h>
 #include <string.h>
-#include "gridsearch3d.h"
+#include "gridsearch.h"
+#include "grid3d.h"
+#include "gridcost.h"
+#include "grid3dconnectivity.h"
+
 
 #define STDOUT_DEBUG
 
@@ -39,9 +43,11 @@ void save_ply(double* map, int length, int width, int height, const char* filena
   fclose(file);
 }
 
-void save_map_with_path(unsigned const char* map, int width, int height, GridPath3D& path, const char* filename)
+
+void save_map_with_path(unsigned const char* map, unsigned int width, unsigned int height,
+  std::vector<Vector3d>& path, const char* filename)
 {
-  int i, ind;
+  unsigned int i, ind;
   unsigned char data[width*height*3];
   FILE* file = fopen(filename, "w");
   assert(file);
@@ -50,15 +56,27 @@ void save_map_with_path(unsigned const char* map, int width, int height, GridPat
   for (i = 0; i < width*height; i++, ind+=3) {
     data[ind] = data[ind+1] = data[ind+2] = (map[i]);
   }
-  for(i = 0; i < path.cells.size(); i++){
-    int pidx = path.cells[i].p[1]*width + path.cells[i].p[0];
-    data[3*pidx] = path.cells[i].p[2]*255/50;
+  for(i = 0; i < path.size(); i++){
+    int pidx = int(floor(path[i](1))*width + floor(path[i](0)));
+    data[3*pidx] = path[i](2)*255/50;
     data[3*pidx+1] = 0;
     data[3*pidx+2] = 0;
   }
   assert(ind == 3*width*height);
-  assert((int)fwrite(data, sizeof(unsigned char), ind, file) == ind);
+  assert(fwrite(data, sizeof(unsigned char), ind, file) == ind);
   fclose(file);
+}
+
+void save_map_with_cells(unsigned const char* map, unsigned int width, unsigned int height, 
+  GridPath<3>& gp, const char* filename)
+{
+  std::vector<Vector3d> path;
+  for(unsigned int i = 0; i < gp.cells.size(); i++)
+  {
+    path.push_back(gp.cells[i].c);
+  }
+  save_map_with_path(map, width, height, path, filename);
+ 
 }
 
 void save_map(const char* map, int width, int height, const char* filename)
@@ -96,14 +114,14 @@ unsigned char* load_map(int* width, int* height, const char* filename)
   return map;
 }
 
-unsigned char* load_heightmap(int* length, int* width, const char* filename)
+unsigned char* load_heightmap(unsigned int* length, unsigned int* width, const char* filename)
 {
   int i, size;
   unsigned char *map, *data;
   FILE* file = fopen(filename, "r");
   assert(file);
   assert(fscanf(file, "P6\n%d %d 255\n", length, width));
-  size = (*length**width);
+  size = (*length* (*width));
   map = (unsigned char*)malloc(size);
   data = (unsigned char*)malloc(size*3);
   assert(fread(data, sizeof(unsigned char), size*3, file));
@@ -140,7 +158,7 @@ int main(int argc, char** argv)
     return 0;
   }
   assert(argc >= 2);
-  int length, width, height = 50; 
+  unsigned int length, width, height = 50; 
   unsigned char* chmap; // = load_map(&width, &height, argv[1]);
   //if(argc == 3 && string(argv[2]) == "--height")
   chmap = load_heightmap(&length, &width, argv[1]);
@@ -149,11 +167,12 @@ int main(int argc, char** argv)
   cout << "length=" << length << endl;
   cout << "width=" << width << endl;
 
-  GridPath3D path, optPath;
+  GridPath<3> path, splineCells;
+  std::vector<Vector3d> splinePath;
   unsigned char mapPath[length*width];
   struct timeval timer;
   long time;
-  int i,j;
+  unsigned int i,j;
 
   // create a map
   double *map = (double*)malloc(length*width*height*sizeof(double));
@@ -177,16 +196,20 @@ int main(int argc, char** argv)
   cout << "Copied display map" << endl;
   
   // create planner
-  GridSearch3D gdsl(length, width, height, map);
+  Grid3d grid(length, width, height, map, 1, 1, 1, 1, 1e16);
+  GridCost<3> cost;
+  Grid3dConnectivity connectivity(grid);
+  GridSearch<3> gdsl(grid, connectivity, cost, true);
+
   cout << "Initialized planner" << endl;
-  int startx = length/4;
-  int starty = width/2;
+  int startx = length/4.;
+  int starty = width/2.;
   int startz = 15;
-  int goalx = 5*length/8;
-  int goaly = width/4 - 10;
-  int goalz = 25;
-  gdsl.SetStart(startx, starty, startz);
-  gdsl.SetGoal(goalx, goaly, goalz);
+  int goalx = 5*length/8.;
+  int goaly = width/2.+2;//width/4 - 10;
+  int goalz = 15;
+  gdsl.SetStart(Vector3d(startx, starty, startz));
+  gdsl.SetGoal(Vector3d(goalx, goaly, goalz));
   printf("start (%d,%d,%d) \n", startx, starty, startz);
   printf("goal (%d,%d,%d) \n", goalx, goaly, goalz);
   
@@ -198,14 +221,14 @@ int main(int argc, char** argv)
   gdsl.Plan(path);
   time = timer_us(&timer);
   printf("plan path time= %ld\n", time);
-  printf("path: count=%d len=%f\n", path.cells.size(), path.len);
+  printf("path: count=%lu len=%f\n", path.cells.size(), path.len);
+
   // print results
-  
-  
   for (i = 0; i < path.cells.size(); ++i) {
-    printf("(%d,%d,%d) \n", path.cells[i].p[0], path.cells[i].p[1], path.cells[i].p[2]);
-    //mapPath[path.pos[3*i+1]*length + path.pos[3*i]] = path.pos[3*i+2]*255/50;
+    printf("(%f,%f,%f) \n", path.cells[i].c[0], path.cells[i].c[1], path.cells[i].c[2]);
   }
+
+  //gdsl.SplinePath(path, splinePath, /*splineCells,*/ .1);
   /*
   printf("\n");
   
@@ -218,7 +241,10 @@ int main(int argc, char** argv)
   fflush(stdout);
   */
   // save it to image for viewing
-  save_map_with_path(mapPath, length, width, path, "path1.ppm");
+  cout << "Saving path..." << endl;
+  save_map_with_cells(mapPath, length, width, path, "path1.ppm");
+  //cout << "Saving spline path..." << endl;
+  //save_map_with_path(mapPath, length, width, splinePath, "spline_path1.ppm");
 
   /*
   // follow path until (28,18)

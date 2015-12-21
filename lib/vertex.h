@@ -23,28 +23,27 @@
 namespace dsl {
 
 
-  template<class T>
+  template<class Tv, class Te>
     class Graph;
 
-  template<class T>
+  template<class Tv, class Te>
     class Search;
 
-  template<class T>
+  template<class Tv, class Te>
     class Edge;
   
   /**
    *  Generic graph vertex containing a list of incoming and outgoing edges
    *  as well as information used for graph search algorithms.
-   *  Specific implementations can either extend this class
-   *  with extra functionality or simply pass a pointer to 
-   *  additional application data.
+   *  Each vertex stores data of type Tv and each edge store data of type Te,
+   *  edge data is optional and defaults to the simplest data type, i.e. a bool.
    *
-   *  Marin Kobilarov -- Copyright (C) 2004
+   *  Author: Marin Kobilarov 
    */
-  template<class T>
+  template<class Tv, class Te = bool>
     class Vertex {
   public:
-    
+  
     /**
      * Initialize the vertex
      */
@@ -55,7 +54,7 @@ namespace dsl {
      * data
      * @param data data
      */
-    Vertex(const T& data);
+    Vertex(const Tv& data);
     
     virtual ~Vertex();
     
@@ -71,17 +70,20 @@ namespace dsl {
      * @param in whether to look among incoming or outgoing edges
      * @return the edge or 0 if none
      */
-    Edge<T>* Find(const Vertex<T> &v, bool in) const;
+    Edge<Tv, Te>* Find(const Vertex<Tv, Te> &v, bool in) const;
     
-    int id;                   ///< vertex id (set internally)
+    int id;                       ///< vertex id (set internally)
     
-    T data;                   ///< data
+    Tv data;                       ///< vertex data
+
+    bool succExpanded;            ///< is the vertex expanded
+    bool predExpanded;            ///< is the vertex expanded
     
-    std::map<int, Edge<T>*> in;  ///< map of incoming edges
-    std::map<int, Edge<T>*> out; ///< map of outgoing edges
+    std::map<int, Edge<Tv, Te>*> in;  ///< map of incoming edges
+    std::map<int, Edge<Tv, Te>*> out; ///< map of outgoing edges
     
-    Vertex<T> *next;             ///< next state in a path (used for tracing paths)
-    Vertex<T> *prev;             ///< previous state in a path (used for tracing paths)
+    Vertex<Tv, Te> *next;             ///< next state in a path (used for tracing paths)
+    Vertex<Tv, Te> *prev;             ///< previous state in a path (used for tracing paths)
     
     double rhs;               ///< dsl g heuristic values (used internally)
     double g;                 ///< dsl rhs heuristic values (used internally)
@@ -96,50 +98,50 @@ namespace dsl {
     fibnode_t openListNode;   ///< heap node associated to this vertex
     double key[2];            ///< heap key
     
-    Vertex<T> *r;                ///< pointer to a state (from focussed D*)
+    Vertex<Tv, Te> *r;                ///< pointer to a state (from focussed D*)
     
   private:
     static int s_id;          ///< id counter
 
-    friend class Graph<T>;
+    friend class Graph<Tv, Te>;
 
-    friend class Search<T>;
+    friend class Search<Tv, Te>;
     
-    //    friend std::ostream& perator<<(std::ostream &os, const Vertex<T> &v);
+    //    friend std::ostream& perator<<(std::ostream &os, const Vertex<Tv, Te> &v);
 
-    //    friend std::istream& operator>>(std::istream &is, Vertex<T> &v);    
+    //    friend std::istream& operator>>(std::istream &is, Vertex<Tv, Te> &v);    
   };
 
   
-  template<class T>
-    int Vertex<T>::s_id = 0;
+  template<class Tv, class Te>
+    int Vertex<Tv, Te>::s_id = 0;
   
-  template<class T>
-    Vertex<T>::Vertex() : 
-  id(s_id) {
+  template<class Tv, class Te>
+    Vertex<Tv, Te>::Vertex() : 
+  id(s_id), succExpanded(false), predExpanded(false) {
     Reset();
     ++s_id;
   }
   
-  template<class T>
-    Vertex<T>::Vertex(const T& data) : 
-  id(s_id), data(data) {
+  template<class Tv, class Te>
+    Vertex<Tv, Te>::Vertex(const Tv& data) : 
+  id(s_id), data(data), succExpanded(false), predExpanded(false) {
     Reset();
     ++s_id;
   }
   
-  template<typename T>
-    Vertex<T>::~Vertex() {
+  template<class Tv, class Te>
+    Vertex<Tv, Te>::~Vertex() {
     in.clear();
     out.clear();
   }
   
-  template<typename T>    
-    void Vertex<T>::Reset() {
+  template<class Tv, class Te>    
+    void Vertex<Tv, Te>::Reset() {
     next = 0;
     prev = 0;
     rhs = g = INF;
-    t = Vertex<T>::NEW;
+    t = Vertex<Tv, Te>::NEW;
     openListNode = 0;
     key[0] = key[1] = INF;
     
@@ -147,20 +149,20 @@ namespace dsl {
     r = 0;
   }
   
-  template<class T>
-    Edge<T>* Vertex<T>::Find(const Vertex<T> &v, bool in) const {
+  template<class Tv, class Te>
+    Edge<Tv, Te>* Vertex<Tv, Te>::Find(const Vertex<Tv, Te> &v, bool in) const {
 
-    typename std::map<int, Edge<T>*>::const_iterator it;
+    typename std::map<int, Edge<Tv, Te>*>::const_iterator it;
     
     if (in)
       for (it = this->in.begin(); it != this->in.end(); ++it) {
-        Edge<T> *e = it->second;
+        Edge<Tv, Te> *e = it->second;
         if (e->from == &v)
           return e;
       }
     else
       for (it = this->out.begin(); it != this->out.end(); ++it) {
-        Edge<T> *e = it->second;
+        Edge<Tv, Te> *e = it->second;
         if (e->to == &v)
           return e;
       }
@@ -168,10 +170,10 @@ namespace dsl {
   }
   /*
   template<typename T>
-  std::ostream& operator<<(std::ostream &os, const Vertex<T> &v)
+  std::ostream& operator<<(std::ostream &os, const Vertex<Tv, Te> &v)
   {
     os << v.id << " ";
-    std::map<int, Edge<T>*>::const_iterator it;
+    std::map<int, Edge<Tv, Te>*>::const_iterator it;
     os << "[";
     for (it = v.in.begin(); it != v.in.end(); ++it) {
       os << it->second->id << " ";
@@ -200,7 +202,7 @@ namespace dsl {
    * @param v vertex
    * @return the input stream
   template<typename T>
-   std::istream& operator>>(std::istream &is, Vertex<T> &v)
+   std::istream& operator>>(std::istream &is, Vertex<Tv, Te> &v)
   {   
     return is;
   }

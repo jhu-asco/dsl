@@ -16,10 +16,10 @@ using namespace std;
 using namespace dsl;
 
 
-double GridTravCost::Real(const Cell2d &va, const Cell2d &vb) const
+double GridTravCost::Real(const Cell<2> &va, const Cell<2> &vb) const
 {
-  int dx = vb.p[0]-va.p[0];
-  int dy = vb.p[1]-va.p[1];
+  int dx = vb.c[0]-va.c[0];
+  int dy = vb.c[1]-va.c[1];
   double elength = sqrt(dx*dx + dy*dy);
   return fabs(vb.cost-va.cost)/elength;
 }    
