@@ -228,7 +228,7 @@ int main(int argc, char** argv)
     printf("(%f,%f,%f) \n", path.cells[i].c[0], path.cells[i].c[1], path.cells[i].c[2]);
   }
 
-  //gdsl.SplinePath(path, splinePath, /*splineCells,*/ .1);
+  gdsl.SplinePath(path, splinePath, /*splineCells,*/ .1);
   /*
   printf("\n");
   
@@ -243,8 +243,8 @@ int main(int argc, char** argv)
   // save it to image for viewing
   cout << "Saving path..." << endl;
   save_map_with_cells(mapPath, length, width, path, "path1.ppm");
-  //cout << "Saving spline path..." << endl;
-  //save_map_with_path(mapPath, length, width, splinePath, "spline_path1.ppm");
+  cout << "Saving spline path..." << endl;
+  save_map_with_path(mapPath, length, width, splinePath, "spline_path1.ppm");
 
   /*
   // follow path until (28,18)
