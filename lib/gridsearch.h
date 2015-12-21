@@ -556,7 +556,7 @@ namespace dsl {
     
     Cell<n> *cell = grid.cells[id];
     if (!cell) {
-      std::cout << "[W] GridSearch::SetCost: no cell at position " << x.transpose() << std::endl;
+      std::cout << "[W] GridSearch::GetCost: no cell at position " << x.transpose() << std::endl;
       return 0;
     }
     return cell->cost;

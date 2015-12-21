@@ -10,6 +10,7 @@ Grid2d::Grid2d(int width, int height, double *map,
     for (int j = 0; j < height; ++j) {      
       int id = j*width + i;
       double cost = map[id]*costScale; // cell cost = height/occupany/traversability
+      assert(cost >= 0);
       // add this as a cell only if cost is less than a given max cost
       // this is useful if maxCost defines map cells that are untreversable, so 
       // they shouldn't be added to the list of cells
