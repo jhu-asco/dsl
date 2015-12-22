@@ -20,7 +20,7 @@ namespace dsl {
             double sx, double sy, double sa, double costScale,
             double maxCost = 1);
 
-    double maxCost; ///< any cell cost above maxCost is considered obstacle
+    double maxCost; ///< any cell cost above maxCost is considered obstacle and not added to the graph
   };
 }
 

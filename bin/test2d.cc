@@ -91,7 +91,7 @@ int main(int argc, char** argv)
   Grid2d grid(width, height, map, 1, 1, 1, 1e16);
   GridCost<2> cost;
   Grid2dConnectivity connectivity(grid);
-  GridSearch<2> search(grid, connectivity, cost, true);
+  GridSearch<2> search(grid, connectivity, cost, false);
 
   search.SetStart(Vector2d(1, height/2));
   search.SetGoal(Vector2d(width - 2, height/2));

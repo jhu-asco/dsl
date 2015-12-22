@@ -42,8 +42,8 @@
  *  6) for each change: SetCost(x, y, cost) or change the whole map: SetMap(map)
  *  7) SetStart(Vector2d(x,y)) -- change the start to the current robot position
  *  8) goto 4
- * 
- *
+ *  
+ *  
  *  Author: Marin Kobilarov
  */
 
@@ -53,6 +53,12 @@ namespace dsl {
   using namespace Eigen;
   using namespace std;
   
+  /**
+   * Grid Planner that can compute the optimal path between two given cells on a grid.
+   * The path is a sequence of cells. Each cell in the grid has a cost and in addition 
+   * there is cost of transitioning between two cells. 
+   *
+   */
   template<int n>
     class GridSearch : public Search<Cell<n>, GridPath<n> > {
   public:
@@ -128,27 +134,24 @@ namespace dsl {
     bool Plan(GridPath<n> &path);
     
     /**
-     * Useful method to get the graph vertex at position (x,y)
-     * @param x x-coordiante
-     * @param y y-coordiante
+     * Useful method to get the graph vertex at position x
+     * @param x position
      * @return corresponding vertex or 0 if none there
      */
-    // Vertex<Cell2d>* GetVertex(int x, int y) const; 
+    CellVertex* GetVertex(const Vectornd &x) const; 
 
     /**
-     * Useful method to remove a vertex at (x,y)
+     * Useful method to remove a vertex at position x
      * @param x Euclidean point vector
      */
     bool RemoveCell(const Vectornd &x);
-
+    
     /**
      * Useful method for adding edges b/n vertices
-     * @param x1 from x-coordiante
-     * @param y1 from y-coordiante
-     * @param x2 to x-coordiante
-     * @param y2 to y-coordiante
+     * @param x1 start point
+     * @param x2 end point
      */    
-    // void AddEdge(int x1, int y1, int x2, int y2);
+    bool AddEdge(const Vectornd &x1, const Vectornd &x2);
 
     /**
      * Experimental path "straightening" function
@@ -185,6 +188,7 @@ namespace dsl {
     memset(vertexMap, 0, grid.nc*sizeof(CellVertex*));
 
     if (expand) {
+      // initialize and add all vertices
       for (int i = 0; i < grid.nc; ++i) {
         if (grid.cells[i]) {               
           vertexMap[i] = new CellVertex(*grid.cells[i]);
@@ -192,23 +196,29 @@ namespace dsl {
         }
       }
       
+      // expand the successors of each vertex
       for (int i = 0; i < grid.nc; ++i) {
         if (grid.cells[i]) {
           
           CellVertex *from = vertexMap[i];
           assert(from);
 
+          // generate successor paths
           std::vector<GridPath<n> > paths;
           connectivity(*grid.cells[i], paths);
 
-          for (int j = 0; j < paths.size(); ++j) {
-            const GridPath<n>& path = paths[j];
+          typename std::vector<GridPath<n> >::iterator it;
+          for (it = paths.begin(); it != paths.end(); ++it) {
+            GridPath<n>& path = *it;
 
+            // find cell where the end of the path falls
             int id = grid.Id(path.cells.back().c);
             assert(id >= 0 && id < grid.nc);            
             CellVertex *to = vertexMap[id];
             if (!to) 
               continue;
+            
+            path.len = cost.Real(from->data, to->data);
             
             CellEdge* edge = new CellEdge(path, from, to, path.len);          
             graph.AddEdge(*edge);
@@ -235,7 +245,7 @@ namespace dsl {
     int id = grid.Id(from.data.c);    
     assert(id >= 0 && id < grid.nc);
 
-     std::cout << id << std::endl;
+    //     std::cout << id << std::endl;
 
     // cell must exist
     Cell<n> *cell = grid.cells[id];
@@ -352,8 +362,7 @@ namespace dsl {
       std::cout << "[W] GridSearch:SetGoal: invalid x=" << x.transpose() << std::endl;
       return false;
     }
-    //  if (x < 0 || x >= width || y < 0 || y >= height)
-    //    return;
+
     int id = grid.Id(x);
     assert(id >= 0 && id < grid.nc);
     
@@ -539,6 +548,21 @@ namespace dsl {
     }
     return true;
   }
+
+  template<int n>
+  bool GridSearch<n>::AddEdge(const Vectornd &x1, const Vectornd &x2) {
+    CellVertex *from = GetVertex(x1);
+    CellVertex *to = GetVertex(x2);
+    if (!from || !to)
+      return false;
+    
+    CellEdge* edge = 
+      new CellEdge(from, to, cost.Real(from->data, to->data)); 
+    graph.AddEdge(*edge);
+    return true;
+  }
+  
+
 }
 
 

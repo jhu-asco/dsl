@@ -28,6 +28,8 @@ namespace dsl {
      * @param grid the grid
      */
     CarConnectivity(const CarGrid &grid);
+
+    bool SetPrimitives(double v, double w, double dt);
     
     bool operator()(const Cell<3>& from, 
                     std::vector<GridPath<3> >& paths,

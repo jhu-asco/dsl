@@ -53,6 +53,7 @@
  * - $mkdir build; cd build; cmake ..; make
  * - To test:
  * - $bin/test2d ../bin/map2.ppm (look at the generated ppm images to view the result)
+ * - $bin/cartest ../bin/map2.ppm (look at the generated ppm images to view the result)
  *
  * \subsection Class Reference
  * <a href="../../docs/html/hierarchy.html">Class hierarchy</a>
@@ -182,10 +183,27 @@ namespace dsl {
      */
     void SetEps(double eps) { this->eps = eps; }
   
+    /**
+     * Expand the predecessors or successors of a vertex. This is useful for
+     * on-the-fly graph expansion during search. An implementation
+     * is not required since the graph can also be built in advance before
+     * search, and no subsequent search-triggered expansion is necessary.
+     * @param v vertex
+     * @param fwd if true expand forward, i.e. successors, otherwise expand predecessors
+     * @return true on success
+     */
     virtual bool Expand(Vertex<Tv, Te> &v, bool fwd = true) { return true; }
 
+    /**
+     * Number of vertices
+     * @return number of vertices
+     */
     int Vertices() const { return graph.vertices.size(); }
   
+    /**
+     * Number of edges
+     * @return number of edges
+     */
     int Edges() const { return graph.edges.size(); }
 
   protected:

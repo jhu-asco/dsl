@@ -5,6 +5,92 @@ using namespace dsl;
 using namespace std;
 
 
+static double DubinsTimes(double ts[3], 
+                          double ws[2],
+                          double v,
+                          double w,
+                          Matrix3d g,
+                          double tmin = 1e-6)
+{
+  // tb = -((v*sin(ta*wa))/wa - x + (v*(st - sin(ta*wa)))/wb)/(v*cos(ta*wa))
+  //  ((2*v*wb - wa*v - ct*wa*v - wa*wb*y)*k^2 + (2*st*wa*v - 2*wa*wb*x)*k + ct*wa*v - wa*v + wa*wb*y)/((wa*wb)*k^2 - wa*wb)
+  
+  const double& ct = g(0,0);
+  const double& st = g(1,0);
+  const double& x = g(0,2);
+  const double& y = g(1,2);
+  
+  double was[4] = {w, w, -w, -w};
+  double wcs[4] = {w, -w, w, -w};
+  
+  double ttb = INFINITY;  // total time best
+  bool ok = false;
+  
+  for (int j = 0; j < 4; ++j) {  
+    
+    double &wa = was[j];
+    double &wc = wcs[j];
+
+    double a = (2*v*wc - wa*v - ct*wa*v - wa*wc*y);
+    double b = (2*st*wa*v - 2*wa*wc*x);
+    double c = ct*wa*v - wa*v + wa*wc*y;
+    
+    double s = b*b - 4*a*c;
+    //  cout << "s=" << s << " a=" << a << endl;
+    
+    if (s < 0)
+      return -1;
+    
+    s = sqrt(s);
+    
+    double k[2] = { (-b + s)/(2*a), (-b - s)/(2*a)};
+        
+    // go through all solutions
+    for (int i = 0; i < 2; ++i) {
+      
+      double k2 = k[i]*k[i];
+      double cta = (1 - k2)/(1 + k2);
+      double sta = 2*k[i]/(1 + k2);
+      
+      double ctc = ct*cta + st*sta;
+      double stc = st*cta - ct*sta;
+      
+      double tbt = -((v*sta)/wa - x + (v*(st - sta))/wc)/(v*cta);
+      
+      if (tbt < tmin)
+        continue;
+      
+      double tct = atan2(stc, ctc)/wc;
+      if (tct < 0)
+        tct += ((wc < 0 ? -2*M_PI : 2*M_PI)/wc);
+      assert(tct > -tmin);
+      
+      double tat = atan2(sta, cta)/wa;
+      if (tat < 0)
+        tat += ((wa < 0 ? -2*M_PI : 2*M_PI)/wa);
+      assert(tat > -tmin);
+      
+      double tt = tat + tbt + tct;  // total time
+      if (tt < ttb) {
+        ts[0] = tat;
+        ts[1] = tbt;
+        ts[2] = tct;
+        ws[0] = wa;
+        ws[1] = wc;
+        ttb = tt;
+        ok = true;
+      }
+    }
+  }
+
+  if (ok) {
+    return ttb;
+  }
+    
+  return -1;
+}
+
+
 static void q2g(Matrix3d &m, const Vector3d &q)
 {
   double ct = cos(q[2]);
@@ -48,10 +134,17 @@ static void exp(Matrix3d &m, const Vector3d &v, double tol = 1e-16)
 CarConnectivity::CarConnectivity(const CarGrid &grid) : grid(grid) 
 {
   double tphi = 0.577; // tan(M_PI/6); // steering angle
-  
-  v = 1;  // fixed forward velocity
-  w = tphi*v; 
+  v = 1;
+  SetPrimitives(v, tphi*v, 1);
+}
 
+bool CarConnectivity::SetPrimitives(double v, double w, double dt) {
+  if (dt <= 0)
+    return false;
+    
+  this->v = v;
+  this->w = w;
+  this->dt = dt;
   vs.push_back(Vector3d(v, 0, 0));
   vs.push_back(Vector3d(v, 0, w));
   vs.push_back(Vector3d(v, 0, -w));
@@ -59,8 +152,9 @@ CarConnectivity::CarConnectivity(const CarGrid &grid) : grid(grid)
   vs.push_back(Vector3d(-v, 0, w));
   vs.push_back(Vector3d(-v, 0, -w));
 
-  dt = 1;
+  return false;
 }
+
 
 bool CarConnectivity::Flow(GridPath<3>& path, const Matrix3d &g0, const Vector3d &v) const
 {
@@ -96,6 +190,7 @@ bool CarConnectivity::Flow(GridPath<3>& path, const Matrix3d &g0, const Vector3d
     path.len += cell->cost;   // add up all cost along cells
   }
   path.len = (1 + path.len)*fabs(v[0]);   // regard cell cost as "traversability" which additionally penalizes the travelled distance
+
   return true;
 }
 

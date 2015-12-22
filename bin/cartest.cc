@@ -41,7 +41,8 @@ int main(int argc, char** argv)
   CarGrid grid(width, height, map, .1, .1, M_PI/16, 1, 0.5);
   CarCost cost;
   CarConnectivity connectivity(grid);
-  GridSearch<3> search(grid, connectivity, cost, true);
+  connectivity.dt = 1; // length in seconds of primitives
+  GridSearch<3> search(grid, connectivity, cost, false);
 
   time = timer_us(&timer);
   printf("graph construction time= %ld  us\n", time);
@@ -59,6 +60,10 @@ int main(int argc, char** argv)
   time = timer_us(&timer);
   printf("plan path time= %ld  us\n", time);
   printf("path: edges=%lu len=%f\n", path.cells.size(), path.len);
+
+  cout << "Graph has " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
+
+
   // print results
   vector<Cell<3> >::iterator it; 
   for (it = path.cells.begin(); it != path.cells.end(); ++it) {

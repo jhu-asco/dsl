@@ -15,26 +15,44 @@ namespace dsl {
 
   using namespace Eigen;
   
+  /**
+   *  A basic grid cell
+   */
   template<int n>
     class Cell {
     
     typedef Matrix<double, n, 1> Vectornd;
     
   public:
-
+    
   Cell() : cost(0) {
     }
     
-  Cell(const Vectornd &c, double cost = 1) : c(c), cost(cost) {
+    /**
+     * Initialize a cell using its center and cost
+     * @param c center
+     * @param cost cost
+     */
+  Cell(const Vectornd &c, double cost = 0) : c(c), cost(cost) {
     }
     
-  Cell(const Vectornd &c, const Vectornd &r, double cost = 1) : c(c), r(r), cost(cost) {
+    /**
+     * Initialize a cell using its center and cost
+     * @param c center
+     * @param r half-distance of cell size (i.e. max radius of sphere fitting inside cell)
+     * @param cost cost
+     */
+  Cell(const Vectornd &c, const Vectornd &r, double cost = 0) : c(c), r(r), cost(cost) {
     }
     
   Cell(const Cell &cell) : c(cell.c), r(cell.r), cost(cell.cost) {      
     }
-    
-    
+        
+    /**
+     * Is a point x inside the cell
+     * @param x point
+     * @return true if inside 
+     */
     bool Inside(const Vectornd &x) {
       for (int i = 0; i < x.size(); ++i)
         if (x[i] < c[i] - r[i] ||
