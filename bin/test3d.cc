@@ -199,7 +199,7 @@ int main(int argc, char** argv)
   Grid3d grid(length, width, height, map, 1, 1, 1, 1, 1e16);
   GridCost<3> cost;
   Grid3dConnectivity connectivity(grid);
-  GridSearch<3> gdsl(grid, connectivity, cost, true);
+  GridSearch<3> gdsl(grid, connectivity, cost, false);
 
   cout << "Initialized planner" << endl;
   int startx = length/4.;
@@ -221,7 +221,7 @@ int main(int argc, char** argv)
   gdsl.Plan(path);
   time = timer_us(&timer);
   printf("plan path time= %ld\n", time);
-  printf("path: count=%lu len=%f\n", path.cells.size(), path.len);
+  printf("path: count=%lu len=%f\n", path.cells.size(), path.cost);
 
   // print results
   for (i = 0; i < path.cells.size(); ++i) {
@@ -281,7 +281,7 @@ int main(int argc, char** argv)
   gdsl.Plan(path);
   time = timer_us(&timer);
   printf("replan path time= %ld us\n", time);
-  printf("path: count=%d len=%f\n", path.count, path.len);
+  printf("path: count=%d len=%f\n", path.count, path.cost);
   fflush(stdout);
   */
 
@@ -294,7 +294,7 @@ int main(int argc, char** argv)
   gdsl.Plan(path);
   time = timer_ns(&timer);
   printf("replan path time= %ld\n", time);
-  printf("path: count=%d len=%f\n", path.count, path.len);
+  printf("path: count=%d len=%f\n", path.count, path.cost);
   fflush(stdout);
   */
   /*
@@ -303,7 +303,7 @@ int main(int argc, char** argv)
   gdsl.OptPath(path, optPath);
   time = timer_us(&timer);
   printf("opt path time= %ld us\n", time);
-  printf("optPath: count=%d len=%f\n", optPath.count, optPath.len);
+  printf("optPath: count=%d len=%f\n", optPath.count, optPath.cost);
   
   for (i = 0; i < path.count; ++i) {
     printf("(%d,%d) ", path.pos[2*i], path.pos[2*i+1]);

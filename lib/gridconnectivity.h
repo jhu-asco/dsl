@@ -13,9 +13,9 @@
 
 namespace dsl {
 
-template<int n>
-  class GridConnectivity {
- public:
+  template<int n, class Tc = Matrix<double, n, 1>, class Tp = std::vector<Tc> >
+    class GridConnectivity {
+  public:
   
   /**
    * Connectivity operator providing primitive paths from a given vertex. This
@@ -26,8 +26,8 @@ template<int n>
    * @param fwd true if generated forward in time
    * @return true on success
    */
-  virtual bool operator()(const Cell<n>& from, 
-                          std::vector<GridPath<n> >& paths, 
+  virtual bool operator()(const Cell<n, Tc>& from, 
+                          std::vector<GridPath<n, Tc, Tp> >& paths, 
                           bool fwd = true) const = 0;
  };
 }

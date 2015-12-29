@@ -16,9 +16,11 @@ namespace dsl {
   using namespace Eigen;
   
   /**
-   *  A basic grid cell
+   * A basic grid cell defining a rectangular region in n-dimension space
+   * The cell can also contain a generic data of type T, which by default is just a point
+   * in the cell. 
    */
-  template<int n>
+  template<int n, class Tc = Matrix<double, n, 1> >
     class Cell {
     
     typedef Matrix<double, n, 1> Vectornd;
@@ -45,7 +47,7 @@ namespace dsl {
   Cell(const Vectornd &c, const Vectornd &r, double cost = 0) : c(c), r(r), cost(cost) {
     }
     
-  Cell(const Cell &cell) : c(cell.c), r(cell.r), cost(cell.cost) {      
+  Cell(const Cell<n, Tc> &cell) : c(cell.c), r(cell.r), cost(cell.cost), data(cell.data) {      
     }
         
     /**
@@ -65,6 +67,8 @@ namespace dsl {
     Vectornd r;   ///< half-distance of each cell side
     
     double cost;  ///< cost of cell (typically this is 0 if unoccupied) 
+    
+    Tc data;      ///< generic data stored in the cell (e.g. could store the actual position of a system which might not coincide with the center of the cell, but more generally can store extra algorithm-specific data)
   };
 
 }

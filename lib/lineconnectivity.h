@@ -90,7 +90,8 @@ namespace dsl {
         continue;
       
       path.cells.push_back(*to);    
-      path.len = (1 + (from.cost + to->cost)/2)*this->costs[i];
+      path.cost = (1 + (from.cost + to->cost)/2)*this->costs[i];
+      path.fwd = fwd;
       paths.push_back(path);
     }
     return true;

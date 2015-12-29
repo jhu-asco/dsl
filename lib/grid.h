@@ -18,7 +18,7 @@ namespace dsl {
   /**
    * An n-dimenensional regular grid
    */
-  template<int n>
+  template<int n, class T = Matrix<double, n, 1> >
     class Grid {
     
     typedef Matrix<double, n, 1> Vectornd;
@@ -42,8 +42,8 @@ namespace dsl {
         cs[i] = (xub[i] - xlb[i])/gs[i];
       }
       
-      cells = new Cell<n>*[nc];
-      memset(cells, 0, nc*sizeof(Cell<n>*)); // initialize all of them nil
+      cells = new Cell<n,T>*[nc];
+      memset(cells, 0, nc*sizeof(Cell<n,T>*)); // initialize all of them nil
     }
 
     virtual ~Grid()  {
@@ -117,7 +117,7 @@ namespace dsl {
      * @param checkValid whether to check if within valid bounds (more efficient if checkValid=0 but dangerous)
      * @return pointer to a cell or 0 if cell does not exist
      */
-    Cell<n>* Get(const Vectornd &x, bool checkValid = true) const {
+    Cell<n,T>* Get(const Vectornd &x, bool checkValid = true) const {
       if (checkValid)
         if  (!Valid(x))
           return 0;
@@ -135,7 +135,7 @@ namespace dsl {
      * @param id a non-negative id
      * @return pointer to a cell or 0 if cell does not exist
      */
-    Cell<n>* Get(int id) {
+    Cell<n,T>* Get(int id) {
       assert(id >= 0);
       if (id >= nc)
         return 0;
@@ -148,7 +148,7 @@ namespace dsl {
     Vectornd cs;   ///< cell length size per dimension
 
     int nc;           ///< total maximum number of cells
-    Cell<n>** cells;  ///< array of pointers to cells
+    Cell<n,T>** cells;  ///< array of pointers to cells
   };
 }
 

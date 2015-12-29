@@ -43,6 +43,9 @@
  * The library is easy to use and extend. Included is a test executable
  * that demonstrates a typical path planning scenario.
  * 
+ * The original code was written in 2004 and updated in 2015 to support arbitrary n-dimensional grids
+ * and generic data types stored vertices and edges, so that vertices and edges can be regarded as "containers".
+ *
  * \subsection Build requirements
  *  g++; cmake
  *
@@ -52,8 +55,8 @@
  * - To compile:
  * - $mkdir build; cd build; cmake ..; make
  * - To test:
- * - $bin/test2d ../bin/map2.ppm (look at the generated ppm images to view the result)
- * - $bin/cartest ../bin/map2.ppm (look at the generated ppm images to view the result)
+ * - $bin/test2d ../bin/map.ppm (look at the generated ppm images to view the result)
+ * - $bin/cartest ../bin/map4.ppm (look at the generated ppm images to view the result)
  *
  * \subsection Class Reference
  * <a href="../../docs/html/hierarchy.html">Class hierarchy</a>
@@ -100,9 +103,9 @@
  * \subsection Example
  *  see directory test
  * \subsection Author
- *  Copyright (C) 2004 Marin Kobilarov 
+ *  Copyright (C) 2004, 2015 Marin Kobilarov 
  * \subsection Keywords
- * D*, D*-Lite, D-star, "D star", "A*", "D* Lite", "Heuristic Search"
+ * D*, D*-Lite, D-star, "D star", "A*", "D* Lite", "Heuristic Search", "grid planning"
  */
 
 namespace dsl {
@@ -119,7 +122,7 @@ namespace dsl {
      *                     edge costs would not be changed)
      * @param cost cost interface
      */
-    Search(Graph<Tv, Te> &graph, const Cost<Tv, Te> &cost);
+    Search(Graph<Tv, Te> &graph, const Cost<Tv> &cost);
     
     virtual ~Search();
     
@@ -230,7 +233,7 @@ namespace dsl {
     
 
     Graph<Tv, Te> &graph;                     ///< graph
-    const Cost<Tv, Te> &cost;                 ///< cost interface
+    const Cost<Tv> &cost;                 ///< cost interface
    
     std::vector<Edge<Tv, Te>*> changedEdges;  ///< newly changed edges
     
@@ -275,7 +278,7 @@ namespace dsl {
   */
   
   template<class Tv, class Te>
-    Search<Tv, Te>::Search(Graph<Tv, Te> &graph, const Cost<Tv, Te> &cost) : 
+    Search<Tv, Te>::Search(Graph<Tv, Te> &graph, const Cost<Tv> &cost) : 
   graph(graph),
     cost(cost),
     start(0), 
@@ -351,10 +354,6 @@ namespace dsl {
   
   template<class Tv, class Te>
     void Search<Tv, Te>::UpdateVertex(Vertex<Tv, Te> &u) {
-
-    //    Expand(u, true);
-    //    Expand(u, false);
-
 
 #ifdef DSL_STDOUT_DEBUG
     printf("UpdateVertex: begin\n");
@@ -470,15 +469,15 @@ namespace dsl {
     path.clear();
     Plan();
     Vertex<Tv, Te> *cur = start;
-    double len = 0;
+    double cost = 0;
     do {
       Edge<Tv, Te>* edge = cur->Find(*cur->next, false); 
       assert(edge);
-      len += edge->cost;
+      cost += edge->cost;
       path.push_back(edge);      
       cur = cur->next;
     } while(cur != goal);
-    return len;
+    return cost;
   }
   
   template<class Tv, class Te>
@@ -489,18 +488,6 @@ namespace dsl {
     int count = 1;
     
     assert(start);
-    
-    /*
-    if (!start->out.size()) {
-      std::cerr << "[W] Search::Plan: start vertex has no outgoing edges!" << std::endl;
-      return 0;
-    }
-    
-    if (!goal->in.size()) {
-      std::cerr << "[W] Search::Plan: goal vertex has no incoming edges!" << std::endl;
-      return 0;
-    }
-    */
     
     if (!last)
       last = start;
@@ -544,16 +531,6 @@ namespace dsl {
       count++;
     } while(cur != goal);
     
-    /*
-      do {
-      cur->next = MinSucc(0, *cur);
-    cur = cur->next;
-    if (!cur) {
-    break;
-    }
-    count++;
-    } while(cur != goal);
-    */
     return count;
   }
   

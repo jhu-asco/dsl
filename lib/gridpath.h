@@ -15,18 +15,32 @@
 namespace dsl {
   
   /**
-   *  Path containing a list of grid points
+   *  A generic grid "path" represented by:
+   * 1) a list of cells it passes through
+   * 2) a generic data type that is application-specific
+   * 3) the total cost (e.g. distance,time,etc...) of the path
+   *
+   * The cells containt generic data type Tc, while the grid path contains generic
+   * data type Tp, which by default is a vector of Tc's.  Tp is useful for representing
+   * e.g. a continuous trajectory corresponding to the discrete sequence of cells.
+   *
    */
-  template<int n>
+  template<int n, class Tc = Matrix<double, n, 1>, class Tp = std::vector<Tc> >
     class GridPath {
   public:
-    
-  GridPath() : len(0) {
+  
+  GridPath() : cost(0), fwd(0) {
     };
+  
 
-    std::vector<Cell<n> > cells;  ///< list of cells along path
-    double len;                   ///< length of path (sum of edge b/n cells)
+  std::vector<Cell<n, Tc> > cells;  ///< list of cells along path
 
+  Tp data;                          ///< generic data stored along path; typically this represents a path/trajectory passing through the cells
+
+  double cost;                     ///< cost of path
+
+  bool fwd;                        ///< generated forward or backward
+  
   };
 }
 

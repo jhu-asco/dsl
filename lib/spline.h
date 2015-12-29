@@ -8,6 +8,8 @@
 #include <vector>
 #include <iostream>
 
+namespace dsl {
+
 /** Templated on type of X, Y. X and Y must have operator +, -, *, /. Y must have defined
  * a constructor that takes a scalar. */
 template <typename X, typename Y>
@@ -131,4 +133,5 @@ protected:
     std::vector<element_type> mElements;
 };
 
+}
 #endif

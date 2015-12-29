@@ -13,7 +13,9 @@
 
 namespace dsl {
   
-  class CarGrid : public Grid<3> {
+  typedef Cell<3, Matrix3d> SE2Cell;
+
+  class CarGrid : public Grid<3, Matrix3d> {
   public:
     
     CarGrid(int width, int height, double *map, 

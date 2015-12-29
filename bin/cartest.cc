@@ -13,42 +13,41 @@ using namespace Eigen;
 int main(int argc, char** argv)
 {
   if (argc!=2) {
-    cout << "Usage: $./test map.ppm" << endl;
-    cout << "\t\t where map.ppm is a map graphics file" << endl;
+    cout << "Usage: $./cartest map4.ppm" << endl;
+    cout << "\t\t where map4.ppm is a map graphics file" << endl;
     cout << "\t\t output will be written to graphics files path1.ppm and path2.pppm" << endl;
     return 0;
   }
   assert(argc == 2);
+
+  // load a map from ppm file
   int width, height; 
   char* chmap = load_map(&width, &height, argv[1]);
-  GridPath<3> path, optPath;
   char mapPath[width*height];
-  struct timeval timer;
-  long time;
-
-  // create a map
   double map[width*height];
   for (int i = 0; i < width*height; ++i)
     map[i] = 1000*(double)chmap[i];
 
   // this is just for display
   memcpy(mapPath, chmap, width*height);
+
   cout << "Creating a graph..." << endl;
 
   // create planner
+  struct timeval timer;
   timer_start(&timer);
 
   CarGrid grid(width, height, map, .1, .1, M_PI/16, 1, 0.5);
   CarCost cost;
   CarConnectivity connectivity(grid);
-  connectivity.dt = 1; // length in seconds of primitives
-  GridSearch<3> search(grid, connectivity, cost, false);
+  GridSearch<3, Matrix3d> search(grid, connectivity, cost, false);
+  SE2Path path, optPath;
 
-  time = timer_us(&timer);
+  long time = timer_us(&timer);
   printf("graph construction time= %ld  us\n", time);
 
-  search.SetStart(Vector3d(.1, grid.xub[1]/2, 0));
-  search.SetGoal(Vector3d(grid.xub[0] - .1, grid.xub[1]/2, 0));
+  search.SetStart(Vector3d(0, .1, grid.xub[2]/2));
+  search.SetGoal(Vector3d(0, grid.xub[1] - .1, grid.xub[2]/2));
   //  search.SetGoal(Vector3d(grid.xub[0]*.5, grid.xub[1]*.58, 15.0/16*M_PI));
 
   cout << "Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
@@ -59,17 +58,16 @@ int main(int argc, char** argv)
   search.Plan(path);
   time = timer_us(&timer);
   printf("plan path time= %ld  us\n", time);
-  printf("path: edges=%lu len=%f\n", path.cells.size(), path.len);
+  printf("path: edges=%lu len=%f\n", path.cells.size(), path.cost);
 
   cout << "Graph has " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
 
-
   // print results
-  vector<Cell<3> >::iterator it; 
+  vector<SE2Cell>::iterator it; 
   for (it = path.cells.begin(); it != path.cells.end(); ++it) {
     //    printf("(%d,%d) ",  path.cells[i].p[0], path.cells[i].p[1]);    
-    int x = grid.Index(it->c, 0);
-    int y = grid.Index(it->c, 1);
+    int x = grid.Index(it->c, 1);
+    int y = grid.Index(it->c, 2);
     mapPath[y*width + x] = 2;// path.cells[i].p[1]*width +  path.cells[i].p[0]] = 2;
   }
   /*
@@ -82,7 +80,6 @@ int main(int argc, char** argv)
   }
   fflush(stdout);
   */
-
   
   // save it to image for viewing
   save_map(mapPath, width, height, "path1.ppm");
@@ -96,7 +93,7 @@ int main(int argc, char** argv)
 
   // simulate closing the narrow passage
   if (0) {
-    for (double a = grid.xlb[2]+grid.cs[2]/2; a < grid.xub[2] + grid.cs[2]/2; a += grid.cs[2]) {
+    for (double a = grid.xlb[0]+grid.cs[0]/2; a < grid.xub[0] + grid.cs[0]/2; a += grid.cs[0]) {
       // by increasing the cost drastically
       //      search.SetCost(Vector3d(29,18,a), 1000);
       //      search.SetCost(Vector3d(30,18,a), 1000);
@@ -105,8 +102,8 @@ int main(int argc, char** argv)
   } else {
   // a better way: by simply removing the passage
     for (double y = c[1] - 2; y < c[1] +2; ++y)  {
-      for (double a = grid.xlb[2]+grid.cs[2]/2; a < grid.xub[2] + grid.cs[2]/2; a += grid.cs[2]) {     
-        search.RemoveCell(Vector3d(c[0],y,a));
+      for (double a = grid.xlb[0]+grid.cs[0]/2; a < grid.xub[0] + grid.cs[0]/2; a += grid.cs[0]) {     
+        search.RemoveCell(Vector3d(a, c[0],y));
       }
     }
   }
@@ -120,7 +117,7 @@ int main(int argc, char** argv)
   search.Plan(path);
   time = timer_us(&timer);
   printf("replan path time= %ld us\n", time);
-  printf("path: count=%lu len=%f\n", path.cells.size(), path.len);
+  printf("path: count=%lu len=%f\n", path.cells.size(), path.cost);
   fflush(stdout);
   
 
@@ -131,7 +128,7 @@ int main(int argc, char** argv)
  // gdsl.Plan(path);
  // time = timer_ns(&timer);
  // printf("replan path time= %ld\n", time);
- // printf("path: count=%d len=%f\n", path.count, path.len);
+ // printf("path: count=%d len=%f\n", path.count, path.cost);
  // fflush(stdout);
   
   
@@ -142,7 +139,7 @@ int main(int argc, char** argv)
   search.OptPath(path, optPath);
   time = timer_us(&timer);
   printf("opt path time= %ld us\n", time);
-  printf("optPath: count=%lu len=%f\n", optPath.cells.size(), optPath.len);
+  printf("optPath: count=%lu len=%f\n", optPath.cells.size(), optPath.cost);
   */
 
   for (it = path.cells.begin(); it != path.cells.end(); ++it) {
