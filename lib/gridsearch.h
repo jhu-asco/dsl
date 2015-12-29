@@ -135,7 +135,7 @@ namespace dsl {
      * Compute path b/n start and goal vertices
      * these vertices should be already set
      * @param path the resulting path
-     * @param removeDuplicateCells remove duplicate consequtive cells (this might appear if two consequitive edges
+     * @param removeDuplicateCells remove duplicate consecutive cells (this might appear if two consecutive edges
      * contain cells in a way that the last cell of the first edge overlaps with the first cell of the next edge)
      * @return true on success
      */
