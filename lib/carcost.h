@@ -13,15 +13,17 @@
 
 namespace dsl {
 
+  typedef Cell<3, Matrix3d> SE2Cell;
+
   /**
    * Grid cost interface.
    *
    * Author: Marin Kobilarov -- Copyright (C) 2004
    */
-  class CarCost : public GridCost<3 > {
+  class CarCost : public GridCost<3, Matrix3d> {
   public:
-    double Heur(const Cell<3> &a, const Cell<3> &b) const;       
-    double Real(const Cell<3> &a, const Cell<3> &b) const;    
+    double Heur(const SE2Cell &a, const SE2Cell &b) const;       
+    double Real(const SE2Cell &a, const SE2Cell &b) const;    
   };
 }
 

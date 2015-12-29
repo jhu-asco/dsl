@@ -7,7 +7,6 @@ add_library(dsl SHARED fibheap.c
                        grid2dconnectivity.cc
                        grid3dconnectivity.cc
                        carconnectivity.cc
-#                       gridtravcost.cc
                        carcost.cc
 )
 
@@ -43,7 +42,6 @@ INSTALL(FILES fibheap.h
               grid2dconnectivity.h
               grid3d.h
               grid3dconnectivity.h
-#              gridtravcost.h
               gridsearch.h
               spline.h
               DESTINATION include/dsl)              

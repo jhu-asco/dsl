@@ -13,14 +13,16 @@
 
 namespace dsl {
   
-  class CarGrid : public Grid<3> {
+  typedef Cell<3, Matrix3d> SE2Cell;
+
+  class CarGrid : public Grid<3, Matrix3d> {
   public:
     
     CarGrid(int width, int height, double *map, 
             double sx, double sy, double sa, double costScale,
             double maxCost = 1);
 
-    double maxCost; ///< any cell cost above maxCost is considered obstacle
+    double maxCost; ///< any cell cost above maxCost is considered obstacle and not added to the graph
   };
 }
 

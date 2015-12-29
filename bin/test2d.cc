@@ -8,78 +8,26 @@
 #include "grid2d.h"
 #include "gridcost.h"
 #include "grid2dconnectivity.h"
+#include "utils.h"
 
 using namespace dsl;
 using namespace std;
 using namespace Eigen;
 
-
-void save_map(const char* map, int width, int height, const char* filename)
-{
-  int i, ind;
-  char data[width*height*3];
-  FILE* file = fopen(filename, "w");
-  assert(file);
-  fprintf(file, "P6\n%d %d 255\n", width, height);
-  ind = 0;
-  for (i = 0; i < width*height; i++, ind+=3) {
-    data[ind] = data[ind+1] = data[ind+2] = (char)(map[i]*100);
-  }
-  assert(ind == 3*width*height);
-  assert((int)fwrite(data, sizeof(char), ind, file) == ind);
-  fclose(file);
-}
-
-
-char* load_map(int* width, int* height, const char* filename)
-{
-  int i, size;
-  char *map, *data;
-  FILE* file = fopen(filename, "r");
-  assert(file);
-  assert(fscanf(file, "P6\n%d %d 255\n", width, height));
-  size = (*width**height);
-  map = (char*)malloc(size);
-  data = (char*)malloc(size*3);
-  assert(fread(data, sizeof(char), size*3, file));
-  for (i = 0; i < size; i++)
-    map[i] = (data[3*i] ? 1 : 0);
-  free(data);
-  fclose(file);
-  return map;
-}
-
-void timer_start(struct timeval *time) 
-{
-  gettimeofday(time,(struct timezone*)0);
-}
-
-long timer_us(struct timeval *time) 
-{
-  struct timeval now;
-  gettimeofday(&now,(struct timezone*)0);
-  return 1000000*(now.tv_sec - time->tv_sec) + now.tv_usec - time->tv_usec;
-}
-
-
 int main(int argc, char** argv)
 {
   if (argc!=2) {
-    cout << "Usage: $./test map.ppm" << endl;
+    cout << "Usage: $./test2d map.ppm" << endl;
     cout << "\t\t where map.ppm is a map graphics file" << endl;
     cout << "\t\t output will be written to graphics files path1.ppm and path2.pppm" << endl;
     return 0;
   }
+
+  // load a map from ppm file
   assert(argc == 2);
   int width, height; 
   char* chmap = load_map(&width, &height, argv[1]);
-  GridPath<2> path, optPath;
-  int x, y;
   char mapPath[width*height];
-  struct timeval timer;
-  long time;
-
-  // create a map
   double map[width*height];
   for (int i = 0; i < width*height; ++i)
     map[i] = 1000*(double)chmap[i];
@@ -91,26 +39,29 @@ int main(int argc, char** argv)
   Grid2d grid(width, height, map, 1, 1, 1, 1e16);
   GridCost<2> cost;
   Grid2dConnectivity connectivity(grid);
-  GridSearch<2> search(grid, connectivity, cost, true);
+  GridSearch<2> search(grid, connectivity, cost, false);
+  GridPath<2> path, optPath;
 
   search.SetStart(Vector2d(1, height/2));
   search.SetGoal(Vector2d(width - 2, height/2));
 
   // plan
+  struct timeval timer;
   timer_start(&timer);
   search.Plan(path);
-  time = timer_us(&timer);
+  long time = timer_us(&timer);
   printf("plan path time= %ld\n", time);
-  printf("path: count=%lu len=%f\n", path.cells.size(), path.len);
+  printf("path: count=%lu len=%f\n", path.cells.size(), path.cost);
+
   // print results
   vector<Cell<2> >::iterator it;
   for (it = path.cells.begin(); it != path.cells.end(); ++it) {
     int id = grid.Id(it->c);
-    mapPath[id] = 2;// path.cells[i].p[1]*width +  path.cells[i].p[0]] = 2;
+    mapPath[id] = 2;
   }
   printf("\n");
-  for (y = 0; y < height; ++y) {
-    for (x = 0; x < width; ++x) {
+  for (int y = 0; y < height; ++y) {
+    for (int x = 0; x < width; ++x) {
       printf("%d ", mapPath[y*width + x]);
     }
     printf("\n");
@@ -119,6 +70,9 @@ int main(int argc, char** argv)
 
   // save it to image for viewing
   save_map(mapPath, width, height, "path1.ppm");
+
+  cout << "Map and path saved to path1.ppm... Press Enter to simulated replanning after closing a passage." << endl;
+  getchar();
 
   // follow path until (28,18)
   search.SetStart(Vector2d(28,18));
@@ -143,7 +97,7 @@ int main(int argc, char** argv)
   search.Plan(path);
   time = timer_us(&timer);
   printf("replan path time= %ld us\n", time);
-  printf("path: count=%lu len=%f\n", path.cells.size(), path.len);
+  printf("path: count=%lu len=%f\n", path.cells.size(), path.cost);
   fflush(stdout);
   
 
@@ -154,7 +108,7 @@ int main(int argc, char** argv)
  // gdsl.Plan(path);
  // time = timer_ns(&timer);
  // printf("replan path time= %ld\n", time);
- // printf("path: count=%d len=%f\n", path.count, path.len);
+ // printf("path: count=%d len=%f\n", path.count, path.cost);
  // fflush(stdout);
   
   
@@ -164,7 +118,7 @@ int main(int argc, char** argv)
   search.OptPath(path, optPath);
   time = timer_us(&timer);
   printf("opt path time= %ld us\n", time);
-  printf("optPath: count=%lu len=%f\n", optPath.cells.size(), optPath.len);
+  printf("optPath: count=%lu len=%f\n", optPath.cells.size(), optPath.cost);
  
 
   for (it = path.cells.begin(); it != path.cells.end(); ++it) {
@@ -179,8 +133,8 @@ int main(int argc, char** argv)
   }
   
   printf("\n");
-  for (y = 0; y < height; ++y) {
-    for (x = 0; x < width; ++x) {
+  for (int y = 0; y < height; ++y) {
+    for (int x = 0; x < width; ++x) {
       printf("%d ", mapPath[y*width + x]);
     }
     printf("\n");
@@ -188,9 +142,7 @@ int main(int argc, char** argv)
 
   // save it to image for viewing
   save_map(mapPath, width, height, "path2.ppm");
- 
-
-  getchar();
+  cout << "Map and path saved to path2.ppm... " << endl; 
   free(chmap);
 
   return 0;

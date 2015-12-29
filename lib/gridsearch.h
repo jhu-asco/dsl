@@ -43,8 +43,8 @@
  *  6) for each change: SetCost(x, y, cost) or change the whole map: SetMap(map)
  *  7) SetStart(Vector2d(x,y)) -- change the start to the current robot position
  *  8) goto 4
- * 
- *
+ *  
+ *  
  *  Author: Marin Kobilarov
  */
 
@@ -54,29 +54,38 @@ namespace dsl {
   using namespace Eigen;
   using namespace std;
   
-  template<int n>
-    class GridSearch : public Search<Cell<n>, GridPath<n> > {
+  /**
+   * Grid Planner that can compute the optimal path between two given cells on a grid.
+   * The path is a sequence of cells. Each cell in the grid has a cost and in addition 
+   * there is cost of transitioning between two cells. 
+   *
+   */
+  template<int n, class Tc = Matrix<double, n, 1>, class Tp = vector<Tc> >
+    class GridSearch : public Search<Cell<n, Tc>, GridPath<n, Tc, Tp> > {
   public:
-
-    typedef Matrix<double, n, 1> Vectornd;
-    typedef Matrix<int, n, 1> Vectorni;
-    typedef Vertex<Cell<n>, GridPath<n> > CellVertex;
-    typedef Edge<Cell<n>, GridPath<n> > CellEdge;
   
-    /**
-     * The planner requires a grid, its connectivity, and a cost interface
-     * @param grid grid
-     * @param connnectivity connectivity interface
-     * @param cost cost interface
-     * @param expand whether to construct/expand the whole graph at init
-     */
-    GridSearch(const Grid<n>& grid,  
-               const GridConnectivity<n>& connectivity,
-               const GridCost<n>& cost,
-               bool expand = true);
-    
-    virtual ~GridSearch();
-    
+  typedef Matrix<double, n, 1> Vectornd;
+  typedef Matrix<int, n, 1> Vectorni;
+  typedef Vertex<Cell<n, Tc>, GridPath<n, Tc, Tp> > CellVertex;
+  typedef Edge<Cell<n, Tc>, GridPath<n, Tc, Tp> > CellEdge;
+  
+  /**
+   * The planner requires a grid, its connectivity, and a cost interface. By default it will expand the
+   * underlying graph as the search proceeds. Alternatively, the whole graph can be expanded at initialization
+   * which can be very expensive for large enironments, and is ony useful if: 1) start-up time is not an issue,
+   * 2) there is enough memory, 3) the environment is very complex (e.g. a maze). 
+   * @param grid grid
+   * @param connnectivity connectivity interface
+   * @param cost cost interface
+   * @param expand whether to construct/expand the whole graph at init
+   */
+  GridSearch(const Grid<n, Tc>& grid,  
+             const GridConnectivity<n, Tc, Tp>& connectivity,
+             const GridCost<n, Tc>& cost,
+             bool expand = false);
+  
+  virtual ~GridSearch();
+  
     /**
      * Change the cost of an individual cell
      * @param x position
@@ -113,7 +122,9 @@ namespace dsl {
     bool SetGoal(const Vectornd &x);
 
     /**
-     * Expand successors or predecessors of a given vertex
+     * Expand successors or predecessors of a given vertex. This is mostly used internally
+     * during search. In some cases can be "pre-called" externally in advance of searching in this area of
+     * the grid, for efficiency purposes. 
      * @param from the given vertex
      * @param fwd if true then expand forward in time, i.e. successors, otherwise expand predecessors
      * @return true on success
@@ -124,32 +135,31 @@ namespace dsl {
      * Compute path b/n start and goal vertices
      * these vertices should be already set
      * @param path the resulting path
+     * @param removeDuplicateCells remove duplicate consecutive cells (this might appear if two consecutive edges
+     * contain cells in a way that the last cell of the first edge overlaps with the first cell of the next edge)
      * @return true on success
      */
-    bool Plan(GridPath<n> &path);
-    
+    bool Plan(GridPath<n, Tc, Tp> &path, bool removeDuplicateCells = true);
+  
     /**
-     * Useful method to get the graph vertex at position (x,y)
-     * @param x x-coordiante
-     * @param y y-coordiante
+     * Useful method to get the graph vertex at position x
+     * @param x position
      * @return corresponding vertex or 0 if none there
      */
-    // Vertex<Cell2d>* GetVertex(int x, int y) const; 
+    CellVertex* GetVertex(const Vectornd &x) const; 
 
     /**
-     * Useful method to remove a vertex at (x,y)
+     * Useful method to remove a vertex at position x
      * @param x Euclidean point vector
      */
     bool RemoveCell(const Vectornd &x);
-
+    
     /**
      * Useful method for adding edges b/n vertices
-     * @param x1 from x-coordiante
-     * @param y1 from y-coordiante
-     * @param x2 to x-coordiante
-     * @param y2 to y-coordiante
+     * @param x1 start point
+     * @param x2 end point
      */    
-    // void AddEdge(int x1, int y1, int x2, int y2);
+    bool AddEdge(const Vectornd &x1, const Vectornd &x2);
 
     /**
      * Experimental path "straightening" function
@@ -158,7 +168,7 @@ namespace dsl {
      * @param freeCost (anything above freeCost is considered an obstacle through the path cannoth pass)
      * @param traceStep step with which to trace the path during optimization (should be comparable to the cell size, by defaut is -1 which means the internally the cell size is used)
      */
-    void OptPath(const GridPath<n> &path, GridPath<n> &optPath, 
+  void OptPath(const GridPath<n, Tc, Tp> &path, GridPath<n, Tc, Tp> &optPath, 
                  double freeCost = 1e-3, double traceStep = -1.0) const;
 
     /**
@@ -167,34 +177,33 @@ namespace dsl {
      * @param splinePath spline path
      * @param traceStep step with which to trace the path during optimization (should be comparable to the cell size, by defaut is 0.1)
      */
-    void SplinePath(const GridPath<n> &path, std::vector<Vectornd>& splinePath, 
-                 //GridPath<n> &splineCells,
-                 double traceStep = 0.1) const;
+  void SplinePath(const GridPath<n, Tc, Tp> &path, std::vector<Vectornd>& splinePath, 
+                  //GridPath<n,Tc> &splineCells,
+                  double traceStep = 0.1) const;
   protected:
 
-    Graph<Cell<n>, GridPath<n> > graph;        ///< the underlying graph
+  Graph<Cell<n,Tc>, GridPath<n, Tc, Tp> > graph;      ///< the underlying graph
 
-    const Grid<n> &grid;                       ///< the grid
-    const GridConnectivity<n>& connectivity;   ///< the connectivity interface
-    const GridCost<n>& cost;                   ///< the cost interface
+  const Grid<n,Tc> &grid;                       ///< the grid
+  const GridConnectivity<n, Tc, Tp>& connectivity;   ///< the connectivity interface
+  const GridCost<n,Tc>& cost;                   ///< the cost interface
 
-    //    bool expand;                   ///< whether to expand all vertices and edges at construction
-
-    CellVertex **vertexMap;              ///< vertex grid array of size width*height
+  CellVertex **vertexMap;                      ///< vertex grid array
   };
 
 
-  template<int n>
-    GridSearch<n>::GridSearch(const Grid<n>& grid, 
-                              const GridConnectivity<n>& connectivity,
-                              const GridCost<n>& cost,
-                              bool expand) : Search<Cell<n>, GridPath<n> >(graph, cost),
+  template<int n, class Tc, class Tp>
+    GridSearch<n, Tc, Tp>::GridSearch(const Grid<n, Tc>& grid, 
+                                const GridConnectivity<n, Tc, Tp>& connectivity,
+                                const GridCost<n, Tc>& cost,
+                                bool expand) : Search<Cell<n, Tc>, GridPath<n, Tc, Tp> >(graph, cost),
     grid(grid), connectivity(connectivity), cost(cost) {
-
+    
     vertexMap = new CellVertex*[grid.nc];
     memset(vertexMap, 0, grid.nc*sizeof(CellVertex*));
 
     if (expand) {
+      // initialize and add all vertices
       for (int i = 0; i < grid.nc; ++i) {
         if (grid.cells[i]) {               
           vertexMap[i] = new CellVertex(*grid.cells[i]);
@@ -202,25 +211,31 @@ namespace dsl {
         }
       }
       
+      // expand the successors of each vertex
       for (int i = 0; i < grid.nc; ++i) {
         if (grid.cells[i]) {
           
           CellVertex *from = vertexMap[i];
           assert(from);
-
-          std::vector<GridPath<n> > paths;
+          
+          // generate successor paths
+          std::vector<GridPath<n, Tc, Tp> > paths;
           connectivity(*grid.cells[i], paths);
-
-          for (int j = 0; j < paths.size(); ++j) {
-            const GridPath<n>& path = paths[j];
-
+          
+          typename std::vector<GridPath<n, Tc, Tp> >::iterator it;
+          for (it = paths.begin(); it != paths.end(); ++it) {
+            GridPath<n, Tc, Tp>& path = *it;
+            
+            // find cell where the end of the path falls
             int id = grid.Id(path.cells.back().c);
             assert(id >= 0 && id < grid.nc);            
             CellVertex *to = vertexMap[id];
             if (!to) 
               continue;
             
-            CellEdge* edge = new CellEdge(path, from, to, path.len);          
+            // path.len = cost.Real(from->data, to->data);
+            
+            CellEdge* edge = new CellEdge(path, from, to, path.cost);          
             graph.AddEdge(*edge);
           }        
           from->predExpanded = true;
@@ -229,10 +244,10 @@ namespace dsl {
       }
     }
   }
-
-
-  template<int n>
-    bool GridSearch<n>::Expand(CellVertex &from, bool fwd) {
+  
+  
+  template<int n, class Tc, class Tp>
+    bool GridSearch<n, Tc, Tp>::Expand(CellVertex &from, bool fwd) {
    
     // if this is true then all vertices have already been expanded at construction
     if (fwd && from.succExpanded)
@@ -245,25 +260,16 @@ namespace dsl {
     int id = grid.Id(from.data.c);    
     assert(id >= 0 && id < grid.nc);
 
-     std::cout << id << std::endl;
-
     // cell must exist
-    Cell<n> *cell = grid.cells[id];
+    Cell<n,Tc> *cell = grid.cells[id];
     assert(cell);
     
-    // vertexMap[id] = &from;
-
-    //    if (grid.cells[i]) {               
-    // vertexMap[i] = new Vertex<Cell<n> >(*grid.cells[i]);
-    // graph.AddVertex(*vertexMap[i]);
-      //    }
-
-    std::vector<GridPath<n> > paths;
+    std::vector<GridPath<n, Tc, Tp> > paths;
     connectivity(*cell, paths, fwd);
 
     for (int j = 0; j < paths.size(); ++j) {
-      const GridPath<n> &path = paths[j];
-      const Cell<n>& cell = path.cells.back();
+      const GridPath<n, Tc, Tp> &path = paths[j];
+      const Cell<n, Tc>& cell = path.cells.back();
 
       int id = grid.Id(cell.c);
       assert(id >= 0 && id < grid.nc);
@@ -280,10 +286,10 @@ namespace dsl {
 
       /*
       // fwd: from->to
-      Edge<Cell<n>, GridPath<n> >* oldEdge = from.Find(*to, !fwd);
+      Edge<Cell<n,Tc>, GridPath<n,Tc> >* oldEdge = from.Find(*to, !fwd);
       if (oldEdge) {
         std::cout << "dupl" << std::endl;
-        if (oldEdge->cost > costs[j]) {
+        if (oldEdge->cost > paths[j].len) {
           graph.RemoveEdge(*oldEdge);
         } else {          
           continue;
@@ -296,22 +302,21 @@ namespace dsl {
         continue;
 
       CellEdge* edge = fwd ?
-        new CellEdge(path, &from, to, path.len) :
-        new CellEdge(path, to, &from, path.len);
+        new CellEdge(path, &from, to, path.cost) :
+        new CellEdge(path, to, &from, path.cost);
       graph.AddEdge(*edge);
     }       
 
     if (fwd)
       from.succExpanded = true;
-
-    if (!fwd)
+    else
       from.predExpanded = true;
 
     return true;
   }  
 
-  template<int n>
-    GridSearch<n>::~GridSearch() {
+  template<int n, class Tc, class Tp>
+    GridSearch<n, Tc, Tp>::~GridSearch() {
     typename std::map<int, CellEdge*>::iterator ei;
     typename std::map<int, CellVertex*>::iterator vi;
     
@@ -321,12 +326,12 @@ namespace dsl {
     for (vi = graph.vertices.begin(); vi != graph.vertices.end(); ++vi) {
       delete vi->second;
     }
-
+    
     delete[] vertexMap;
   }    
-
-  template<int n>
-    bool GridSearch<n>::SetStart(const Vectornd &x) {
+  
+  template<int n, class Tc, class Tp>
+    bool GridSearch<n, Tc, Tp>::SetStart(const Vectornd &x) {
     if (!grid.Valid(x)) {
       std::cout << "[W] GridSearch:SetStart: invalid x=" << x.transpose() << std::endl;
       return false;
@@ -335,14 +340,14 @@ namespace dsl {
     int id = grid.Id(x);
     //    std::cout << "id=" << id << std::endl;
     assert(id >= 0 && id < grid.nc);
-
+    
     // cell must exist
-    Cell<n> *cell = grid.cells[id];
+    Cell<n,Tc> *cell = grid.cells[id];
     if (!cell) {
       std::cout << "[W] GridSearch:SetStart: cell does not exist x=" << x.transpose() << std::endl;
       return false;
     }    
-
+    
     // if it's not added previously add it
     if (!vertexMap[id]) {
       vertexMap[id] = new CellVertex(*cell);
@@ -351,44 +356,41 @@ namespace dsl {
 
     //    Expand(*vertexMap[id]);
 
-    Search<Cell<n>, GridPath<n> >::SetStart(*vertexMap[id]);
+    Search<Cell<n, Tc>, GridPath<n, Tc, Tp> >::SetStart(*vertexMap[id]);
 
     return true;
   }
   
-  template<int n>
-    bool GridSearch<n>::SetGoal(const Vectornd &x) {
+  template<int n, class Tc, class Tp>
+    bool GridSearch<n, Tc, Tp>::SetGoal(const Vectornd &x) {
     if (!grid.Valid(x)) {
       std::cout << "[W] GridSearch:SetGoal: invalid x=" << x.transpose() << std::endl;
       return false;
     }
-    //  if (x < 0 || x >= width || y < 0 || y >= height)
-    //    return;
+    
     int id = grid.Id(x);
     assert(id >= 0 && id < grid.nc);
     
-    Cell<n> *cell = grid.cells[id];
+    Cell<n,Tc> *cell = grid.cells[id];
     if (!cell) {
       std::cout << "[W] GridSearch:SetGoal: cell does not exist x=" << x.transpose() << std::endl;
       return false;
     }
-
+    
     // if it's not added previously add it
     if (!vertexMap[id]) {
       vertexMap[id] = new CellVertex(*cell);
       graph.AddVertex(*vertexMap[id]);
     }
-
-    //    Expand(*vertexMap[id], false);
-
-    Search<Cell<n>, GridPath<n> >::SetGoal(*vertexMap[id]); 
-
+    
+    Search<Cell<n, Tc>, GridPath<n, Tc, Tp> >::SetGoal(*vertexMap[id]); 
+    
     return true;
   }
-
   
-  template<int n>
-    bool GridSearch<n>::RemoveCell(const Vectornd &x) {
+  
+  template<int n, class Tc, class Tp>
+    bool GridSearch<n, Tc, Tp>::RemoveCell(const Vectornd &x) {
     int id = grid.Id(x);
     if (id < 0 || id >= grid.nc)
       return false;
@@ -401,50 +403,64 @@ namespace dsl {
     return false;
   }
   
-  template<int n>
-    bool GridSearch<n>::Plan(GridPath<n>& path) {
+  template<int n, class Tc, class Tp>
+    bool GridSearch<n, Tc, Tp>::Plan(GridPath<n, Tc, Tp>& path, bool removeDuplicateCells) {
     
     path.cells.clear();
-    path.len = 0;
+    path.cost = 0;
     
-    std::vector<Edge<Cell<n>, GridPath<n> >* > edgePath;
-    //    vector<Edge<Cell<n> , GridPath<n> >* > edgePath;
+    std::vector<CellEdge* > edgePath;
 
-    Search<Cell<n>, GridPath<n> >::Plan(edgePath);
-
-    //    double len = Search<Cell<n>, GridPath<n> >::Plan(edgePath);
+    Search<Cell<n, Tc>, GridPath<n, Tc, Tp> >::Plan(edgePath);
 
     typename vector<CellEdge*>::iterator it;
     for (it = edgePath.begin(); it != edgePath.end(); ++it) {
       CellEdge *edge = *it;
-      path.cells.insert(path.cells.end(), edge->data.cells.begin(), edge->data.cells.begin()+1);
-      path.len += edge->data.len;
+      // insert in reverse if connectivity was expanded backwards
+      if (edge->data.fwd)
+        path.cells.insert(path.cells.end(), edge->data.cells.begin(), edge->data.cells.end());
+      else
+        path.cells.insert(path.cells.end(), edge->data.cells.rbegin(), edge->data.cells.rend());
+
+      path.cost += edge->data.cost;
     }
-    path.cells.push_back(edgePath.back()->data.cells.back());
+    
+    if (removeDuplicateCells && path.cells.size() > 1) {
+      typename vector<Cell<n,Tc> >::iterator cit;
+      vector<Cell<n,Tc> > cells;
+      cells.push_back(path.cells.front());
+      for (cit = path.cells.begin(); (cit + 1) != path.cells.end(); ++cit) {
+        if ((cit->c - (cit + 1)->c).norm() > 1e-10)
+          cells.push_back(*(cit + 1));
+      }
+      path.cells = cells;
+    }
+    // now add the very last one
+    //    path.cells.push_back(edgePath.back()->data.cells.back());
     
     return true;
   }
   
-  template<int n>
-    void GridSearch<n>::OptPath(const GridPath<n> &path, GridPath<n> &optPath, 
-                                double freeCost, 
-                                double traceStep) const {
-
+  template<int n, class Tc, class Tp>
+    void GridSearch<n, Tc, Tp>::OptPath(const GridPath<n, Tc, Tp> &path, GridPath<n, Tc, Tp> &optPath, 
+                                       double freeCost, 
+                                       double traceStep) const {
+    
     double len = 0;
     
     optPath.cells.clear();
-    optPath.len = 0;
+    optPath.cost = 0;
     
     if (path.cells.size() == 2) {
       optPath.cells = path.cells;
-      optPath.len = path.len;
+      optPath.cost = path.cost;
       return;
     }
-    typename vector<Cell<n> >::const_iterator it0;
+    typename vector<Cell<n,Tc> >::const_iterator it0;
     it0 = path.cells.begin();
-    typename vector<Cell<n> >::const_iterator it1;
+    typename vector<Cell<n,Tc> >::const_iterator it1;
     it1 = it0 + 1;
-
+    
     Vectornd x0 = it0->c;
     Vectornd x1 = it1->c;
     
@@ -457,7 +473,6 @@ namespace dsl {
     if (traceStep <= 0)
       traceStep = grid.cs.norm();
 
-    //    for (unsigned int i = 1; i < path.cells.size() - 1; ++i) {
     for (; it1 != path.cells.end(); ++it1) {
       x1 = it1->c;
       Vectornd x2 = (it1 + 1)->c;
@@ -470,16 +485,10 @@ namespace dsl {
         dn = (x0-x2).norm();
         for (double d = traceStep; d < dn; d += traceStep) {
           Vectornd x = x0 + dx1*d;
-          // assert(x > 0);
-          // assert(y > 0);
           int id = grid.Id(x); 
           assert(id >= 0 && id < grid.nc);
-          //        int yi = min((int)round(y), height - 1);
-          //        int xi = min((int)round(x), width - 1);
           if (!grid.cells[id] || grid.cells[id]->cost > freeCost) {
-            //	  Cell2d cell((int)x1, (int)y1);
             optPath.cells.push_back(*it1);
-            //	  len += sqrt((x1-x0)*(x1-x0) + (y1-y0)*(y1-y0));
             x0 = x1;
             break;
           }
@@ -490,52 +499,46 @@ namespace dsl {
       }
     }
     
-    //  Cell2d cell((int)x2, (int)y2);
     optPath.cells.push_back(path.cells.back());
     
     //  len += sqrt((x2-x0)*(x2-x0) + (y2-y0)*(y2-y0));
-    //  optPath.len = len;
+    //  optPath.cost = len;
   }
 
   
-  template<int n>
-    void GridSearch<n>::SplinePath(const GridPath<n> &path, std::vector<Vectornd> &splinePath, 
-                                /*GridPath<n> &splineCells, */
-                                double traceStep) const {
+  template<int n, class Tc, class Tp>
+    void GridSearch<n, Tc, Tp>::SplinePath(const GridPath<n, Tc, Tp> &path, std::vector<Vectornd> &splinePath, 
+                                          /*GridPath<n,Tc> &splineCells, */
+                                          double traceStep) const {
     std::vector<double> steps(path.cells.size()); 
     std::vector<std::vector<double> > pts(n, std::vector<double>(path.cells.size()));
-    for(int i = 0; i < path.cells.size(); i++)
-    {
+    for(int i = 0; i < path.cells.size(); i++) {
       steps[i] = i;
-      for(int j = 0; j < n; j++)
-      {
+      for(int j = 0; j < n; j++) {
         pts[j][i] = path.cells[i].c(j);
       }
     }
-
+    
     std::vector<Spline<double, double> > sps;
-    for(int i = 0; i < n; i++)
-    {
+    for(int i = 0; i < n; i++) {
       sps.push_back(Spline<double, double>(steps, pts[i]));
     }
     int count = (path.cells.size()-1)/traceStep;
     splinePath.resize(count);
     //splineCells.cells.resize(count);
-    //splineCells.len = 0;
-
-    for(int i = 0; i < count; i++)
-    {
+    //splineCells.cost = 0;
+    
+    for(int i = 0; i < count; i++) {
       Vectornd pti;
-      for(int j = 0; j < n; j++)
-      {
+      for(int j = 0; j < n; j++) {
         pti(j) = sps[j][i*traceStep];
       }
       splinePath[i] = pti;
-
+      
       //std::cout << i*traceStep << std::endl;
       //std::cout << pti.transpose() << std::endl;
       /*
-      Cell<n>* cell = grid.Get(splinePath[i]);
+      Cell<n,Tc>* cell = grid.Get(splinePath[i]);
       if(!cell)
       {
         std::cout << "dsl::SplinePath: Cell does not exist" << std::endl;
@@ -544,21 +547,21 @@ namespace dsl {
       splineCells.cells[i] = *(grid.Get(splinePath[i]));
       if(i > 0)
       {
-        splineCells.len += (splineCells.cells[i].c-splineCells.cells[i-1].c).norm();
+        splineCells.cost += (splineCells.cells[i].c-splineCells.cells[i-1].c).norm();
       }
       */
     }
   }
     
 
-  template<int n>
-    double GridSearch<n>::GetCost(const Vectornd &x) const {
+  template<int n, class Tc, class Tp>
+    double GridSearch<n, Tc, Tp>::GetCost(const Vectornd &x) const {
     
     int id = grid.Id(x);
     if (id < 0 || id >= grid.nc)
       return 0;
     
-    Cell<n> *cell = grid.cells[id];
+    Cell<n,Tc> *cell = grid.cells[id];
     if (!cell) {
       std::cout << "[W] GridSearch::GetCost: no cell at position " << x.transpose() << std::endl;
       return 0;
@@ -566,21 +569,21 @@ namespace dsl {
     return cell->cost;
   }
 
-  template<int n>
-    bool GridSearch<n>::SetCost(const Vectornd &x, double cost) {
+  template<int n, class Tc, class Tp>
+    bool GridSearch<n, Tc, Tp>::SetCost(const Vectornd &x, double cost) {
 
     int id = grid.Id(x);
     if (id < 0 || id >= grid.nc)
       return false;
 
-    Cell<n> *cell = grid.cells[id];
+    Cell<n,Tc> *cell = grid.cells[id];
     if (!cell) {
       std::cout << "[W] GridSearch::SetCost: no cell at position " << x.transpose() << std::endl;
       return false;
     }
       
     // if the cost has not changed simply return
-    if (Search<Cell<n>, GridPath<n> >::Eq(cost, cell->cost))
+    if (Search<Cell<n, Tc>, GridPath<n, Tc, Tp> >::Eq(cost, cell->cost))
       return false;
     
     cell->cost = cost;
@@ -600,6 +603,19 @@ namespace dsl {
          eout != vertex->out.end(); eout++) {
       this->ChangeCost(*eout->second, this->cost.Real(vertex->data, eout->second->to->data));
     }
+    return true;
+  }
+
+  template<int n, class Tc, class Tp>
+    bool GridSearch<n, Tc, Tp>::AddEdge(const Vectornd &x1, const Vectornd &x2) {
+    CellVertex *from = GetVertex(x1);
+    CellVertex *to = GetVertex(x2);
+    if (!from || !to)
+      return false;
+    
+    CellEdge* edge = 
+      new CellEdge(from, to, cost.Real(from->data, to->data)); 
+    graph.AddEdge(*edge);
     return true;
   }
 }

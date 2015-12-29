@@ -26,7 +26,7 @@ namespace dsl {
    *
    * Author: Marin Kobilarov -- Copyright (C) 2004
    */
-  template<class Tv, class Te = bool>
+  template<class Tv>
   class Cost {
   public:
     /**

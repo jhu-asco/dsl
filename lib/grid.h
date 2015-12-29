@@ -15,7 +15,10 @@ namespace dsl {
 
   using namespace Eigen;  
   
-  template<int n>
+  /**
+   * An n-dimenensional regular grid
+   */
+  template<int n, class T = Matrix<double, n, 1> >
     class Grid {
     
     typedef Matrix<double, n, 1> Vectornd;
@@ -23,6 +26,12 @@ namespace dsl {
     
   public:
     
+    /**
+     * Initialize the grid using state lower bound, state upper bound, the number of grid cells 
+     * @param xlb state lower bound
+     * @param xub state upper bound
+     * @param gs number of grid cells per each dimension
+     */
   Grid(const Vectornd &xlb, const Vectornd &xub, const Vectorni &gs) :
     xlb(xlb), xub(xub), gs(gs) {
       nc = 1;
@@ -32,11 +41,9 @@ namespace dsl {
         nc *= gs[i];  // total number of cells
         cs[i] = (xub[i] - xlb[i])/gs[i];
       }
-
-      //      cs = (xub - xlb).cwiseQuotient(gs);
-
-      cells = new Cell<n>*[nc];
-      memset(cells, 0, nc*sizeof(Cell<n>*)); // initialize all of them nil
+      
+      cells = new Cell<n,T>*[nc];
+      memset(cells, 0, nc*sizeof(Cell<n,T>*)); // initialize all of them nil
     }
 
     virtual ~Grid()  {
@@ -45,6 +52,12 @@ namespace dsl {
       delete[] cells;      
     }
 
+
+    /**
+     * Check if point x is whitin grid bounds
+     * @param x point
+     * @return true if within bounds
+     */
     bool Valid(const Vectornd& x) const{
       for (int i = 0; i < x.size(); ++i) {
         if (x[i] < xlb[i])
@@ -55,11 +68,16 @@ namespace dsl {
       return true;
     }
    
+    /**
+     * Get an id of point x useful for direct lookup in the grid array
+     * @param x point 
+     * @return a computed id
+     */
     int Id(const Vectornd& x) const {
 
-      //      if (n==2) {
-      //        return gs[0]*ids[1] + ids[0];
-      //      }
+      //if (n==2) {
+      //   return gs[0]*ids[1] + ids[0];
+      //}
       // for n=2
       // id=     gs[0]*ids[1] + ids[0];
       // for n=3
@@ -81,24 +99,43 @@ namespace dsl {
       return id;
     } 
 
+    
+    /**
+     * Get the grid index of i-th dimension of point x
+     * @param x point 
+     * @param i coordinate index
+     * @return index into cell array
+     */
     int Index(const Vectornd& x, int i) const {
       return floor((x[i] - xlb[i])/(xub[i] - xlb[i])*gs[i]);        
     }
 
-    Cell<n>* Get(const Vectornd &x, bool checkValid = true) const {
+
+    /**
+     * Get the cell at position x
+     * @param x point 
+     * @param checkValid whether to check if within valid bounds (more efficient if checkValid=0 but dangerous)
+     * @return pointer to a cell or 0 if cell does not exist
+     */
+    Cell<n,T>* Get(const Vectornd &x, bool checkValid = true) const {
       if (checkValid)
         if  (!Valid(x))
           return 0;
-          
+      
       int id = Id(x);
       assert(id >= 0);
       if (id >= nc)
         return 0;
       return cells[id];
     }
-
-
-    Cell<n>* Get(int id) {
+    
+    
+    /**
+     * Get the cell at a given cell id
+     * @param id a non-negative id
+     * @return pointer to a cell or 0 if cell does not exist
+     */
+    Cell<n,T>* Get(int id) {
       assert(id >= 0);
       if (id >= nc)
         return 0;
@@ -110,9 +147,8 @@ namespace dsl {
     Vectorni gs;   ///< number of cells per dimension
     Vectornd cs;   ///< cell length size per dimension
 
-    int nc;  ///< total number of cells
-    Cell<n>** cells;
-    // or map<Cell<n>*> cells;    
+    int nc;           ///< total maximum number of cells
+    Cell<n,T>** cells;  ///< array of pointers to cells
   };
 }
 
