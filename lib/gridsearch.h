@@ -499,7 +499,8 @@ namespace dsl {
       }
     }
     
-    optPath.cells.push_back(path.cells.back());
+    //Commented the line below otherwise the last 2 cells were just repeated.
+    //optPath.cells.push_back(path.cells.back());
     
     //  len += sqrt((x2-x0)*(x2-x0) + (y2-y0)*(y2-y0));
     //  optPath.cost = len;
