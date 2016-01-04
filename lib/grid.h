@@ -52,7 +52,6 @@ namespace dsl {
       delete[] cells;      
     }
 
-
     /**
      * Check if point x is whitin grid bounds
      * @param x point
