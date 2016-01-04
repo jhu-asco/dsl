@@ -21,9 +21,6 @@ find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
 
-find_package(OpenCV REQUIRED COMPONENTS core imgproc highgui )
-include_directories(${OpenCV_INCLUDE_DIRS})
-
 # add a target to generate API documentation with Doxygen
 find_package(Doxygen)
 if(DOXYGEN_FOUND)

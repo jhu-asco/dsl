@@ -9,7 +9,6 @@ add_library(dsl SHARED fibheap.c
                        carconnectivity.cc
                        carcost.cc
 )
-target_link_libraries(dsl ${OpenCV_LIBRARIES})
 
 SET_TARGET_PROPERTIES(dsl
                       PROPERTIES

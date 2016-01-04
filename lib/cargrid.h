@@ -10,10 +10,10 @@
 #define DSL_CARGRID_H
 
 #include "grid.h"
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
+#include <vector>
+
 namespace dsl {
 
 typedef Cell<3, Matrix3d> SE2Cell;
