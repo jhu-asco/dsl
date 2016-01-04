@@ -2,6 +2,8 @@
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
+#include <fstream>
+#include <iostream>
 #include "utils.h"
 
 namespace dsl {
@@ -12,16 +14,21 @@ void save_map(const char* map, int width, int height, const char* filename)
 {
   int i, ind;
   char data[width*height*3];
-  FILE* file = fopen(filename, "w");
-  assert(file);
-  fprintf(file, "P6\n%d %d 255\n", width, height);
+  //FILE* file = fopen(filename, "w");
+  //assert(file);
+  std::fstream fs(filename, std::fstream::out);
+  assert(fs.is_open());
+  fs << "P6" << std::endl << width << " " << height << std::endl << "255" << std::endl;
+  //fprintf(file, "P6\n%d %d\n255\n", width, height);
   ind = 0;
   for (i = 0; i < width*height; i++, ind+=3) {
     data[ind] = data[ind+1] = data[ind+2] = (char)(map[i]*100);
   }
   assert(ind == 3*width*height);
-  assert((int)fwrite(data, sizeof(char), ind, file) == ind);
-  fclose(file);
+  fs.write(data, ind);
+  //assert((int)fwrite(data, sizeof(char), ind, file) == ind);
+  //fclose(file);
+  fs.close();
 }
 
 
@@ -29,17 +36,28 @@ char* load_map(int* width, int* height, const char* filename)
 {
   int i, size;
   char *map, *data;
-  FILE* file = fopen(filename, "r");
-  assert(file);
-  assert(fscanf(file, "P6\n%d %d 255\n", width, height));
-  size = (*width**height);
+  std::string header;
+  //FILE* file = fopen(filename, "r");
+  //assert(file);
+  //assert(fscanf(file, "P6\n%d %d 255\n", width, height));
+  std::fstream fs (filename, std::fstream::in);
+  assert(fs.is_open());
+  fs >> header;
+  assert(header == std::string("P6"));
+  fs >> *width >> *height;
+  assert(height > 0);
+  assert(width > 0);
+
+  size = (*width*(*height));
   map = (char*)malloc(size);
   data = (char*)malloc(size*3);
-  assert(fread(data, sizeof(char), size*3, file));
+  //assert(fread(data, sizeof(char), size*3, file));
+  fs.read(data, size*3);
   for (i = 0; i < size; i++)
     map[i] = (data[3*i] ? 1 : 0);
   free(data);
-  fclose(file);
+  fs.close();
+  //fclose(file);
   return map;
 }
 
