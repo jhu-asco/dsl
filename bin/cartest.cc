@@ -20,6 +20,10 @@ int main(int argc, char** argv)
   }
   assert(argc == 2);
 
+  Vector3d goal, start;
+  goal <<      0,  1, 11;
+  start<< M_PI/2, 24, 12;
+
   // load a map from ppm file
   int width, height; 
   char* chmap = load_map(&width, &height, argv[1]);
@@ -37,7 +41,7 @@ int main(int argc, char** argv)
   struct timeval timer;
   timer_start(&timer);
 
-  CarGrid grid(width, height, map, .1, .1, M_PI/16, 1, 0.5);
+  CarGrid grid(width, height, map, .1, .1, M_PI/17, 1, 0.5);
   CarCost cost;
   CarConnectivity connectivity(grid);
   GridSearch<3, Matrix3d> search(grid, connectivity, cost, false);
@@ -46,8 +50,10 @@ int main(int argc, char** argv)
   long time = timer_us(&timer);
   printf("graph construction time= %ld  us\n", time);
 
-  search.SetStart(Vector3d(0, .1, grid.xub[2]/2));
-  search.SetGoal(Vector3d(0, grid.xub[1] - .1, grid.xub[2]/2));
+  search.SetStart(start);
+  search.SetGoal(goal);
+//  search.SetStart(Vector3d(0, .1, grid.xub[2]/2));
+//  search.SetGoal(Vector3d(0, grid.xub[1] - .1, grid.xub[2]/2));
   //  search.SetGoal(Vector3d(grid.xub[0]*.5, grid.xub[1]*.58, 15.0/16*M_PI));
 
   cout << "Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;

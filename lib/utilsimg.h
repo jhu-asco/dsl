@@ -28,15 +28,12 @@ void fillQuad(double* data,int w, int h, Matrix2x4d  verts, double val);
 
 
 template <typename T>
-void scaleMap(T* map_scaled, T* map, int w, int h, int scale)
-{
+void scaleMap(T* map_scaled, T* map, int w, int h, int scale){
   int ws = scale*w;
   int hs = scale*h;
 
-  for( int rs=0;rs<hs;rs++)
-  {
-    for(int cs=0;cs<ws;cs++)
-    {
+  for( int rs=0;rs<hs;rs++){
+    for(int cs=0;cs<ws;cs++){
       int c = round(cs/scale);
       int r = round(rs/scale);
 
@@ -49,8 +46,7 @@ void scaleMap(T* map_scaled, T* map, int w, int h, int scale)
 }
 
 template< typename T, int m, int n>
-int inPoly(Matrix<T,m,n> verts, Matrix<T,m,1> pt)
-{
+int inPoly(Matrix<T,m,n> verts, Matrix<T,m,1> pt){
   int i, j, c = 0;
   for (i = 0, j = n-1; i < n; j = i++) {
     if ( ((verts(1,i)>pt(1)) != (verts(1,j)>pt(1))) &&
@@ -62,8 +58,7 @@ int inPoly(Matrix<T,m,n> verts, Matrix<T,m,1> pt)
 
 
 template <typename T>
-void addLine(T* map, int w, int h, Vector2d p1, Vector2d p2, T lval, double lw)
-{
+void addLine(T* map, int w, int h, Vector2d p1, Vector2d p2, T lval, double lw){
   Vector2d n = Rotation2Dd(M_PI/2) * (p2-p1).normalized();
   Matrix2x4d verts2d;
   verts2d.col(0) = p1 + n*lw/2;
@@ -71,10 +66,8 @@ void addLine(T* map, int w, int h, Vector2d p1, Vector2d p2, T lval, double lw)
   verts2d.col(2) = p2 - n*lw/2;
   verts2d.col(3) = p2 + n*lw/2;
 
-  for( int r=0;r<h;r++)
-  {
-    for(int c=0;c<w;c++)
-    {
+  for( int r=0;r<h;r++){
+    for(int c=0;c<w;c++){
       int idx = c+r*w;
       if(inPoly(verts2d, Vector2d(c,r)))
         map[idx] = lval;
@@ -83,16 +76,13 @@ void addLine(T* map, int w, int h, Vector2d p1, Vector2d p2, T lval, double lw)
 }
 
 template<typename T>
-void dilate(T* data_dil, T* data, int w, int h, T* data_k, int w_k, int h_k, int ox_k, int oy_k)
-{
+void dilate(T* data_dil, T* data, int w, int h, T* data_k, int w_k, int h_k, int ox_k, int oy_k){
   vector<double> prod(h_k*w_k);
 
   //Visit each pixel in the main image
-  for(int r=0; r<h; r++)
-  {
+  for(int r=0; r<h; r++){
     int r_rel = r - oy_k;
-    for(int c=0; c <w; c++)
-    {
+    for(int c=0; c <w; c++){
       int c_rel = c - ox_k;
       int id=c+r*w;
       //for each pixel in the main image lay the kernel on the original image
@@ -101,10 +91,8 @@ void dilate(T* data_dil, T* data, int w, int h, T* data_k, int w_k, int h_k, int
       //  has a corresponding pixel in main image(except at the borders). Multiply those pair of values
       //  together. Take the max of all those values and that becomes the pixel value of the dilated image.
       //  What this does is checks if the any element of kernel is overlaid over an obstacle.
-      for(int r_k=0; r_k < h_k; r_k++)
-      {
-        for(int c_k=0; c_k < w_k; c_k++)
-        {
+      for(int r_k=0; r_k < h_k; r_k++){
+        for(int c_k=0; c_k < w_k; c_k++){
           int id_k=c_k+r_k*w_k;
           int id_roi = c_k+c_rel + (r_k+r_rel)*w;
           if(c_k + c_rel>=0 && c_k + c_rel<w && r_k+r_rel>=0 && r_k+r_rel<h  )
@@ -114,7 +102,6 @@ void dilate(T* data_dil, T* data, int w, int h, T* data_k, int w_k, int h_k, int
         }
       }
       data_dil[id] = *(max_element<typename vector<T>::iterator> (prod.begin(),prod.end()));
-
     }
   }
 }

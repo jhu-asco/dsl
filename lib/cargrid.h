@@ -10,7 +10,6 @@
 #define DSL_CARGRID_H
 
 #include "grid.h"
-#include "utilsimg.h"
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 #include <vector>
@@ -31,10 +30,10 @@ public:
           double maxCost = 1);
 
   double maxCost; ///< any cell cost above maxCost is considered obstacle and not added to the graph
-  double l_;      ///< dim of the rectange bounding the car along the x direction
-  double b_;      ///< dim of the rectange bounding the car along the y direction
-  double ox_;     ///< x position of the center of the origin of the car wrt to the center of bounding rectange
-  double oy_;     ///< y position of the center of the origin of the car wrt to the center of bounding rectange
+  double l_;      ///< dim of the rectangle bounding the car along the x direction
+  double b_;      ///< dim of the rectangle bounding the car along the y direction
+  double ox_;     ///< x position of the center of the origin of the car wrt to the center of bounding rectangle
+  double oy_;     ///< y position of the center of the origin of the car wrt to the center of bounding rectangle
 
 private:
   void getDilatedMap(double* data_dil, double* data, double theta);

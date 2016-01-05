@@ -4,6 +4,7 @@
 #include "carcost.h"
 #include "carconnectivity.h"
 #include "utils.h"
+#include "utilsimg.h"
 
 #include <algorithm>
 #include <cctype>
@@ -39,16 +40,15 @@ int main(int argc, char** argv)
   double b=0.43;
   double ox = -0.15;
   double oy = 0.0;
+  cout<<"The car geometry is given as a rectange of size 0.75(along x) and 0.43(along y) with the car origin being at 0.15m(along x) behind rect center"<<endl;
 
   //use geometry or not
   bool use_car_geom = to_bool(string(argv[2]));
   cout<<"use_geom:"<<(use_car_geom?"true":"false")<<endl;
+
   //what map is being used?
   int len = strlen(argv[1]);
-  cout<<"strlen:"<<len<<endl;
   int num_map = atoi(argv[1]+len-5);
-  cout<<"number:"<<argv[1]<<endl;
-  cout<<"num_map:"<<num_map<<endl;
 
   //for map4 and map5
   Vector3d goal, start;
@@ -64,7 +64,7 @@ int main(int argc, char** argv)
   }
   else
   {
-    cout<<"map file is not map4 map5 or map6. Quitting"<<endl;
+    cout<<"map file is not map4 map5 map6 or map7. Quitting"<<endl;
     return 1;
   }
 
@@ -72,14 +72,12 @@ int main(int argc, char** argv)
   // load a map from ppm file
   char* chmap = load_map(&width, &height, argv[1]);
 
-
-  cout<<"width and height"<<width<<","<<height<<endl;
+  cout<<"Input image width and height"<<width<<","<<height<<endl;
 
 
   double map[width*height];
   for (int i = 0; i < width*height; ++i)
     map[i] = 1000*(double)chmap[i];
-
 
   cout << "Creating a graph..." << endl;
 
@@ -133,7 +131,7 @@ int main(int argc, char** argv)
     int x = scale*pgrid->Index(it->c, 1);
     int y = scale*pgrid->Index(it->c, 2);
     Vector2d c(x,y);
-    //mapPath[y*width*scale + x] = 2;// path.cells[i].p[1]*width +  path.cells[i].p[0]] = 2;
+    //mapPath[y*width*scale + x] = 2;
     //draw the 4 lines
     Matrix2x4d vs;
 
