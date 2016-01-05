@@ -20,9 +20,11 @@ int main(int argc, char** argv)
   }
   assert(argc == 2);
 
+
   Vector3d goal, start;
-  goal <<      0,  1, 11;
-  start<< M_PI/2, 24, 12;
+  //goal <<      0,  1, 11;
+  //start<< M_PI/2, 24, 12;
+
 
   // load a map from ppm file
   int width, height; 
@@ -50,10 +52,12 @@ int main(int argc, char** argv)
   long time = timer_us(&timer);
   printf("graph construction time= %ld  us\n", time);
 
+  start << 0, .1, grid.xub[2]/2;
+  goal << 0, grid.xub[1] - .1, grid.xub[2]/2 ;
   search.SetStart(start);
   search.SetGoal(goal);
-//  search.SetStart(Vector3d(0, .1, grid.xub[2]/2));
-//  search.SetGoal(Vector3d(0, grid.xub[1] - .1, grid.xub[2]/2));
+  //  search.SetStart(Vector3d(0, .1, grid.xub[2]/2));
+  //  search.SetGoal(Vector3d(0, grid.xub[1] - .1, grid.xub[2]/2));
   //  search.SetGoal(Vector3d(grid.xub[0]*.5, grid.xub[1]*.58, 15.0/16*M_PI));
 
   cout << "Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
