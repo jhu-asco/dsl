@@ -15,7 +15,7 @@
 namespace dsl {
   
   /**
-   * Grid cost interface.
+   * Grid cost interface, defining cost between two cells
    *
    * Author: Marin Kobilarov -- Copyright (C) 2004
    */

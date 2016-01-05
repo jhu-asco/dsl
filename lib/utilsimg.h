@@ -28,7 +28,7 @@ void fillQuad(double* data,int w, int h, Matrix2x4d  verts, double val);
 
 
 template <typename T>
-void scaleMap(T* map_scaled, T* map, int w, int h, int scale){
+void scaleMap(T* map_scaled, const T* map, int w, int h, int scale){
   int ws = scale*w;
   int hs = scale*h;
 
@@ -76,7 +76,7 @@ void addLine(T* map, int w, int h, Vector2d p1, Vector2d p2, T lval, double lw){
 }
 
 template<typename T>
-void dilate(T* data_dil, T* data, int w, int h, T* data_k, int w_k, int h_k, int ox_k, int oy_k){
+void dilate(T* data_dil, const T* data, int w, int h, const T* data_k, int w_k, int h_k, int ox_k, int oy_k){
   vector<double> prod(h_k*w_k);
 
   //Visit each pixel in the main image

@@ -16,14 +16,21 @@ namespace dsl {
   typedef Cell<3, Matrix3d> SE2Cell;
 
   /**
-   * Grid cost interface.
+   * Car cost interface
    *
-   * Author: Marin Kobilarov -- Copyright (C) 2004
    */
   class CarCost : public GridCost<3, Matrix3d> {
   public:
+    /**
+     * Initialize the cost
+     * @param ac angular cost coefficient
+     */
+    CarCost(double ac = 1);
+
     double Heur(const SE2Cell &a, const SE2Cell &b) const;       
     double Real(const SE2Cell &a, const SE2Cell &b) const;    
+
+    double ac; ///< angular cost coefficient, default is 1 (the total cost is proportional to |pa-pb| + ac*dist(aa, ab) ), where pa,pb are the positions and aa,ab are the angles
   };
 }
 

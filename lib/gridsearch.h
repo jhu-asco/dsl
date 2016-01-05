@@ -75,7 +75,7 @@ namespace dsl {
    * which can be very expensive for large enironments, and is ony useful if: 1) start-up time is not an issue,
    * 2) there is enough memory, 3) the environment is very complex (e.g. a maze). 
    * @param grid grid
-   * @param connnectivity connectivity interface
+   * @param connectivity connectivity interface
    * @param cost cost interface
    * @param expand whether to construct/expand the whole graph at init
    */
@@ -99,11 +99,8 @@ namespace dsl {
      * @return cost
      */
     double GetCost(const Vectornd &x) const;
-        
-    /**
-     * Change the costs of all cells at once
-     * @param map a width*height double array containing occupancy data
-     */
+
+
     //    void SetMap(const double *map);
     
     

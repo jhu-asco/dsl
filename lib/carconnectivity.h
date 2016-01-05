@@ -33,7 +33,8 @@ namespace dsl {
 
     /**
      * Use a set of primitive motions, i.e. arcs with body fixed forward velocities (-v,v) and 
-     * angular velocity (-w,0,w), lasting time duration dt. There are 6 such combinations
+     * angular velocity (-w,0,w), lasting time duration dt. There are 6 such combinations. 
+     * In addition we add 4 more primitives at half the angular velocity (i.e. with w/2)
      * @param vx forward velocity
      * @param w angular velocity
      * @param dt time duration

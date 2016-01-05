@@ -156,12 +156,20 @@ bool CarConnectivity::SetPrimitives(double vx, double w, double dt) {
   this->w = w;
   this->vx = vx;
   this->dt = dt;
+
+  vs.clear();
+
   vs.push_back(Vector3d(0, vx, 0));
   vs.push_back(Vector3d(w, vx, 0));
   vs.push_back(Vector3d(-w, vx, 0));
   vs.push_back(Vector3d(0, -vx, 0));
   vs.push_back(Vector3d(w, -vx, 0));
   vs.push_back(Vector3d(-w, -vx, 0));
+
+  vs.push_back(Vector3d(w/2, vx, 0));
+  vs.push_back(Vector3d(-w/2, vx, 0));
+  vs.push_back(Vector3d(w/2, -vx, 0));
+  vs.push_back(Vector3d(-w/2, -vx, 0));
 
   return false;
 }

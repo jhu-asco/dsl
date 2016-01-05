@@ -46,6 +46,8 @@ int main(int argc, char** argv)
   CarGrid grid(width, height, map, .1, .1, M_PI/17, 1, 0.5);
   CarCost cost;
   CarConnectivity connectivity(grid);
+  //  connectivity.SetPrimitives(1, tan(M_PI/5), 1);
+
   GridSearch<3, Matrix3d> search(grid, connectivity, cost, false);
   SE2Path path, optPath;
 

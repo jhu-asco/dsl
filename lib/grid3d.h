@@ -13,10 +13,27 @@
 
 namespace dsl {
   
+  /**
+   * A 3d grid with coordinates (x,y,z)
+   *
+   * Author: Matt Sheckells
+   */
   class Grid3d : public Grid<3> {
   public:
     
-    Grid3d(int length, int width, int height, double *map, 
+    /**
+     * Initialize the grid using a 3d configuration-space map
+     * @param length length
+     * @param width width
+     * @param height height
+     * @param map the map
+     * @param sx x-scale of each grid cell
+     * @param sy y-scale of each grid cell
+     * @param sz z-scale of each grid cell
+     * @param costScale multiple the value of each grid cell by costScale
+     * @param maxCost any cell cost above maxCost is considered obstacle and not added to the graph
+     */
+    Grid3d(int length, int width, int height, const double *map, 
            double sx, double sy, double sz, double costScale,
            double maxCost = 1);
   };

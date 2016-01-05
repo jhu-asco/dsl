@@ -13,7 +13,7 @@ add_library(dsl SHARED fibheap.c
 
 SET_TARGET_PROPERTIES(dsl
                       PROPERTIES
-                      VERSION 1.0.0
+                      VERSION 1.1.0
                       SOVERSION 1)
 
 INSTALL(TARGETS dsl

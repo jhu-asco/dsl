@@ -2,7 +2,7 @@
 
 using namespace dsl;
 
-Grid2d::Grid2d(int width, int height, double *map, 
+Grid2d::Grid2d(int width, int height, const double *map, 
                double sx, double sy, double costScale,
                double maxCost) :
   Grid<2>(Vector2d(0,0), Vector2d(sx*width, sy*height), Vector2i(width, height)) {  

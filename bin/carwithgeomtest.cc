@@ -68,6 +68,9 @@ int main(int argc, char** argv)
     return 1;
   }
 
+  cout << "start=" << start.transpose() << endl;
+  cout << "goal=" << goal.transpose() << endl;
+  
   int width, height;
   // load a map from ppm file
   char* chmap = load_map(&width, &height, argv[1]);
@@ -89,9 +92,9 @@ int main(int argc, char** argv)
 
   CarGrid* pgrid;
   if(use_car_geom)
-    pgrid = new CarGrid(l,b,ox,oy,width, height, map, sx, sy, M_PI/17, 1, 0.5);
+    pgrid = new CarGrid(l,b,ox,oy,width, height, map, sx, sy, M_PI/16, 1, 0.5);
   else
-    pgrid = new CarGrid(width, height, map, sx, sy, M_PI/17, 1,0.5);
+    pgrid = new CarGrid(width, height, map, sx, sy, M_PI/16, 1,0.5);
 
 
   CarCost cost;

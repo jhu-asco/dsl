@@ -51,11 +51,6 @@ namespace dsl {
      */
     virtual double Real(const Tv& va, const Tv& vb) const = 0;
   };
-  
-  //  template<class Tv, class Te>
-  //    double Cost<T>::Real(const T& va, const T& vb) const {
-  //    return Heur(va, vb) + 1e-10;
-  //  }
 }
 
 #endif

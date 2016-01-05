@@ -2,7 +2,7 @@
 
 using namespace dsl;
 
-Grid3d::Grid3d(int length, int width, int height, double *map, 
+Grid3d::Grid3d(int length, int width, int height, const double *map, 
                double sx, double sy, double sz, double costScale,
                double maxCost) :
   Grid<3>(Vector3d(0,0,0), Vector3d(sx*length, sy*width, sz*height), Vector3i(length, width, height)) {  
