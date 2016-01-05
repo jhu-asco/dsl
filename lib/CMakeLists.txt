@@ -1,6 +1,7 @@
 add_library(dsl SHARED fibheap.c 
                        search.cc
                        utils.cc
+                       utilsimg.cc
                        grid2d.cc
                        grid3d.cc
                        cargrid.cc
@@ -27,6 +28,7 @@ INSTALL(FILES fibheap.h
               cost.h
               search.h
               utils.h
+              utilsimg.h
               cell.h
               grid.h
               gridcost.h

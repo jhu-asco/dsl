@@ -10,6 +10,7 @@
 #define DSL_CARGRID_H
 
 #include "grid.h"
+#include "utilsimg.h"
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 #include <vector>
