@@ -78,11 +78,13 @@ namespace dsl {
    * @param connectivity connectivity interface
    * @param cost cost interface
    * @param expand whether to construct/expand the whole graph at init
+   * @param trackEdgesThroughCell whether to keep a list of edges passing through each cell, this is useful for changing the costs these edges if the cost of that cell changes, or to remove these edges if the cell is removed
    */
   GridSearch(const Grid<n, Tc>& grid,  
              const GridConnectivity<n, Tc, Tp>& connectivity,
              const GridCost<n, Tc>& cost,
-             bool expand = false);
+             bool expand = false,             
+             bool trackEdgesThroughCell = false);
   
   virtual ~GridSearch();
   
@@ -186,15 +188,20 @@ namespace dsl {
   const GridCost<n,Tc>& cost;                   ///< the cost interface
 
   CellVertex **vertexMap;                      ///< vertex grid array
+
+  bool trackEdgesThroughCell;                  ///< whether to keep a list of edges passing through each cell, this is useful for changing the costs these edges if the cost of that cell changes, or to remove these edges if the cell is removed
+  std::map<int, vector<CellEdge*> > edgesThroughCell;  ///< map of list of edges for each cell
+
   };
 
 
   template<int n, class Tc, class Tp>
     GridSearch<n, Tc, Tp>::GridSearch(const Grid<n, Tc>& grid, 
-                                const GridConnectivity<n, Tc, Tp>& connectivity,
-                                const GridCost<n, Tc>& cost,
-                                bool expand) : Search<Cell<n, Tc>, GridPath<n, Tc, Tp> >(graph, cost),
-    grid(grid), connectivity(connectivity), cost(cost) {
+                                      const GridConnectivity<n, Tc, Tp>& connectivity,
+                                      const GridCost<n, Tc>& cost,
+                                      bool expand,
+                                      bool trackEdgesThroughCell) : Search<Cell<n, Tc>, GridPath<n, Tc, Tp> >(graph, cost),
+    grid(grid), connectivity(connectivity), cost(cost), trackEdgesThroughCell(trackEdgesThroughCell) {
     
     vertexMap = new CellVertex*[grid.nc];
     memset(vertexMap, 0, grid.nc*sizeof(CellVertex*));
@@ -229,11 +236,42 @@ namespace dsl {
             CellVertex *to = vertexMap[id];
             if (!to) 
               continue;
+
+            /*
+            if (path.cells.size() >= 2) {
+              path.cost = 0;
+              typename vector<Cell<n, Tc> >::iterator cit = path.cells.begin();
+              for (; (cit+1) != path.cells.end(); ++cit) {            
+                path.cost += cost.Real(*cit, *(cit+1));
+              }        
+            } else {
+              path.cost = cost.Real(from->data, to->data);
+            }
+            */
             
-            // path.len = cost.Real(from->data, to->data);
+            path.cost = cost.Real(from->data, to->data);
             
+
             CellEdge* edge = new CellEdge(path, from, to, path.cost);          
             graph.AddEdge(*edge);
+            
+            if (trackEdgesThroughCell) {
+              // iterate through path and add the new edge to the list
+              // of edges passing through each cell of the path
+              for (typename vector<Cell<n, Tc> >::iterator cit = path.cells.begin(); 
+                   cit != path.cells.end(); ++cit) {            
+                int id = grid.Id(cit->c);
+                typename map<int, vector<CellEdge*> >::iterator etcit;
+                etcit = edgesThroughCell.find(id);
+                if (etcit == edgesThroughCell.end()) {
+                  vector<CellEdge*> edges;
+                  edges.push_back(edge);
+                  edgesThroughCell[id] = edges;
+                } else {
+                  etcit->second.push_back(edge);
+                }
+              }
+            }
           }        
           from->predExpanded = true;
           from->succExpanded = true;
@@ -265,8 +303,8 @@ namespace dsl {
     connectivity(*cell, paths, fwd);
 
     for (int j = 0; j < paths.size(); ++j) {
-      const GridPath<n, Tc, Tp> &path = paths[j];
-      const Cell<n, Tc>& cell = path.cells.back();
+      GridPath<n, Tc, Tp> &path = paths[j];
+      Cell<n, Tc>& cell = path.cells.back();
 
       int id = grid.Id(cell.c);
       assert(id >= 0 && id < grid.nc);
@@ -298,10 +336,42 @@ namespace dsl {
       if (from.Find(*to, !fwd))
         continue;
 
+      /*
+      if (path.cells.size() >= 2) {
+        path.cost = 0;
+        typename vector<Cell<n, Tc> >::iterator cit = path.cells.begin();
+        for (; (cit+1) != path.cells.end(); ++cit) {            
+          path.cost += cost.Real(*cit, *(cit+1));
+        }        
+      } else {
+        path.cost = cost.Real(from.data, to->data);
+      }
+      */
+      path.cost = cost.Real(from.data, to->data);
+
+
       CellEdge* edge = fwd ?
         new CellEdge(path, &from, to, path.cost) :
         new CellEdge(path, to, &from, path.cost);
       graph.AddEdge(*edge);
+
+      if (trackEdgesThroughCell) {
+        // iterate through path and add the new edge to the list
+        // of edges passing through each cell of the path
+        for (typename vector<Cell<n, Tc> >::iterator cit = path.cells.begin(); 
+             cit != path.cells.end(); ++cit) {            
+          int id = grid.Id(cit->c);
+          typename map<int, vector<CellEdge*> >::iterator etcit;
+          etcit = edgesThroughCell.find(id);
+          if (etcit == edgesThroughCell.end()) {
+            vector<CellEdge*> edges;
+            edges.push_back(edge);
+            edgesThroughCell[id] = edges;
+          } else {
+            etcit->second.push_back(edge);
+          }
+        }
+      } 
     }       
 
     if (fwd)
@@ -391,13 +461,33 @@ namespace dsl {
     int id = grid.Id(x);
     if (id < 0 || id >= grid.nc)
       return false;
-    
+
+    if (grid.cells[id]) {
+      delete grid.cells[id];
+      grid.cells[id] = 0;
+    } else {
+      return false;
+    }
+
     CellVertex *v = vertexMap[id];
     if (v) {
       graph.RemoveVertex(*v);
-      return true;
     }
-    return false;
+    
+    // if edges through cells are tracked, then go through them and remove them
+    if (trackEdgesThroughCell) {      
+      typename map<int, vector<CellEdge*> >::iterator ceit = edgesThroughCell.find(id);
+      if (ceit != edgesThroughCell.end()) {
+        vector<CellEdge*> edges = ceit->second;
+        typename vector<CellEdge*>::iterator ei;
+        for (ei = edges.begin(); ei != edges.end(); ++ei) {
+          this->graph.RemoveEdge(**ei);
+        }
+      } 
+      edgesThroughCell.erase(id);
+    }
+
+    return true;
   }
   
   template<int n, class Tc, class Tp>
@@ -576,9 +666,11 @@ namespace dsl {
 
     Cell<n,Tc> *cell = grid.cells[id];
     if (!cell) {
-      std::cout << "[W] GridSearch::SetCost: no cell at position " << x.transpose() << std::endl;
+      // std::cout << "[W] GridSearch::SetCost: no cell at position " << x.transpose() << std::endl;
       return false;
     }
+
+    //    std::cout << "[W] GridSearch::SetCost: checking position " << x.transpose() << std::endl;
       
     // if the cost has not changed simply return
     if (Search<Cell<n, Tc>, GridPath<n, Tc, Tp> >::Eq(cost, cell->cost))
@@ -586,20 +678,41 @@ namespace dsl {
     
     cell->cost = cost;
 
+    // change the costs of eall edges passing through this cell
+    if (trackEdgesThroughCell) {      
+      typename map<int, vector<CellEdge*> >::iterator ceit = edgesThroughCell.find(id);
+      if (ceit != edgesThroughCell.end()) {
+        vector<CellEdge*> edges = ceit->second;
+        cout << edges.size() << " edges passing through" << cell->c.transpose() << endl;
+        
+        typename vector<CellEdge*>::iterator ei;
+        for (ei = edges.begin(); ei != edges.end(); ++ei) {
+          this->ChangeCost(**ei, cost);
+        }
+      } 
+    } 
+
     CellVertex *vertex = vertexMap[id];
-    assert(vertex);
+
+    // if vertex hasn't been added yet, then we simply return successfully since
+    // the search hasn't naturally explored this area previously
+    if (!vertex)
+      return true;
     
     vertex->data.cost = cost;
     
-    // fix all connected edges    
-    for (typename std::map<int, CellEdge* >::iterator ein = vertex->in.begin();
-         ein != vertex->in.end(); ein++) {
-      this->ChangeCost(*ein->second, this->cost.Real(ein->second->from->data, vertex->data));
-    }
-    
-    for (typename std::map<int, CellEdge*>::iterator eout = vertex->out.begin(); 
-         eout != vertex->out.end(); eout++) {
-      this->ChangeCost(*eout->second, this->cost.Real(vertex->data, eout->second->to->data));
+    // fix edges are not tracked, then at best we can modify the once incoming and outgoing from the cell
+    // if edges are tracked this is already done above
+    if (!trackEdgesThroughCell) {            
+      for (typename std::map<int, CellEdge* >::iterator ein = vertex->in.begin();
+           ein != vertex->in.end(); ein++) {
+        this->ChangeCost(*ein->second, this->cost.Real(ein->second->from->data, vertex->data));
+      }
+      
+      for (typename std::map<int, CellEdge*>::iterator eout = vertex->out.begin(); 
+           eout != vertex->out.end(); eout++) {
+        this->ChangeCost(*eout->second, this->cost.Real(vertex->data, eout->second->to->data));
+      }
     }
     return true;
   }

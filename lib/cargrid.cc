@@ -21,8 +21,8 @@ namespace dsl {
 CarGrid::CarGrid(double l,double b, double ox, double oy,
                  int width, int height, const double* map, double sx, double sy, double sa,
                  double costScale,double maxCost)
-                 :Grid<3, Matrix3d>(Vector3d(-M_PI/* + sa/2*/, 0, 0),
-                                    Vector3d(M_PI/* + sa/2*/, sx*width, sy*height),
+                 :Grid<3, Matrix3d>(Vector3d(-M_PI + sa/2, 0, 0),
+                                    Vector3d(M_PI + sa/2, sx*width, sy*height),
                                     Vector3i((int)round(2*M_PI/sa), width, height))
                  ,maxCost(maxCost),l_(l),b_(b),ox_(ox),oy_(oy){
 
@@ -57,7 +57,7 @@ CarGrid::CarGrid(double l,double b, double ox, double oy,
 CarGrid::CarGrid(int width, int height, const double *map,
                  double sx, double sy, double sa, double costScale,
                  double maxCost) :
-          Grid<3, Matrix3d>(Vector3d(-M_PI, 0, 0), Vector3d(M_PI, sx*width, sy*height),
+          Grid<3, Matrix3d>(Vector3d(-M_PI+ sa/2, 0, 0), Vector3d(M_PI+ sa/2, sx*width, sy*height),
                             Vector3i((int)round(2*M_PI/sa), width, height)),
                             maxCost(maxCost),l_(0),b_(0),ox_(0),oy_(0) {
   const int &angRes = gs[0];

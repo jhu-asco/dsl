@@ -67,7 +67,7 @@ int main(int argc, char** argv)
   if(num_map==4 || num_map==5)
   {
     start <<      0,  1, 11;
-    goal<<   M_PI/2, 24, 12;
+    goal<<   0, 24, 12;
   }
   else if(num_map==6 || num_map==7)
   {
@@ -152,7 +152,12 @@ int main(int argc, char** argv)
   //Re-planning the planned path when the initial position is moved to a halfway point
   cout << "Re-planning the planned path when the initial position is moved to a halfway point" << endl;
   Vector3d cell_mid = path.cells[path.cells.size()/2].c;  // follow path until middle
+  // perturb it by maximum of 5 cells (hopefully we're not in a super-narrow and long passage)
+  
+  //  while(!search.SetStart(cell_mid + 5*Vector3d::Random().cwiseProduct(pgrid->cs))) {
+  //  }
   search.SetStart(cell_mid);
+
   timer_start(&timer);
   search.Plan(path2);
   time = timer_us(&timer);
@@ -182,44 +187,49 @@ int main(int argc, char** argv)
   save_map(mapPath, width*scale, height*scale, "path2.ppm");
   cout << "Map and path saved to path2.ppm" << endl;
 
+  
   //Re-planning the planned path when the initial position is moved to a halfway point
   //  and a narrow passage along the prev path closed
   cout << "Re-planning the planned path when the initial position is moved to a halfway point and a narrow path along prev path closed off" << endl;
   //  put a big blockade around the 3/4th way point
 
+  //  cell_mid = path.cells[path.cells.size()/2].c;  // follow path until middle
+  search.SetStart(cell_mid);
 
-  for(int r=154; r<160;r++){
+  for(int r=150; r<160;r++){
     for(int c=176;c<195;c++){
       int idx=c+r*width;
       chmap[idx]=2; //for displaying where we block the path
       for (double a = pgrid->xlb[0]+pgrid->cs[0]/2; a < pgrid->xub[0]; a += pgrid->cs[0]){
-        search.RemoveCell(Vector3d(a,(c+0.5)*pgrid->cs[1],(r+0.5)*pgrid->cs[2]));
+        Vector3d x(a, (c+0.5)*pgrid->cs[1], (r+0.5)*pgrid->cs[2]);
+        // search.RemoveCell(x);
+        search.SetCost(x, 1000);
       }
     }
   }
 
-  for(int r=127; r<131;r++){
-    for(int c=210;c<219;c++){
+  for(int r=135; r<145;r++){
+    for(int c=210;c<220;c++){
       int idx=c+r*width;
       chmap[idx]=2;//for displaying where we block the path
       for (double a = pgrid->xlb[0]+pgrid->cs[0]/2; a < pgrid->xub[0]; a += pgrid->cs[0]){
-        search.RemoveCell(Vector3d(a,(c+0.5)*pgrid->cs[1],(r+0.5)*pgrid->cs[2]));
+        Vector3d x(a,(c+0.5)*pgrid->cs[1],(r+0.5)*pgrid->cs[2]);
+        // search.RemoveCell(x);
+        search.SetCost(x, 1000);
       }
     }
   }
-
-  cell_mid = path.cells[path.cells.size()/2].c;  // follow path until middle
-  search.SetStart(cell_mid);
+  
   timer_start(&timer);
   search.Plan(path3);
   time = timer_us(&timer);
   printf("re-planning path time= %ld  us\n", time);
-  printf("path: edges=%lu len=%f\n", path2.cells.size(), path2.cost);
+  printf("path: edges=%lu len=%f\n", path3.cells.size(), path3.cost);
   cout << "After re-planning with narrow path closing the graph now has " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
 
   //   Print and save result for case 3
   scaleMap<char>(mapPath, chmap,width,height,scale);
-  for (it = path2.cells.begin(); it != path2.cells.end(); ++it)
+  for (it = path3.cells.begin(); it != path3.cells.end(); ++it)
   {
     double theta = (it->c)(0);
     //    printf("(%d,%d) ",  path.cells[i].p[0], path.cells[i].p[1]);

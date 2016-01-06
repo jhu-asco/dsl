@@ -180,6 +180,9 @@ namespace dsl {
      */
     void ChangeCost(Edge<Tv, Te> &e, double cost);
         
+    void ChangeCost(Vertex<Tv, Te> &v, double cost, bool in = true);
+
+
     /**
      * Set epsilon: this is used to compare cell costs
      * @param eps precision (1e-10 by default)
@@ -347,6 +350,20 @@ namespace dsl {
     edge.costChange = cost - edge.cost;
     edge.cost = cost;
     changedEdges.push_back(&edge);
+  }
+
+  template<class Tv, class Te>
+    void Search<Tv, Te>::ChangeCost(Vertex<Tv, Te> &vertex, double cost, bool in) {
+    typename std::map<int, Edge<Tv, Te>*>::iterator ei;
+    if (in) {
+      for (ei = vertex.in.begin(); ei != vertex.in.end(); ++ei) {
+        ChangeCost(*ei->second, cost);
+      }
+    } else {
+      for (ei = vertex.out.begin(); ei != vertex.out.end(); ++ei) {
+        ChangeCost(*ei->second, cost);
+      }
+    }
   }
   
 

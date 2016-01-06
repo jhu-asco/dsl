@@ -1,4 +1,3 @@
-
 #include <string.h>
 #include "gridsearch.h"
 #include "cargrid.h"
@@ -44,10 +43,10 @@ int main(int argc, char** argv)
   struct timeval timer;
   timer_start(&timer);
 
-  CarGrid grid(width, height, map, .1, .1, M_PI/17, 1, 0.5);
+  CarGrid grid(width, height, map, .1, .1, M_PI/16, 1, 0.5);
   CarCost cost;
   CarConnectivity connectivity(grid);
-  //  connectivity.SetPrimitives(1, tan(M_PI/5), 1);
+  //  connectivity.SetPrimitives(1, tan(M_PI/3), 1);
 
   GridSearch<3, Matrix3d> search(grid, connectivity, cost, false);
   SE2Path path, optPath;
@@ -97,9 +96,9 @@ int main(int argc, char** argv)
   // save it to image for viewing
   save_map(mapPath, width, height, "path1.ppm");
   cout << "Map and path saved to path1.ppm" << endl;
+
+  return 0;
   
-
-
   // follow path until middle
   Vector3d c = path.cells[path.cells.size()/2].c;
   search.SetStart(c);
@@ -163,8 +162,6 @@ int main(int argc, char** argv)
   // save it to image for viewing
   save_map(mapPath, width, height, "path2.ppm");
   
-
-  getchar();
 
   return 0;
 }

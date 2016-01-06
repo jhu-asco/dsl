@@ -140,7 +140,7 @@ namespace dsl {
         return 0;
       return cells[id];
     }
-    
+
     Vectornd xlb;  ///< state lower bound
     Vectornd xub;  ///< state upper bound
     Vectorni gs;   ///< number of cells per dimension
