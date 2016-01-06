@@ -1,3 +1,4 @@
+
 #include <string.h>
 #include "gridsearch.h"
 #include "cargrid.h"
@@ -97,7 +98,7 @@ int main(int argc, char** argv)
   save_map(mapPath, width, height, "path1.ppm");
   cout << "Map and path saved to path1.ppm" << endl;
   
-  return 1;
+
 
   // follow path until middle
   Vector3d c = path.cells[path.cells.size()/2].c;

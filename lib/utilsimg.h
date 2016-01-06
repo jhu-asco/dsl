@@ -1,9 +1,10 @@
-/*
- * utilsimg.h
- *
- *  Created on: Jan 4, 2016
- *      Author: subhransu
- */
+// This file is part of libdsl, a library for heuristic graph search
+//
+// Copyright (C) 2004 Subhransu Mishra subhransu.kumar.mishra@gmail.com
+//
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef DSL_UTILSIMG_H
 #define DSL_UTILSIMG_H
@@ -21,12 +22,40 @@ typedef Matrix<double,2,4> Matrix2x4d;
 typedef Matrix<int,2,4> Matrix2x4i;
 
 
+/**
+ * Takes in the dimensions of a rectangle, position of its origin and a rotation angle theta and returns the
+ * position of the 4 corners(right-back, right-front, left-front and left-back) of the rotated rectangle
+ * with respect to the origin in pixel units.
+ * @param verts2d_rotd_pix coordinates of the 4 corners(rb,rf,lf,lb) in order
+ * @param l Dimension along the x axis of the car
+ * @param b Dimension along the y axis of the car
+ * @param ox x coordinate origin of the car with respect to the rectangle center
+ * @param oy y coordinate origin of the car with respect to the rectangle center
+ * @param sx Pixel width in meters in x direction(horizontal)
+ * @param sy Pixel width in meters in y direction(vertical)
+ * @param theta Angle by which the rectangle is rotated
+ */
 void getRotdVertsInPixWrtOrg(Matrix2x4d& verts2d_rotd_pix,
                              double l,double b, double ox, double oy, double sx, double sy, double theta);
 
+/**
+ * Fills a quadrilateral with a given value
+ * @param data pointer to the img data
+ * @param w Width of the img
+ * @param h Height of the img
+ * @param verts The 4 vertices of the quadrilateral
+ * @param val the value that is to be fill in. Rest is 0
+ */
 void fillQuad(double* data,int w, int h, Matrix2x4d  verts, double val);
 
-
+/**
+ * Scales up an image with the same scaling factor in x and y direction
+ * @param map_scaled pointer to scaled image. It needs to be allocated before
+ * @param map pointer to the original image
+ * @param w Width of the map
+ * @param h Height of the map
+ * @param scale Scaling factor
+ */
 template <typename T>
 void scaleMap(T* map_scaled, const T* map, int w, int h, int scale){
   int ws = scale*w;
@@ -45,6 +74,12 @@ void scaleMap(T* map_scaled, const T* map, int w, int h, int scale){
   }
 }
 
+/**
+ * Checks if a given point is in a polygon
+ * @param verts A Matrix of vertices of the polygon. Each column represents a vertex.
+ * @param pt The point to checked
+ * @return
+ */
 template< typename T, int m, int n>
 int inPoly(Matrix<T,m,n> verts, Matrix<T,m,1> pt){
   int i, j, c = 0;
@@ -56,7 +91,16 @@ int inPoly(Matrix<T,m,n> verts, Matrix<T,m,1> pt){
   return c;
 }
 
-
+/**
+ * Takes in an image and end points of a line and adds that line of certain pixel width
+ * @param map The input image
+ * @param w The width of the image
+ * @param h The height of the image
+ * @param p1 End point1 for the line
+ * @param p2 End point2 for the line
+ * @param lval the pixel value for the line
+ * @param lw linewidth in pixels
+ */
 template <typename T>
 void addLine(T* map, int w, int h, Vector2d p1, Vector2d p2, T lval, double lw){
   Vector2d n = Rotation2Dd(M_PI/2) * (p2-p1).normalized();
@@ -75,6 +119,18 @@ void addLine(T* map, int w, int h, Vector2d p1, Vector2d p2, T lval, double lw){
   }
 }
 
+/**
+ * Takes in an input image, a kernel image a and the origin of kernel image and produces a dilated image.
+ * @param data_dil Dilated image
+ * @param data Input image
+ * @param w Width of the input image
+ * @param h Height of the input image
+ * @param data_k Kernel image
+ * @param w_k Width of the kernel
+ * @param h_k Height of the kernel
+ * @param ox_k x coordinate of the origin of the kernel image
+ * @param oy_k y coordinate of the origin of the kernel image
+ */
 template<typename T>
 void dilate(T* data_dil, const T* data, int w, int h, const T* data_k, int w_k, int h_k, int ox_k, int oy_k){
   vector<double> prod(h_k*w_k);

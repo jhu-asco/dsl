@@ -8,6 +8,7 @@ namespace dsl {
 
   using namespace Eigen;
 
+
 void save_map(const char* map, int width, int height, const char* filename)
 {
   int i, ind;
