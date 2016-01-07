@@ -141,37 +141,35 @@ bool GenTraj(vector<Matrix3d> gs, const Matrix3d& g0, const Matrix3d &gf,
 }
 
 
-
-CarConnectivity::CarConnectivity(const CarGrid &grid) : grid(grid) 
+CarConnectivity::CarConnectivity(const CarGrid &grid, double bp, bool onlyfwd, int wseg,double tphimax)
+                                :grid(grid),bp(bp)
 {
-  double tphi = 0.577; // tan(M_PI/6); // max steering angle
   vx = 1;
-  SetPrimitives(vx, tphi*vx, 1);
+  SetPrimitives(vx, tphimax*vx, 1, onlyfwd, wseg);
 }
 
-bool CarConnectivity::SetPrimitives(double vx, double w, double dt) {
+bool CarConnectivity::SetPrimitives(double vx, double w, double dt,double onlyfwd, int wseg) {
   if (dt <= 0)
     return false;
-    
+
+  wseg = wseg<1?1:wseg;
+
   this->w = w;
   this->vx = vx;
   this->dt = dt;
 
   vs.clear();
 
-  vs.push_back(Vector3d(0, vx, 0));
-  vs.push_back(Vector3d(w, vx, 0));
-  vs.push_back(Vector3d(-w, vx, 0));
-  vs.push_back(Vector3d(0, -vx, 0));
-  vs.push_back(Vector3d(w, -vx, 0));
-  vs.push_back(Vector3d(-w, -vx, 0));
+  for(int i=0;i<=wseg;i++){
+    vs.push_back(Vector3d( i*w/wseg, vx, 0));
+    vs.push_back(Vector3d(-i*w/wseg, vx, 0));
+    if(!onlyfwd){
+      vs.push_back(Vector3d( i*w/wseg, -vx, 0));
+      vs.push_back(Vector3d(-i*w/wseg, -vx, 0));
+    }
+  }
 
-  vs.push_back(Vector3d(w/2, vx, 0));
-  vs.push_back(Vector3d(-w/2, vx, 0));
-  vs.push_back(Vector3d(w/2, -vx, 0));
-  vs.push_back(Vector3d(-w/2, -vx, 0));
-
-  return false;
+  return true;
 }
 
 
@@ -208,10 +206,14 @@ bool CarConnectivity::Flow(SE2Path& path, const Matrix3d &g0, const Vector3d &v)
 
     path.cells.push_back(*cell);
     path.cost += cell->cost;   // add up all cost along cells
-  }
 
+  }
   // the true Euclidean length of the path is equal to fabs(v[0])
   path.cost = (path.cost + 1)*fabs(v[1]);   // regard cell cost as "traversability" which additionally penalizes the travelled distance
+
+  //additional penalty for reversing
+  if(v[1]<0)
+    path.cost*=bp;
 
   return true;
 }

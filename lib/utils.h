@@ -24,7 +24,15 @@ namespace dsl {
 
   void se2_exp(Eigen::Matrix3d &m, const Eigen::Vector3d &v, double tol = 1e-16);
   
-  
+  /**
+   * Function that returns a sign for object of any class as long as the operator - and operator < are defined
+   * for that class
+   * @param val the object whose sign we need to check
+   * @return sign of the object
+   */
+  template <typename T> int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+  }
 }
 
 #endif

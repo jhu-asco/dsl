@@ -25,22 +25,31 @@ namespace dsl {
    */
   class CarConnectivity : public GridConnectivity<3, Matrix3d> {
   public:
-    /**
-     * Initialize a grid
-     * @param grid the grid
-     */
-    CarConnectivity(const CarGrid &grid);
 
     /**
-     * Use a set of primitive motions, i.e. arcs with body fixed forward velocities (-v,v) and 
-     * angular velocity (-w,0,w), lasting time duration dt. There are 6 such combinations. 
-     * In addition we add 4 more primitives at half the angular velocity (i.e. with w/2)
+     * Initialize cargrid connectivity
+     * @param grid The car grid
+     * @param bp A scaling factor for penalizing going backward. Cost going backward= bp*cost going forward
+     * @param onlyfwd If true, then only +ve forward velocity is used
+     * @param wseg It decides the discretization of angular velocity when making the motion primitives
+     * @param tphimax Tan(max steering angle). Default value is 0.577=tan(M_PI/6)
+     */
+    CarConnectivity(const CarGrid &grid, double bp=1.0, bool onlyfwd=false, int wseg=2,double tphimax=0.577 );
+
+    /**
+     * Use a set of primitive motions, i.e. arcs with body fixed forward velocities (-v,v) and
+     * angular velocity (-w,0,w), lasting time duration dt. By default there are 6 such combinations.
+     * In addition we made it configurable so that more primitves with angular velocities in between(-w,w)
+     * can be added in between by choosing the wseg parameter >2. Also only +ve forward velocity can be chosen
      * @param vx forward velocity
      * @param w angular velocity
      * @param dt time duration
+     * @param onlyfwd If true, then primitives with +ve forward velocity are made
+     * @param wseg The discretization of angular velocity for making the primitives
+     * @return
      */
-    bool SetPrimitives(double vx, double w, double dt);
-    
+    bool SetPrimitives(double vx, double w, double dt, double onlyfwd=false, int wseg=2);
+
     bool operator()(const SE2Cell& from, 
                     std::vector<SE2Path>& paths,
                     bool fwd = true) const;
@@ -60,8 +69,9 @@ namespace dsl {
     double vx;  ///< maximum forward velocity
     double w;   ///< maximum angular velocity
     double dt;  ///< how long are the primitives
+    double bp;  ///< A scaling factor for penalizing going backward. Cost going backward= bp*cost going forward
     
-    std::vector<Vector3d> vs;  ///< primitives defined using motions with constant body-fixed velocities (vx,vy,w)
+    std::vector<Vector3d> vs;  ///< primitives defined using motions with constant body-fixed velocities (w,vx,vy)
   };
 }
 

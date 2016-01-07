@@ -32,11 +32,12 @@ bool to_bool(std::string str) {
 
 int main(int argc, char** argv)
 {
-  if (argc!=3) {
-    cout << "Usage: $./cartestdil map4.ppm true" << endl;
+  if (argc!=4) {
+    cout << "Usage: $./cartestdil map4.ppm true true" << endl;
     cout << "\t\t where map4.ppm is a map graphics file" << endl;
-    cout << "\t\t last param is true/false depending on whether or not to use car geometry for planning" << endl;
-    cout << "\t\t You can use only map4.ppm, map5.ppm, map6.ppm and map7.ppm for this example" << endl;
+    cout << "\t\t The first bool is true/false depending on whether or not to use car geometry for planning" << endl;
+    cout << "\t\t If the second bool is true, the car only moves forward(never reverses)" << endl;
+    cout << "\t\t You can use only map4.ppm and map5.ppmfor this example" << endl;
     cout << "\t\t output will be written to graphics files path1.ppm path2.ppm and path3.ppm where the " << endl;
     cout << "\t\t\t path1.ppm is normal planning,  "<<endl;
     cout << "\t\t\t path2.ppm is replanning with start position moved to halfway point"<<endl;
@@ -57,6 +58,10 @@ int main(int argc, char** argv)
   bool use_car_geom = to_bool(string(argv[2]));
   cout<<"use_geom:"<<(use_car_geom?"true":"false")<<endl;
 
+  //use geometry or not
+  bool only_fwd = to_bool(string(argv[3]));
+  cout<<"car moves forward:"<<(only_fwd?"true":"false")<<endl;
+
   // what map is being used? only allow map4, map5 , map6 and map7
   // decide start goal based on the map type
   int len = strlen(argv[1]);
@@ -66,17 +71,12 @@ int main(int argc, char** argv)
   double sx=0.1, sy=0.1;// the size of pixel along x and y direction;
   if(num_map==4 || num_map==5)
   {
-    start <<      0,  1, 11;
-    goal<<   0, 24, 12;
-  }
-  else if(num_map==6 || num_map==7)
-  {
-    start<< M_PI/2, 2, 0.5;
-    goal << M_PI/2, 8, 5;
+    start <<   0,  1, 11;
+    goal  <<   0, 24, 12;
   }
   else
   {
-    cout<<"map file is not map4 map5 map6 or map7. Quitting"<<endl;
+    cout<<"map file is not map4 map5. Quitting"<<endl;
     return 1;
   }
   cout << "start=" << start.transpose() << endl;
@@ -101,7 +101,8 @@ int main(int argc, char** argv)
   else
     pgrid = new CarGrid(width, height, map, sx, sy, M_PI/16, 1,0.5);
   CarCost cost;
-  CarConnectivity connectivity(*pgrid);
+  double bp=1000; //backward_penalty
+  CarConnectivity connectivity(*pgrid,bp, only_fwd,2);
   GridSearch<3, Matrix3d> search(*pgrid, connectivity, cost, expand_at_start);
   cout << "Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
   printf("And the graph construction time= %ld  us\n", time);
@@ -125,7 +126,7 @@ int main(int argc, char** argv)
   cout << "After planning the graph now has " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
 
   //   Print and save result for case 1
-  int scale=5; //scale original image for clarity
+  int scale=3; //scale original image for clarity
   char mapPath[width*height*scale*scale];
   scaleMap<char>(mapPath, chmap,width,height,scale);
   vector<SE2Cell>::iterator it; 
@@ -152,10 +153,6 @@ int main(int argc, char** argv)
   //Re-planning the planned path when the initial position is moved to a halfway point
   cout << "Re-planning the planned path when the initial position is moved to a halfway point" << endl;
   Vector3d cell_mid = path.cells[path.cells.size()/2].c;  // follow path until middle
-  // perturb it by maximum of 5 cells (hopefully we're not in a super-narrow and long passage)
-  
-  //  while(!search.SetStart(cell_mid + 5*Vector3d::Random().cwiseProduct(pgrid->cs))) {
-  //  }
   search.SetStart(cell_mid);
 
   timer_start(&timer);
@@ -187,11 +184,9 @@ int main(int argc, char** argv)
   save_map(mapPath, width*scale, height*scale, "path2.ppm");
   cout << "Map and path saved to path2.ppm" << endl;
 
-  
   //Re-planning the planned path when the initial position is moved to a halfway point
   //  and a narrow passage along the prev path closed
   cout << "Re-planning the planned path when the initial position is moved to a halfway point and a narrow path along prev path closed off" << endl;
-  //  put a big blockade around the 3/4th way point
 
   //  cell_mid = path.cells[path.cells.size()/2].c;  // follow path until middle
   search.SetStart(cell_mid);
@@ -208,7 +203,7 @@ int main(int argc, char** argv)
     }
   }
 
-  for(int r=135; r<145;r++){
+  for(int r=125; r<135;r++){
     for(int c=210;c<220;c++){
       int idx=c+r*width;
       chmap[idx]=2;//for displaying where we block the path
