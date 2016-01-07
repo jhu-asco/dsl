@@ -16,5 +16,5 @@ INSTALL(TARGETS test2d
         RUNTIME
         DESTINATION bin)
 
-INSTALL(FILES test.cc map.ppm 
+INSTALL(FILES map.ppm 
         DESTINATION bin)
