@@ -302,7 +302,7 @@ namespace dsl {
     std::vector<GridPath<n, Tc, Tp> > paths;
     connectivity(*cell, paths, fwd);
 
-    for (int j = 0; j < paths.size(); ++j) {
+    for (int j = 0; j < (int)(paths.size()); ++j) {
       GridPath<n, Tc, Tp> &path = paths[j];
       Cell<n, Tc>& cell = path.cells.back();
 
@@ -498,7 +498,8 @@ namespace dsl {
     
     std::vector<CellEdge* > edgePath;
 
-    Search<Cell<n, Tc>, GridPath<n, Tc, Tp> >::Plan(edgePath);
+    if(Search<Cell<n, Tc>, GridPath<n, Tc, Tp> >::Plan(edgePath)<0)
+      return false;
 
     typename vector<CellEdge*>::iterator it;
     for (it = edgePath.begin(); it != edgePath.end(); ++it) {
@@ -560,7 +561,7 @@ namespace dsl {
     if (traceStep <= 0)
       traceStep = grid.cs.norm();
 
-    for (; it1 != path.cells.end(); ++it1) {
+    for (; it1 != path.cells.end()-1; ++it1) {
       x1 = it1->c;
       Vectornd x2 = (it1 + 1)->c;
       Vectornd dx1 = x2 - x0;
@@ -586,11 +587,7 @@ namespace dsl {
       }
     }
     
-    //Commented the line below otherwise the last 2 cells were just repeated.
-    //optPath.cells.push_back(path.cells.back());
-    
-    //  len += sqrt((x2-x0)*(x2-x0) + (y2-y0)*(y2-y0));
-    //  optPath.cost = len;
+    optPath.cells.push_back(path.cells.back());
   }
 
   
@@ -600,7 +597,7 @@ namespace dsl {
                                           double traceStep) const {
     std::vector<double> steps(path.cells.size()); 
     std::vector<std::vector<double> > pts(n, std::vector<double>(path.cells.size()));
-    for(int i = 0; i < path.cells.size(); i++) {
+    for(int i = 0; i < (int)(path.cells.size()); i++) {
       steps[i] = i;
       for(int j = 0; j < n; j++) {
         pts[j][i] = path.cells[i].c(j);

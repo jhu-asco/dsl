@@ -105,7 +105,7 @@ int main(int argc, char** argv)
   CarConnectivity connectivity(*pgrid,bp, only_fwd,2);
   GridSearch<3, Matrix3d> search(*pgrid, connectivity, cost, expand_at_start);
   cout << "Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
-  printf("And the graph construction time= %ld  us\n", time);
+  printf("And the graph construction time= %ld  us\n", (long int)time);
   cout <<"Grid info:"<<endl;
   cout <<"\tcs:"<<pgrid->cs.transpose()<<endl;
   cout <<"\tgs:"<<pgrid->gs.transpose()<<endl;

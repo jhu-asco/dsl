@@ -57,7 +57,7 @@ namespace dsl {
      * @param x point
      * @return true if within bounds
      */
-    bool Valid(const Vectornd& x) const{
+    virtual bool Valid(const Vectornd& x) const{
       for (int i = 0; i < x.size(); ++i) {
         if (x[i] < xlb[i])
           return false;

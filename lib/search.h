@@ -489,7 +489,13 @@ namespace dsl {
     double cost = 0;
     do {
       Edge<Tv, Te>* edge = cur->Find(*cur->next, false); 
-      assert(edge);
+
+      //      assert(edge);
+      if(!edge){
+        path.clear();
+        return -1;
+      }
+
       cost += edge->cost;
       path.push_back(edge);      
       cur = cur->next;

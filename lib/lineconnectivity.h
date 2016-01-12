@@ -72,7 +72,7 @@ namespace dsl {
                                          bool fwd) const {
     
     paths.clear();
-    for (int i = 0; i < lines.size(); ++i) {
+    for (int i = 0; i < (int)(lines.size()); ++i) {
       GridPath<n> path;
       path.cells.push_back(from);
       

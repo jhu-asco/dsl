@@ -6,8 +6,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_GRID2DCONNECTIVITY_H
-#define DSL_GRID2DCONNECTIVITY_H
+#ifndef DSL_CARCONNECTIVITY_H
+#define DSL_CARCONNECTIVITY_H
 
 #include "gridconnectivity.h"
 #include "cargrid.h"
@@ -31,10 +31,12 @@ namespace dsl {
      * @param grid The car grid
      * @param bp A scaling factor for penalizing going backward. Cost going backward= bp*cost going forward
      * @param onlyfwd If true, then only +ve forward velocity is used
-     * @param wseg It decides the discretization of angular velocity when making the motion primitives
+     * @param wseg It decides the discretization of max angular velocity when making the motion primitives
      * @param tphimax Tan(max steering angle). Default value is 0.577=tan(M_PI/6)
+     * @param vseg It decides the discretization of max forward velocity when making the motion primitives
+     * @param vxmax maximum forward velocity.
      */
-    CarConnectivity(const CarGrid &grid, double bp=1.0, bool onlyfwd=false, int wseg=2,double tphimax=0.577 );
+    CarConnectivity(const CarGrid &grid, double bp=1.0, bool onlyfwd=false, int wseg=2,double tphimax=0.577, int vseg=1, double vxmax=1);
 
     /**
      * Use a set of primitive motions, i.e. arcs with body fixed forward velocities (-v,v) and
@@ -45,10 +47,11 @@ namespace dsl {
      * @param w angular velocity
      * @param dt time duration
      * @param onlyfwd If true, then primitives with +ve forward velocity are made
-     * @param wseg The discretization of angular velocity for making the primitives
+     * @param wseg The discretization of max angular velocity for making the primitives
+     * @param vseg The discretization of max forward velocity for making the primitives
      * @return
      */
-    bool SetPrimitives(double vx, double w, double dt, double onlyfwd=false, int wseg=2);
+    bool SetPrimitives(double vx, double w, double dt, double onlyfwd=false, int wseg=2, int vseg=1);
 
     bool operator()(const SE2Cell& from, 
                     std::vector<SE2Path>& paths,

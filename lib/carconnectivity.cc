@@ -141,14 +141,16 @@ bool GenTraj(vector<Matrix3d> gs, const Matrix3d& g0, const Matrix3d &gf,
 }
 
 
-CarConnectivity::CarConnectivity(const CarGrid &grid, double bp, bool onlyfwd, int wseg,double tphimax)
+CarConnectivity::CarConnectivity(const CarGrid &grid, double bp, bool onlyfwd, int wseg,double tphimax, int vseg, double vxmax)
                                 :grid(grid),bp(bp)
 {
-  vx = 1;
-  SetPrimitives(vx, tphimax*vx, 1, onlyfwd, wseg);
+//  vx = 1;
+//  SetPrimitives(vx, tphimax*vx, 1, onlyfwd, wseg);
+
+  SetPrimitives(vxmax, tphimax*vxmax, 1, onlyfwd, wseg, vseg);
 }
 
-bool CarConnectivity::SetPrimitives(double vx, double w, double dt,double onlyfwd, int wseg) {
+bool CarConnectivity::SetPrimitives(double vx, double w, double dt,double onlyfwd, int wseg, int vseg) {
   if (dt <= 0)
     return false;
 
@@ -161,13 +163,26 @@ bool CarConnectivity::SetPrimitives(double vx, double w, double dt,double onlyfw
   vs.clear();
 
   for(int i=0;i<=wseg;i++){
-    vs.push_back(Vector3d( i*w/wseg, vx, 0));
-    vs.push_back(Vector3d(-i*w/wseg, vx, 0));
-    if(!onlyfwd){
-      vs.push_back(Vector3d( i*w/wseg, -vx, 0));
-      vs.push_back(Vector3d(-i*w/wseg, -vx, 0));
+    for(int j=1;j<=vseg;j++){
+      vs.push_back(Vector3d( i*w/wseg, j*vx/vseg, 0));
+      vs.push_back(Vector3d(-i*w/wseg, j*vx/vseg, 0));
+      if(!onlyfwd){
+        vs.push_back(Vector3d( i*w/wseg, -j*vx/vseg, 0));
+        vs.push_back(Vector3d(-i*w/wseg, -j*vx/vseg, 0));
+      }
     }
   }
+
+//  for(int i=0;i<=wseg;i++){
+//    for(int j=1;j<=vseg;j++){
+//      vs.push_back(Vector3d( i*w/wseg, vx, 0));
+//      vs.push_back(Vector3d(-i*w/wseg, vx, 0));
+//      if(!onlyfwd){
+//        vs.push_back(Vector3d( i*w/wseg, -vx, 0));
+//        vs.push_back(Vector3d(-i*w/wseg, -vx, 0));
+//      }
+//    }
+//  }
 
   return true;
 }
@@ -217,9 +232,6 @@ bool CarConnectivity::Flow(SE2Path& path, const Matrix3d &g0, const Vector3d &v)
 
   return true;
 }
-
-
-
 
 bool CarConnectivity::operator()(const SE2Cell& from, 
                                  vector<SE2Path>& paths, 
