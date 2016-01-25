@@ -274,7 +274,7 @@ GridSearch< n, Tc, Tp >::GridSearch(
           }
           */
 
-          path.cost = cost.Real(from->data, to->data);
+          //          path.cost = cost.Real(from->data, to->data);
 
           CellEdge* edge = new CellEdge(path, from, to, path.cost);
           graph.AddEdge(*edge);
@@ -372,7 +372,8 @@ bool GridSearch< n, Tc, Tp >::Expand(CellVertex& from, bool fwd) {
       path.cost = cost.Real(from.data, to->data);
     }
     */
-    path.cost = cost.Real(from.data, to->data);
+
+    //  path.cost = cost.Real(from.data, to->data);
 
     CellEdge* edge = fwd ? new CellEdge(path, &from, to, path.cost) :
                            new CellEdge(path, to, &from, path.cost);
