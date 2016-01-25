@@ -9,21 +9,16 @@
 #include "search.h"
 #include "fibheap.h"
 
-namespace dsl
-{
-  // these are needed by fibheap
-  int FIBHEAPKEY_SIZE = 2*sizeof(double);
-  fibheapkey_t FIBHEAPKEY_MIN = (void*)(double[2]){-INF, -INF};
-
-  extern "C" int fibkey_compare(fibheapkey_t a, fibheapkey_t b)
-  {
-    assert(a); assert(b);
-    double* af = (double *)a;
-    double* bf = (double *)b;
-    if ((af[0] < bf[0]) || (af[0] == bf[0] && af[1] < bf[1]))
-      return -1;
-    if (af[0] == bf[0] && af[1] == bf[1])
-      return 0;
-    return 1;
-  }
+namespace dsl {
+extern "C" int fibkey_compare(fibheapkey_t a, fibheapkey_t b) {
+  assert(a);
+  assert(b);
+  double* af = (double*)a;
+  double* bf = (double*)b;
+  if ((af[0] < bf[0]) || (af[0] == bf[0] && af[1] < bf[1]))
+    return -1;
+  if (af[0] == bf[0] && af[1] == bf[1])
+    return 0;
+  return 1;
+}
 }

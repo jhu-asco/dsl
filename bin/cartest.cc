@@ -30,9 +30,9 @@ int main(int argc, char** argv)
   int width, height; 
   char* chmap = load_map(&width, &height, argv[1]);
   char mapPath[width*height];
-  double map[width*height];
+  double map_data[width*height];
   for (int i = 0; i < width*height; ++i)
-    map[i] = 1000*(double)chmap[i];
+    map_data[i] = 1000*(double)chmap[i];
 
   // this is just for display
   memcpy(mapPath, chmap, width*height);
@@ -43,7 +43,9 @@ int main(int argc, char** argv)
   struct timeval timer;
   timer_start(&timer);
 
-  CarGrid grid(width, height, map, .1, .1, M_PI/16, 1, 0.5);
+  Map2d map(width, height, map_data);
+  
+  CarGrid grid(map, .1, .1, M_PI/16, 1, 0.5);
   CarCost cost;
   CarConnectivity connectivity(grid);
   //  connectivity.SetPrimitives(1, tan(M_PI/3), 1);

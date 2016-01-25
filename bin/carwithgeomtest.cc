@@ -68,7 +68,7 @@ int main(int argc, char** argv)
   int num_map = atoi(argv[1]+len-5);
   //for map4 and map5
   Vector3d goal, start;
-  double sx=0.1, sy=0.1;// the size of pixel along x and y direction;
+  double sx=.1, sy=.1;// the size of pixel along x and y direction;
   if(num_map==4 || num_map==5)
   {
     start <<   0,  1, 11;
@@ -85,24 +85,27 @@ int main(int argc, char** argv)
   // load a map from ppm file and convert it into double*
   int width, height;
   char* chmap = load_map(&width, &height, argv[1]);
-  double map[width*height];
+  double map_data[width*height];
   for (int i = 0; i < width*height; ++i)
-    map[i] = 1000*(double)chmap[i];
+    map_data[i] = 1000*(double)chmap[i];
   cout<<"Read the input map. Input image width and height"<<width<<","<<height<<endl;
 
+  Map2d map(width, height, map_data);
+  
   // create planner
   cout << "Creating a graph..." << endl;
-  bool expand_at_start = false;
+  bool expand_at_start = true;
   struct timeval timer;
   timer_start(&timer);
   CarGrid* pgrid;
+  CarGeom geom(l, b, ox, oy);
   if(use_car_geom)
-    pgrid = new CarGrid(l,b,ox,oy,width, height, map, sx, sy, M_PI/16, 1, 0.5);
-  else
-    pgrid = new CarGrid(width, height, map, sx, sy, M_PI/16, 1,0.5);
+    pgrid = new CarGrid(geom, map, sx, sy, M_PI/16, 1, 0.5);
+  else 
+    pgrid = new CarGrid(map, sx, sy, M_PI/16, 1,0.5);
   CarCost cost;
-  double bp=1000; //backward_penalty
-  CarConnectivity connectivity(*pgrid,bp, only_fwd,2);
+  double bp=1; //backward_penalty
+  CarConnectivity connectivity(*pgrid,bp, only_fwd, 1);
   GridSearch<3, Matrix3d> search(*pgrid, connectivity, cost, expand_at_start);
   cout << "Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
   printf("And the graph construction time= %ld  us\n", (long int)time);

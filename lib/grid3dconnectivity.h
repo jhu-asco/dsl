@@ -12,17 +12,16 @@
 #include "lineconnectivity.h"
 
 namespace dsl {
-  
-  
-  /**
-   * Defines a simple connectivity between cells in a 3d grid. 
-   * The default implementation is the 26-cell Moore neighborhood connectivity. 
-   * The costs are the Euclidean distances b/n the cell centers.
-   */
-  class Grid3dConnectivity : public LineConnectivity<3> {
-  public:
-    Grid3dConnectivity(const Grid<3> &grid);
-  };
+
+/**
+ * Defines a simple connectivity between cells in a 3d grid.
+ * The default implementation is the 26-cell Moore neighborhood connectivity.
+ * The costs are the Euclidean distances b/n the cell centers.
+ */
+class Grid3dConnectivity : public LineConnectivity< 3 > {
+public:
+  Grid3dConnectivity(const Grid< 3 >& grid);
+};
 }
 
 #endif
