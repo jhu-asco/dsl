@@ -45,6 +45,28 @@ public:
     memset(cells, 0, nc * sizeof(Cell< n, T >*)); // initialize all of them nil
   }
 
+    /**
+   * Initialize the map using state lower bound, state upper bound, the number
+   * of map cells
+   * @param xlb state lower bound
+   * @param xub state upper bound
+   * @param cs cell dimensions
+   */
+  Grid(const Vectornd& xlb, const Vectornd& xub, const Vectornd& cs)
+    : xlb(xlb), xub(xub), cs(cs) {
+    nc = 1;
+    for (int i = 0; i < n; ++i) {
+      assert(xlb[i] <= xub[i]);
+      assert(cs[i] > 0);
+      gs[i] = floor((xub[i] - xlb[i]) / cs[i]);
+      nc *= gs[i]; // total number of cells
+    }
+
+    cells = new Cell< n, T >* [nc];
+    memset(cells, 0, nc * sizeof(Cell< n, T >*)); // initialize all of them nil
+  }
+
+
   virtual ~Grid() {
     for (int i = 0; i < nc; ++i)
       delete cells[i];

@@ -16,7 +16,7 @@ namespace dsl {
 using namespace Eigen;
 
 /**
- * A basic grid cell defining a rectangular region in n-dimension space
+ * A basic cell defining a rectangular region (a box) in n-dimension space
  * The cell can also contain a generic data of type T, which by default is just
  * a point in the cell.
  */
