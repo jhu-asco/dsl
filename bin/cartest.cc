@@ -20,13 +20,19 @@ int main(int argc, char** argv)
   }
   assert(argc == 2);
 
+
+  Vector3d goal, start;
+  //goal <<      0,  1, 11;
+  //start<< M_PI/2, 24, 12;
+
+
   // load a map from ppm file
   int width, height; 
-  char* chmap = load_map(&width, &height, argv[1]);
+  char* chmap = load_map(width, height, argv[1]);
   char mapPath[width*height];
-  double map[width*height];
+  double map_data[width*height];
   for (int i = 0; i < width*height; ++i)
-    map[i] = 1000*(double)chmap[i];
+    map_data[i] = 1000*(double)chmap[i];
 
   // this is just for display
   memcpy(mapPath, chmap, width*height);
@@ -37,17 +43,25 @@ int main(int argc, char** argv)
   struct timeval timer;
   timer_start(&timer);
 
-  CarGrid grid(width, height, map, .1, .1, M_PI/16, 1, 0.5);
+  Map2d map(width, height, map_data);
+  
+  CarGrid grid(map, .1, .1, M_PI/16, 1, 0.5);
   CarCost cost;
   CarConnectivity connectivity(grid);
+  //  connectivity.SetPrimitives(1, tan(M_PI/3), 1);
+
   GridSearch<3, Matrix3d> search(grid, connectivity, cost, false);
   SE2Path path, optPath;
 
   long time = timer_us(&timer);
   printf("graph construction time= %ld  us\n", time);
 
-  search.SetStart(Vector3d(0, .1, grid.xub[2]/2));
-  search.SetGoal(Vector3d(0, grid.xub[1] - .1, grid.xub[2]/2));
+  start << 0, .1, grid.xub[2]/2;
+  goal << 0, grid.xub[1] - .1, grid.xub[2]/2 ;
+  search.SetStart(start);
+  search.SetGoal(goal);
+  //  search.SetStart(Vector3d(0, .1, grid.xub[2]/2));
+  //  search.SetGoal(Vector3d(0, grid.xub[1] - .1, grid.xub[2]/2));
   //  search.SetGoal(Vector3d(grid.xub[0]*.5, grid.xub[1]*.58, 15.0/16*M_PI));
 
   cout << "Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
@@ -84,9 +98,9 @@ int main(int argc, char** argv)
   // save it to image for viewing
   save_map(mapPath, width, height, "path1.ppm");
   cout << "Map and path saved to path1.ppm" << endl;
-  
-  return 1;
 
+  return 0;
+  
   // follow path until middle
   Vector3d c = path.cells[path.cells.size()/2].c;
   search.SetStart(c);
@@ -150,8 +164,6 @@ int main(int argc, char** argv)
   // save it to image for viewing
   save_map(mapPath, width, height, "path2.ppm");
   
-
-  getchar();
 
   return 0;
 }

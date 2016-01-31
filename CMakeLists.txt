@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.8) 
 project (dsl)
-
+#set(CMAKE_BUILD_TYPE Debug)
 include_directories(lib)
 
 ADD_DEFINITIONS(-g -O -Wall -W -Wno-unused-parameter -Wno-unused-variable)
@@ -39,6 +39,6 @@ add_subdirectory (bin)
 INSTALL(FILES dsl.pc
         DESTINATION lib/pkgconfig)
 
-set(CPACK_SOURCE_IGNORE_FILES "/build/;/CVS/;/\\\\.svn/;\\\\.swp$;~$;\\\\.\\\\#;/\\\\#")
+set(CPACK_SOURCE_IGNORE_FILES "/.git/;/build/;/CVS/;/\\\\.svn/;\\\\.swp$;~$;\\\\.\\\\#;/\\\\#")
 
 INCLUDE(CPack)

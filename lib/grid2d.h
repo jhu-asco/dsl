@@ -12,14 +12,32 @@
 #include "grid.h"
 
 namespace dsl {
-  
-  class Grid2d : public Grid<2> {
-  public:
-    
-    Grid2d(int width, int height, double *map, 
-           double sx, double sy, double costScale,
-           double maxCost = 1);
-  };
+
+/**
+ * A 2d grid with coordinates (x,y)
+ *
+ */
+class Grid2d : public Grid< 2 > {
+public:
+  /**
+   * Initialize the grid using a 2d configuration-space map
+   * @param width width
+   * @param height height
+   * @param map the map
+   * @param sx x-scale of each grid cell
+   * @param sy y-scale of each grid cell
+   * @param costScale multiple the value of each grid cell by costScale
+   * @param maxCost any cell cost above maxCost is considered obstacle and not
+   * added to the graph
+   */
+  Grid2d(int width,
+         int height,
+         const double* map,
+         double sx,
+         double sy,
+         double costScale,
+         double maxCost = 1);
+};
 }
 
 #endif

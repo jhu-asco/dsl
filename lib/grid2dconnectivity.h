@@ -12,12 +12,16 @@
 #include "lineconnectivity.h"
 
 namespace dsl {
-  
-  
-  class Grid2dConnectivity : public LineConnectivity<2> {
-  public:
-    Grid2dConnectivity(const Grid<2> &grid);
-  };
+
+/**
+ * Defines a simple connectivity between cells in a 2d grid.
+ * The default implementation is the 8-cell Moore neighborhood connectivity.
+ * The costs are the Euclidean distances b/n the cell centers.
+ */
+class Grid2dConnectivity : public LineConnectivity< 2 > {
+public:
+  Grid2dConnectivity(const Grid< 2 >& grid);
+};
 }
 
 #endif

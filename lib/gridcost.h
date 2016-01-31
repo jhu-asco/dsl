@@ -13,25 +13,26 @@
 #include "gridpath.h"
 
 namespace dsl {
-  
-  /**
-   * Grid cost interface.
-   *
-   * Author: Marin Kobilarov -- Copyright (C) 2004
-   */
-  template<int n, class Tc = Matrix<double, n, 1> >
-    class GridCost : public Cost<Cell<n, Tc> > {
-  public:
-  double Real(const Cell<n, Tc> &a, const Cell<n, Tc> &b) const {
-    // default real cost is euclidean distance + average cell cost multiplied by Euclidean distance
-    return (1 + (a.cost + b.cost)/2)*(a.c - b.c).norm();
+
+/**
+ * Grid cost interface, defining cost between two cells
+ *
+ * Author: Marin Kobilarov -- Copyright (C) 2004
+ */
+template < int n, class Tc = Matrix< double, n, 1 > >
+class GridCost : public Cost< Cell< n, Tc > > {
+public:
+  double Real(const Cell< n, Tc >& a, const Cell< n, Tc >& b) const {
+    // default real cost is euclidean distance + average cell cost multiplied by
+    // Euclidean distance
+    return (1 + (a.cost + b.cost) / 2) * (a.c - b.c).norm();
   }
-  
-  double Heur(const Cell<n, Tc> &a, const Cell<n, Tc> &b) const {
+
+  double Heur(const Cell< n, Tc >& a, const Cell< n, Tc >& b) const {
     // default Heuristic cost is the Euclidean distance
     return (a.c - b.c).norm();
   }
-  };
+};
 }
 
 #endif
