@@ -14,24 +14,24 @@
 
 namespace dsl {
 
-using namespace std;
-
 /**
  * The most basic grid connectivity: each cell is connected with "lines" to
  * other cells, and each line has an associate cost.
  *
+ * DataType defines the cost of going through a point and
+ * should be a primitives type bool,int,float,double, etc...
+ *
  * Author: Marin Kobilarov
  */
-template < int n >
-class LineConnectivity : public GridConnectivity< n > {
+template < class PointType, class DataType = EmptyData>
+    class LineConnectivity : public GridConnectivity< PointType, DataType > {
 public:
-  typedef Matrix< double, n, 1 > Vectornd;
 
   /**
    * Initialize connectivity using a grid
    * @param grid the grid
    */
-  LineConnectivity(const Grid< n >& grid);
+  LineConnectivity(const Grid< PointType, DataType >& grid);
 
   /**
    * Initialize connectivity using a grid, lines, and costs
@@ -39,40 +39,42 @@ public:
    * @param lines the lines
    * @param costs the costs
    */
-  LineConnectivity(const Grid< n >& grid,
-                   const vector< Vectornd >& lines,
-                   const vector< double >& costs);
+  LineConnectivity(const Grid<PointType, DataType>& grid,
+                   const std::vector< Cell<PointType, DataType> >& lines,
+                   const std::vector< double >& costs);
 
-  virtual bool operator()(const Cell< n >& from,
-                          std::vector< GridPath< n > >& paths,
+  virtual bool Free(const DataType &cost) const override { return cost < 0.5; }
+
+  virtual bool operator()(const Cell<PointType, DataType>& from,
+                          std::vector< GridPath< PointType, DataType> >& paths,
                           bool fwd = true) const;
 
-  const Grid< n >& grid; ///< grid
-  std::vector< Vectornd >
-      lines; ///< line vectors (directions) connecting to other cells
+  const Grid<  PointType, DataType >& grid; ///< grid
+
+  std::vector< PointType > lines; ///< line vectors (directions) connecting to other cells
   std::vector< double > costs; ///< cost along each direction
 };
 
-template < int n >
-LineConnectivity< n >::LineConnectivity(const Grid< n >& grid)
+template < class PointType, class DataType >
+    LineConnectivity< PointType, DataType >::LineConnectivity(const Grid< PointType, DataType >& grid)
   : grid(grid) {}
 
-template < int n >
-LineConnectivity< n >::LineConnectivity(const Grid< n >& grid,
-                                        const vector< Vectornd >& lines,
-                                        const vector< double >& costs)
+template < class PointType, class DataType >
+LineConnectivity< PointType, DataType >::LineConnectivity(const Grid<  PointType, DataType >& grid,
+                                                          const std::vector< Cell< PointType, DataType> >& lines,
+                                                          const std::vector< double >& costs)
   : grid(grid), lines(lines), costs(costs) {}
 
-template < int n >
-bool LineConnectivity< n >::operator()(const Cell< n >& from,
-                                       vector< GridPath< n > >& paths,
-                                       bool fwd) const {
+template < class PointType, class DataType >
+    bool LineConnectivity< PointType, DataType >::operator()(const Cell< PointType, DataType >& from,
+                                                             std::vector< GridPath< PointType, DataType > >& paths,
+                                                             bool fwd) const {
   paths.clear();
-  for (int i = 0; i < (int)(lines.size()); ++i) {
-    GridPath< n > path;
+  for (size_t i = 0; i < lines.size(); ++i) {
+    GridPath< PointType, DataType > path;
     path.cells.push_back(from);
 
-    Vectornd x = from.c;
+    PointType x = from.c;
     if (fwd)
       x += lines[i];
     else
@@ -81,12 +83,17 @@ bool LineConnectivity< n >::operator()(const Cell< n >& from,
     if (!grid.Valid(x))
       continue;
 
-    const Cell< n >* to = grid.Get(x, false);
-    if (!to) // cell might be empty
+    auto cell = grid.Get(x, false);
+    if (!cell)
       continue;
 
-    path.cells.push_back(*to);
-    path.cost = (1 + (from.cost + to->cost) / 2) * this->costs[i];
+    if (!Free(cell->data)) // if obstacle
+      continue;
+    
+    //    path.cells.push_back(Cell<PointType, DataType>(0, x, *data));
+    path.cells.push_back(*cell);
+    //    path.cost = (1 + (from.data + data) / 2) * this->costs[i];
+    path.cost = this->costs[i];
     path.fwd = fwd;
     paths.push_back(path);
   }

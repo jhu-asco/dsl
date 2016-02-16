@@ -3,9 +3,15 @@
 
 #include <sys/time.h>
 #include <Eigen/Dense>
+#include "map.h"
+#include <vector>
 
 namespace dsl {
 
+  Map<bool, 2> load(const char* filename, const Eigen::Vector2d &cs);
+
+  void save(const dsl::Map<bool, 2> &map, const char* filename, const std::vector<Eigen::Vector2d> *path = 0);
+  
 void save_map(const char* map, int width, int height, const char* filename);
 
 char* load_map(int &width, int &height, const char* filename);

@@ -12,10 +12,13 @@
 #include "gridconnectivity.h"
 #include "cargrid.h"
 #include <vector>
+#include "carcost.h"
+#include "map.h"
 
 namespace dsl {
 
-typedef GridPath< 3, Matrix3d > SE2Path;
+using SE2Path = GridPath< Eigen::Vector3d, Eigen::Matrix3d >;
+using Vector1d = Eigen::Matrix<double, 1, 1>;
 
 /**
  * Simple car connectivity using primitives. It enables the generation of arcs
@@ -23,13 +26,11 @@ typedef GridPath< 3, Matrix3d > SE2Path;
  *
  * Author: Marin Kobilarov
  */
-class CarConnectivity : public GridConnectivity< 3, Matrix3d > {
+class CarConnectivity : public GridConnectivity< Eigen::Vector3d, Eigen::Matrix3d > {
 public:
   /**
    * Initialize cargrid connectivity
    * @param grid The car grid
-   * @param bp A scaling factor for penalizing going backward. Cost going
-   * backward= bp*cost going forward
    * @param onlyfwd If true, then only +ve forward velocity is used
    * @param wseg It decides the discretization of max angular velocity when
    * making the motion primitives
@@ -39,7 +40,6 @@ public:
    * @param vxmax maximum forward velocity.
    */
   CarConnectivity(const CarGrid& grid,
-                  double bp = 1.0,
                   bool onlyfwd = false,
                   int wseg = 2,
                   double tphimax = 0.577,
@@ -74,7 +74,9 @@ public:
 
   bool operator()(const SE2Cell& from,
                   std::vector< SE2Path >& paths,
-                  bool fwd = true) const;
+                  bool fwd = true) const override;
+
+  bool Free(const Eigen::Matrix3d &g) const override { return true; }
 
   /**
    * Generate a path (a sequence of points) from initialize state in SE(2)
@@ -94,12 +96,14 @@ public:
   double vx; ///< maximum forward velocity
   double w;  ///< maximum angular velocity
   double dt; ///< how long are the primitives
-  double bp; ///< A scaling factor for penalizing going backward. Cost going
-  /// backward= bp*cost going forward
 
-  std::vector< Vector3d >
+  std::vector< Eigen::Vector3d >
       vs; ///< primitives defined using motions with constant
   /// body-fixed velocities (w,vx,vy)
+
+  //  dsl::Map< std::vector<SE2Path>, 1 > amap;
+  
+  CarCost cost;
 };
 }
 

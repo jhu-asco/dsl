@@ -1,11 +1,12 @@
 #include "grid2dconnectivity.h"
 #include <iostream>
 
-using namespace dsl;
-using namespace std;
+namespace dsl {
 
-Grid2dConnectivity::Grid2dConnectivity(const Grid< 2 >& grid)
-  : LineConnectivity< 2 >(grid) {
+using Eigen::Vector2d;
+
+Grid2dConnectivity::Grid2dConnectivity(const Grid< Vector2d, double >& grid)
+    : LineConnectivity< Vector2d, double >(grid) {
   lines.push_back(Vector2d(-1, -1));
   lines.push_back(Vector2d(0, -1));
   lines.push_back(Vector2d(1, -1));
@@ -14,11 +15,11 @@ Grid2dConnectivity::Grid2dConnectivity(const Grid< 2 >& grid)
   lines.push_back(Vector2d(-1, 1));
   lines.push_back(Vector2d(0, 1));
   lines.push_back(Vector2d(1, 1));
-
-  vector< Vectornd >::iterator it;
-  for (it = lines.begin(); it != lines.end(); ++it) {
-    Vectornd& x = *it;
+  
+  for (auto& x : lines) {
     x = x.cwiseProduct(grid.cs);
     costs.push_back(x.norm());
   }
+}
+
 }

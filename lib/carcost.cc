@@ -1,7 +1,11 @@
 #include "carcost.h"
 #include "utils.h"
 
-using namespace dsl;
+namespace dsl {
+
+using Eigen::Vector3d;
+using Eigen::Matrix3d;
+using std::vector;
 
 CarCost::CarCost(double ac) : ac(ac) {}
 
@@ -10,7 +14,8 @@ double CarCost::Real(const SE2Cell& a, const SE2Cell& b) const {
   // Euclidean distance
   double d1 = (a.c.tail< 2 >() - b.c.tail< 2 >()).norm(); // position distance
   double d2 = fabs(fangle(a.c(0) - b.c(0))); // orientation distance
-  return (1 + (a.cost + b.cost) / 2) * (d1 + ac * d2);
+  //  return (1 + (a.cost + b.cost) / 2) * (d1 + ac * d2);
+  return d1 + ac * d2;
   //  return (1 + (a.cost + b.cost)/2)*sqrt(d1*d1 + ac*ac*d2*d2);
   // return sqrt(d1*d1 + ac*ac*d2*d2);
 }
@@ -28,4 +33,7 @@ double CarCost::Heur(const SE2Cell& a, const SE2Cell& b) const {
   //  distance
 
   // return sqrt(d1*d1 + ac*ac*d2*d2);
+}
+
+
 }

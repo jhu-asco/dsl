@@ -7,6 +7,7 @@
 #include "gridsearch.h"
 #include "grid2d.h"
 #include "gridcost.h"
+#include "traversabilitycost.h"
 #include "grid2dconnectivity.h"
 #include "utils.h"
 
@@ -22,7 +23,7 @@ int main(int argc, char** argv)
     cout << "\t\t output will be written to graphics files path1.ppm and path2.pppm" << endl;
     return 0;
   }
-
+    
   // load a map from ppm file
   assert(argc == 2);
   int width, height; 
@@ -36,11 +37,12 @@ int main(int argc, char** argv)
   memcpy(mapPath, chmap, width*height);
 
   // create planner
-  Grid2d grid(width, height, map, 1, 1, 1, 1e16);
-  GridCost<2> cost;
+  Grid2d grid(width, height, map, 1, 1, 1e16);
+  //  TraversabilityCost<Vector2d, double> cost;
+  GridCost<Vector2d, double> cost;
   Grid2dConnectivity connectivity(grid);
-  GridSearch<2> search(grid, connectivity, cost, false);
-  GridPath<2> path, optPath;
+  GridSearch<Vector2d, double> search(grid, connectivity, cost, true);
+  GridPath<Vector2d, double> path, optPath;
 
   search.SetStart(Vector2d(1, height/2));
   search.SetGoal(Vector2d(width - 2, height/2));
@@ -54,7 +56,7 @@ int main(int argc, char** argv)
   printf("path: count=%lu len=%f\n", path.cells.size(), path.cost);
 
   // print results
-  vector<Cell<2> >::iterator it;
+  vector<Cell<Vector2d, double> >::iterator it;
   for (it = path.cells.begin(); it != path.cells.end(); ++it) {
     int id = grid.Id(it->c);
     mapPath[id] = 2;
@@ -78,14 +80,14 @@ int main(int argc, char** argv)
   search.SetStart(Vector2d(28,18));
 
   // simulate closing the narrow passage
-  if (1) {
+  if (0) {
     // by increasing the cost drastically
     search.SetCost(Vector2d(29,18), 1000);
     search.SetCost(Vector2d(30,18), 1000);
     search.SetCost(Vector2d(31,18), 1000);
   } else {
     // a better way: by simply removing the passage
-    search.RemoveCell(Vector2d(30,18));
+    search.RemoveCell(Vector2d(30,18));        
   }
 
   // this is just for display
@@ -147,3 +149,4 @@ int main(int argc, char** argv)
 
   return 0;
 }
+

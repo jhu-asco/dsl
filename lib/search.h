@@ -14,7 +14,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
-#include <math.h>
 #include <unistd.h>
 #include <iostream>
 #include "graph.h"
@@ -117,7 +116,7 @@
 
 namespace dsl {
 
-template < class Tv, class Te = empty >
+template < class Tv, class Te = Empty >
 class Search {
 public:
   /**
@@ -181,6 +180,13 @@ public:
    */
   void ChangeCost(Edge< Tv, Te >& e, double cost);
 
+  /**
+   * Change the cost of either all incoming or all outgoing edges
+   * connected to verte x
+   * @param v vertex
+   * @param cost new cost
+   * @param in when to modify incoming edges or outgoing edges
+   */
   void ChangeCost(Vertex< Tv, Te >& v, double cost, bool in = true);
 
   /**
@@ -223,7 +229,16 @@ public:
     return graph.edges.size();
   }
 
-protected:
+  void SetDstarMin(bool dstarMin) { this->dstarMin = dstarMin; }
+
+  void SetGoalBiad(bool goalBias) { this->goalBias = goalBias; }
+
+  bool GetDstarMin() const { return dstarMin; }
+
+  bool GetGoalBiad() const { return goalBias; }
+
+private:
+
   void UpdateVertex(Vertex< Tv, Te >& u);
   void ComputeShortestPath();
   Vertex< Tv, Te >* MinSucc(double* minRhs, const Vertex< Tv, Te >& v);
@@ -260,13 +275,11 @@ protected:
 
   double eps; ///< epsilon for cost comparision
 
-public:
   bool dstarMin; ///< whether to use focussed D* -style min extraction: this was
   /// discovered to reduce vertex expansion (false by default)
   bool goalBias; ///< whether to employ goal bias heuristic: this can speed-up
   /// the search in easier environments (false by default)
 
-private:
   friend class Graph< Tv, Te >;
 };
 

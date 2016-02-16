@@ -9,17 +9,19 @@
 #ifndef DSL_CARCOST_H
 #define DSL_CARCOST_H
 
+#include <Eigen/Dense>
 #include "gridcost.h"
 
 namespace dsl {
 
-typedef Cell< 3, Matrix3d > SE2Cell;
+  // a cell that stores an SE(2) transformation  matrix
+  typedef Cell< Eigen::Vector3d, Eigen::Matrix3d > SE2Cell;
 
 /**
  * Car cost interface
  *
  */
-class CarCost : public GridCost< 3, Matrix3d > {
+  class CarCost : public GridCost< Eigen::Vector3d, Eigen::Matrix3d > {
 public:
   /**
    * Initialize the cost

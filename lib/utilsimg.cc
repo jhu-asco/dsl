@@ -31,15 +31,4 @@ void getRotdVertsInPixWrtOrg(Matrix2x4d& verts2d_rotd_pix,
   verts2d_rotd_pix = Scaling(1 / sx, 1 / sy) * (tfm2d * verts_wrt_center);
 }
 
-void fillQuad(double* data, int w, int h, Matrix2x4d verts, double val) {
-  for (int r = 0; r < h; r++) {
-    for (int c = 0; c < w; c++) {
-      int idx_2d = c + r * w;
-      if (inPoly(verts, Vector2d(c, r)))
-        data[idx_2d] = val;
-      else
-        data[idx_2d] = 0;
-    }
-  }
-}
 }

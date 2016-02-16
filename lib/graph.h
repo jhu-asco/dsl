@@ -25,9 +25,8 @@ class Search;
  *
  * Author: Marin Kobilarov
  */
-template < class Tv, class Te = empty >
-class Graph {
-public:
+template < class Tv, class Te = Empty >
+struct Graph {
   /**
    *   Initialize an empty graph
    */
@@ -91,7 +90,7 @@ public:
   std::map< int, Vertex< Tv, Te >* > vertices; ///< all vertices
 
   Search< Tv, Te >*
-      search; ///< search operating on this graph, this is necessary
+      search = 0; ///< search operating on this graph, this is necessary
   /// since in D*, we can remove/add edges to the graph,
   /// or change their costs, and the search will be
   /// updated accordingly though this field, so that next

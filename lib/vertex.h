@@ -32,7 +32,7 @@ class Search;
  *
  *  Author: Marin Kobilarov
  */
-template < class Tv, class Te = bool >
+template < class Tv, class Te = bool>
 class Vertex {
 public:
   /**
@@ -76,10 +76,10 @@ public:
   Vertex< Tv, Te >* next; ///< next state in a path (used for tracing paths)
   Vertex< Tv, Te >* prev; ///< previous state in a path (used for tracing paths)
 
+protected:
   double rhs; ///< dsl g heuristic values (used internally)
   double g;   ///< dsl rhs heuristic values (used internally)
 
-protected:
   static const int NEW = 0;    ///< open list label NEW
   static const int OPEN = 1;   ///< open list label OPEN
   static const int CLOSED = 2; ///< open list label CLOSED

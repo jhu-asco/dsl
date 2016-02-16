@@ -2,8 +2,13 @@
 #include <iostream>
 #include "utils.h"
 
-using namespace dsl;
-using namespace std;
+
+namespace dsl {
+
+using Eigen::Vector2d;
+using Eigen::Vector3d;
+using Eigen::Matrix3d;
+using std::vector;
 
 bool se2_times(Vector2d& t1,
                Vector2d& t2,
@@ -163,13 +168,13 @@ bool GenTraj(vector< Matrix3d > gs,
 }
 
 CarConnectivity::CarConnectivity(const CarGrid& grid,
-                                 double bp,
                                  bool onlyfwd,
                                  int wseg,
                                  double tphimax,
                                  int vseg,
                                  double vxmax)
-  : grid(grid), bp(bp) {
+    : grid(grid) {
+//    : grid(grid), amap(grid.xlb.head<1>(), grid.xub.head<1>(), Vector1d(grid.cs[0])) {
   //  vx = 1;
   //  SetPrimitives(vx, tphimax*vx, 1, onlyfwd, wseg);
 
@@ -200,17 +205,6 @@ bool CarConnectivity::SetPrimitives(
     }
   }
 
-  //  for(int i=0;i<=wseg;i++){
-  //    for(int j=1;j<=vseg;j++){
-  //      vs.push_back(Vector3d( i*w/wseg, vx, 0));
-  //      vs.push_back(Vector3d(-i*w/wseg, vx, 0));
-  //      if(!onlyfwd){
-  //        vs.push_back(Vector3d( i*w/wseg, -vx, 0));
-  //        vs.push_back(Vector3d(-i*w/wseg, -vx, 0));
-  //      }
-  //    }
-  //  }
-
   return true;
 }
 
@@ -235,7 +229,7 @@ bool CarConnectivity::Flow(SE2Path& path,
     se2_g2q(q, g0 * dg);
 
     // if out of bounds return false
-    if (!grid.Valid(q)) {
+    if (!grid.cmap.Valid(q)) {
       return false;
     }
 
@@ -244,12 +238,15 @@ bool CarConnectivity::Flow(SE2Path& path,
 
     // check if either this cell is not present or is obstructed (i.e. has cost
     // larger than maxCost)
-    if (!cell || cell->cost > grid.maxCost) {
+    //    if (!cell || cell->cost > grid.maxCost) {
+    //      return false;
+    //    }
+    if (!cell) {
       return false;
     }
 
     path.cells.push_back(*cell);
-    path.cost += cell->cost; // add up all cost along cells
+    // path.cost += cell->cost; // add up all cost along cells
   }
   // the true Euclidean length of the path is equal to fabs(v[0])
   path.cost = (path.cost + 1) * fabs(v[1]); // regard cell cost as
@@ -258,8 +255,8 @@ bool CarConnectivity::Flow(SE2Path& path,
                                             // travelled distance
 
   // additional penalty for reversing
-  if (v[1] < 0)
-    path.cost *= bp;
+  //  if (v[1] < 0)
+  //    path.cost *= bp;
 
   return true;
 }
@@ -287,11 +284,18 @@ bool CarConnectivity::
     // which can be accomplished by uncommenting the following
     //    GenTraj(path.data, g0, path.cells.back().data, w,vx, vx, w,vx, dt/5);
 
+    
+    
     if (!path.cells.size())
       continue;
+
+    // overwrite cost
+    path.cost = cost.Heur(path.cells.front(), path.cells.back());
 
     path.fwd = fwd;
     paths.push_back(path);
   }
   return true;
+}
+
 }

@@ -4,65 +4,89 @@
 #include "carcost.h"
 #include "carconnectivity.h"
 #include "utils.h"
+#include "params.h"
+#include <fstream>
 
 using namespace dsl;
 using namespace std;
 using namespace Eigen;
 
+vector<Vector2d> ToVector2dPath(const SE2Path &path) {
+  vector<Vector2d> path2d;
+  for (auto&& cell : path.cells)
+    path2d.push_back(Vector2d(cell.c.tail<2>()));
+  return path2d;
+}
+
 
 int main(int argc, char** argv)
 {
   if (argc!=2) {
-    cout << "Usage: $./cartest map4.ppm" << endl;
-    cout << "\t\t where map4.ppm is a map graphics file" << endl;
+    cout << "Usage: $./cartest params.cfg" << endl;
+    cout << "\t\t where params.cfg is a parameter file" << endl;
     cout << "\t\t output will be written to graphics files path1.ppm and path2.pppm" << endl;
     return 0;
   }
   assert(argc == 2);
 
+  Params params(argv[1]);
 
+  // get start and goal
   Vector3d goal, start;
-  //goal <<      0,  1, 11;
-  //start<< M_PI/2, 24, 12;
+  params.GetVector3d("start", start);
+  params.GetVector3d("goal", goal);
+
+  // get map
+  string mapName;
+  params.GetString("map", mapName);
+
+  // occupancy cell size
+  Vector3d ocs;
+  params.GetVector3d("ocs", ocs);  
+
+  // grid cell size (normally larger than ocs)
+  Vector3d gcs;
+  params.GetVector3d("gcs", gcs);  
+
+  // load an occupancy map from ppm file
+  dsl::Map<bool, 2> omap = load(mapName.c_str(), ocs.tail<2>());
+
+  // a map that we'll use for display
+  dsl::Map<bool, 2> dmap = omap;
 
 
-  // load a map from ppm file
-  int width, height; 
-  char* chmap = load_map(width, height, argv[1]);
-  char mapPath[width*height];
-  double map_data[width*height];
-  for (int i = 0; i < width*height; ++i)
-    map_data[i] = 1000*(double)chmap[i];
+  // dimensions are determined from occupancy map
+  Vector3d xlb(-M_PI + gcs[0]/2, omap.xlb[0], omap.xlb[1]);
+  Vector3d xub(M_PI + gcs[0]/2, omap.xub[0], omap.xub[1]);
 
-  // this is just for display
-  memcpy(mapPath, chmap, width*height);
+  // configuration-space map
+  dsl::Map<bool, 3> cmap(xlb, xub, ocs);
+  
+  CarGrid::MakeMap(omap, cmap);
+  
+  CarGrid grid(cmap, gcs);
+  CarCost cost;
+  CarConnectivity connectivity(grid);
+
+  double vx, w, dt;
+  params.GetDouble("vx", vx);
+  params.GetDouble("w", w);
+  params.GetDouble("dt", dt);
+  connectivity.SetPrimitives(vx, w, dt);
 
   cout << "Creating a graph..." << endl;
-
   // create planner
   struct timeval timer;
   timer_start(&timer);
-
-  Map2d map(width, height, map_data);
   
-  CarGrid grid(map, .1, .1, M_PI/16, 1, 0.5);
-  CarCost cost;
-  CarConnectivity connectivity(grid);
-  //  connectivity.SetPrimitives(1, tan(M_PI/3), 1);
-
-  GridSearch<3, Matrix3d> search(grid, connectivity, cost, false);
-  SE2Path path, optPath;
+  GridSearch<Vector3d, Matrix3d> search(grid, connectivity, cost, false);
+  SE2Path path;
 
   long time = timer_us(&timer);
   printf("graph construction time= %ld  us\n", time);
 
-  start << 0, .1, grid.xub[2]/2;
-  goal << 0, grid.xub[1] - .1, grid.xub[2]/2 ;
   search.SetStart(start);
   search.SetGoal(goal);
-  //  search.SetStart(Vector3d(0, .1, grid.xub[2]/2));
-  //  search.SetGoal(Vector3d(0, grid.xub[1] - .1, grid.xub[2]/2));
-  //  search.SetGoal(Vector3d(grid.xub[0]*.5, grid.xub[1]*.58, 15.0/16*M_PI));
 
   cout << "Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
 
@@ -75,15 +99,16 @@ int main(int argc, char** argv)
   printf("path: edges=%lu len=%f\n", path.cells.size(), path.cost);
 
   cout << "Graph has " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
-
-  // print results
-  vector<SE2Cell>::iterator it; 
-  for (it = path.cells.begin(); it != path.cells.end(); ++it) {
-    //    printf("(%d,%d) ",  path.cells[i].p[0], path.cells[i].p[1]);    
-    int x = grid.Index(it->c, 1);
-    int y = grid.Index(it->c, 2);
-    mapPath[y*width + x] = 2;// path.cells[i].p[1]*width +  path.cells[i].p[0]] = 2;
+  /*
+  // draw lattice
+  for (int i =0; i < grid.nc; ++i) {
+    if (grid.cells[i]) {
+      int id = dmap.Id(grid.cells[i]->c.tail<2>());
+      dmap.cells[id] = 1;// path.cells[i].p[1]*width +  path.cells[i].p[0]] = 2;
+    }
   }
+  */
+
   /*
   printf("\n");
   for (y = 0; y < height; ++y) {
@@ -96,11 +121,13 @@ int main(int argc, char** argv)
   */
   
   // save it to image for viewing
-  save_map(mapPath, width, height, "path1.ppm");
+  vector<Vector2d> path2d = ToVector2dPath(path);
+  save(dmap, "path1.ppm", &path2d);
+
   cout << "Map and path saved to path1.ppm" << endl;
 
   return 0;
-  
+  /*
   // follow path until middle
   Vector3d c = path.cells[path.cells.size()/2].c;
   search.SetStart(c);
@@ -134,7 +161,7 @@ int main(int argc, char** argv)
   printf("path: count=%lu len=%f\n", path.cells.size(), path.cost);
   fflush(stdout);
   
-
+  */
   // bypass the old vertex
   //  gdsl.AddEdge(29,18,31,18);  
   // // replan
@@ -156,6 +183,7 @@ int main(int argc, char** argv)
   printf("optPath: count=%lu len=%f\n", optPath.cells.size(), optPath.cost);
   */
 
+  /*
   for (it = path.cells.begin(); it != path.cells.end(); ++it) {
     int x = grid.Index(it->c, 0);
     int y = grid.Index(it->c, 1);
@@ -163,7 +191,7 @@ int main(int argc, char** argv)
   }
   // save it to image for viewing
   save_map(mapPath, width, height, "path2.ppm");
-  
+  */
 
   return 0;
 }

@@ -11,9 +11,9 @@ Grid3d::Grid3d(int length,
                double sz,
                double costScale,
                double maxCost)
-  : Grid< 3 >(Vector3d(0, 0, 0),
-              Vector3d(sx * length, sy * width, sz * height),
-              Vector3i(length, width, height)) {
+    : Grid< Eigen::Vector3d, double >(Eigen::Vector3d(0, 0, 0),
+              Eigen::Vector3d(sx * length, sy * width, sz * height),
+              Eigen::Vector3i(length, width, height)) {
   for (int i = 0; i < length; ++i) {
     for (int j = 0; j < width; ++j) {
       for (int k = 0; k < height; ++k) {
@@ -26,10 +26,12 @@ Grid3d::Grid3d(int length,
         // so
         // they shouldn't be added to the list of cells
         if (cost < maxCost) {
-          cells[id] = new Cell< 3 >(
-              Eigen::Vector3d((i + 0.5) * sx, (j + 0.5) * sy, (k + 0.5) * sz),
-              Eigen::Vector3d(sx / 2, sy / 2, sz / 2),
-              cost);
+          cells[id] = new Cell< Eigen::Vector3d, double >(id,
+                                                   Eigen::Vector3d((i + 0.5) * sx, (j + 0.5) * sy, (k + 0.5) * sz),
+                                                   cost);
+              //              Eigen::Vector3d((i + 0.5) * sx, (j + 0.5) * sy, (k + 0.5) * sz),
+              //              Eigen::Vector3d(sx / 2, sy / 2, sz / 2),
+              //              cost);
         }
       }
     }

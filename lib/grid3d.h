@@ -18,7 +18,7 @@ namespace dsl {
  *
  * Author: Matt Sheckells
  */
-class Grid3d : public Grid< 3 > {
+  class Grid3d : public Grid< Eigen::Vector3d, double > {
 public:
   /**
    * Initialize the grid using a 3d configuration-space map
