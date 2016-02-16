@@ -9,7 +9,6 @@
 #ifndef DSL_GRID_H
 #define DSL_GRID_H
 
-//#include "lattice.h"
 #include "cell.h"
 #include <Eigen/Dense>
 
@@ -18,9 +17,10 @@ namespace dsl {
 struct EmptyData {};
 
 /**
- * An n-dimenensional regular grid
+ * An n-dimenensional grid
+ * 
  */
-template < class PointType = Eigen::VectorXd, class DataType = EmptyData>
+template < class PointType, class DataType = EmptyData>
  struct Grid {
 
  using Vectorni =  Eigen::Matrix< int, PointType::SizeAtCompileTime, 1 >;
@@ -69,7 +69,7 @@ template < class PointType = Eigen::VectorXd, class DataType = EmptyData>
     memset(cells, 0, nc * sizeof(TCell*)); // initialize all of them nil
   }
 
-Grid(const Grid &grid) : n(grid.n), xlb(grid.xlb), xub(grid.xub), ds(grid.ds), cs(grid.cs), gs(grid.gs), nc(grid.nc) {
+  Grid(const Grid &grid) : n(grid.n), xlb(grid.xlb), xub(grid.xub), ds(grid.ds), cs(grid.cs), gs(grid.gs), nc(grid.nc) {
      cells = new TCell*[nc];
      memcpy(cells, grid.cells, nc * sizeof(TCell*)); // initialize all of them nil
    }

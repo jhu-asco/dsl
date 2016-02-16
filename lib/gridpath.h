@@ -33,7 +33,7 @@ public:
 
    std::vector< Cell<PointType, DataType> > cells; ///< list of cells along path
 
-  //  PathData data; ///< generic data stored along path; typically this represents a
+   // PathData data; ///< generic data stored along path; typically this represents a
   /// path/trajectory passing through the cells
 
   double cost; ///< cost of path

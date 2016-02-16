@@ -33,9 +33,18 @@ public:
   }
 
   double Heur(const TypedCell& a, const TypedCell& b) const {
+    /*
+    double dx = std::abs(a.c[0] - b.c[0]);
+    double dy = std::abs(a.c[1] - b.c[1]);
+    if (dx > dy)
+      return dx;
+    else
+      return dy;
+    */
+      
     // default Heuristic cost is the Euclidean distance
     //return (1 + (a.data + b.data) / 2) * (a.c - b.c).norm();
-    return  (a.c - b.c).norm();
+    return  .99*(a.c - b.c).norm();
   }
 };
 }

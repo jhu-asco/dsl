@@ -173,7 +173,7 @@ public:
   Vectornd cs;  ///< cell length size per dimension
 
   int nc = 0;         ///< total maximum number of cells
-  T* cells = nullptr; ///< array of pointers to cells
+  T* cells = nullptr; ///< array of cells
 
   T empty;  ///< empty data
 };

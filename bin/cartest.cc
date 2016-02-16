@@ -88,7 +88,7 @@ int main(int argc, char** argv)
   search.SetStart(start);
   search.SetGoal(goal);
 
-  cout << "Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
+  cout << "Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges." << endl;
 
   cout << "Planning a path..." << endl;
   // plan

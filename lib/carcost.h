@@ -27,14 +27,16 @@ public:
    * Initialize the cost
    * @param ac angular cost coefficient
    */
-  CarCost(double ac = 1);
+  CarCost(double ac = 1, double eps = 1e-6);
 
   double Heur(const SE2Cell& a, const SE2Cell& b) const;
   double Real(const SE2Cell& a, const SE2Cell& b) const;
 
-  double ac; ///< angular cost coefficient, default is 1 (the total cost is
+  double ac = 1; ///< angular cost coefficient, default is 1 (the total cost is
   /// proportional to |pa-pb| + ac*dist(aa, ab) ), where pa,pb are the
   /// positions and aa,ab are the angles
+
+  double eps = 1e-6; ///< heuristic cost is some quadratic norm on the coordinates multiplied by (1-eps)
 };
 }
 

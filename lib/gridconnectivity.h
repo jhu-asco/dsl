@@ -30,7 +30,7 @@ public:
                           std::vector< GridPath<PointType, DataType> >& paths,
                           bool fwd = true) const = 0;
 
-  virtual bool Free(const DataType &cost) const = 0;
+  virtual bool Free(const DataType &data) const = 0;
 
 };
 }

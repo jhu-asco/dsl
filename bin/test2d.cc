@@ -38,10 +38,10 @@ int main(int argc, char** argv)
 
   // create planner
   Grid2d grid(width, height, map, 1, 1, 1e16);
-  //  TraversabilityCost<Vector2d, double> cost;
-  GridCost<Vector2d, double> cost;
+  TraversabilityCost<Vector2d, double> cost;
+  // GridCost<Vector2d, double> cost;
   Grid2dConnectivity connectivity(grid);
-  GridSearch<Vector2d, double> search(grid, connectivity, cost, true);
+  GridSearch<Vector2d, double> search(grid, connectivity, cost, false);
   GridPath<Vector2d, double> path, optPath;
 
   search.SetStart(Vector2d(1, height/2));
