@@ -10,10 +10,11 @@
 #define DSL_GRIDCONNECTIVITY_H
 
 #include "gridpath.h"
+#include <tuple>
 
 namespace dsl {
 
-  template < class PointType, class DataType>
+  template < class PointType, class DataType, class ConnectionType>
 class GridConnectivity {
 public:
   /**
@@ -27,7 +28,7 @@ public:
    * @return true on success
    */
   virtual bool operator()(const Cell<PointType, DataType>& from,
-                          std::vector< GridPath<PointType, DataType> >& paths,
+                          std::vector< std::tuple<Cell<PointType, DataType>*, ConnectionType, double> >& toCells,
                           bool fwd = true) const = 0;
 
   virtual bool Free(const DataType &data) const = 0;

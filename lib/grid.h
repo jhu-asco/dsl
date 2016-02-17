@@ -170,7 +170,7 @@ template < class PointType, class DataType = EmptyData>
    * if checkValid=0 but dangerous)
    * @return pointer to a cell or 0 if cell does not exist
    */
-   const TCell* Get(const PointType& x, bool checkValid = true) const {
+   TCell* Get(const PointType& x, bool checkValid = true) const {
     if (checkValid)
       if (!Valid(x))
         return 0;
@@ -182,7 +182,7 @@ template < class PointType, class DataType = EmptyData>
    * @param id a non-negative id
    * @return pointer to a cell or 0 if cell does not exist
    */
-   const TCell* Get(int id) const {
+   TCell* Get(int id) const {
     assert(id >= 0);
     if (id >= nc)
       return 0;

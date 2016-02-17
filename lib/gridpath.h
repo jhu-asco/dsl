@@ -26,12 +26,14 @@ namespace dsl {
  * e.g. a continuous trajectory corresponding to the discrete sequence of cells.
  *
  */
- template <class PointType, class DataType>
+template <class PointType, class DataType, class ConnectionType>
 class GridPath {
 public:
   GridPath() : cost(0), fwd(0) {};
 
    std::vector< Cell<PointType, DataType> > cells; ///< list of cells along path
+
+   std::vector< ConnectionType > connections; ///< list of connections
 
    // PathData data; ///< generic data stored along path; typically this represents a
   /// path/trajectory passing through the cells

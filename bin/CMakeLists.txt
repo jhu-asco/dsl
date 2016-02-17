@@ -8,7 +8,7 @@ add_executable(cartest cartest.cc)
 #add_executable(carwithgeomtest carwithgeomtest.cc)
 
 target_link_libraries(test2d dsl)
-target_link_libraries(test3d dsl)
+#target_link_libraries(test3d dsl)
 target_link_libraries(cartest dsl)
 #target_link_libraries(carwithgeomtest dsl ${OpenCV_LIBRARIES})
 

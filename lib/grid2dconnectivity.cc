@@ -16,8 +16,8 @@ Grid2dConnectivity::Grid2dConnectivity(const Grid< Vector2d, double >& grid)
   lines.push_back(Vector2d(0, 1));
   lines.push_back(Vector2d(1, 1));
   
-  for (auto& x : lines) {
-    x = x.cwiseProduct(grid.cs);
+  for (auto&& x : lines) {
+    x = x.cwiseProduct(grid.cs); // scale by grid cell size
     costs.push_back(x.norm());
   }
 }

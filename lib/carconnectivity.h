@@ -17,7 +17,8 @@
 
 namespace dsl {
 
-using SE2Path = GridPath< Eigen::Vector3d, Eigen::Matrix3d >;
+  //using SE2Path = GridPath< Eigen::Vector3d, Eigen::Matrix3d >;
+using SE2Path = std::vector<Eigen::Matrix3d>;
 using Vector1d = Eigen::Matrix<double, 1, 1>;
 
 /**
@@ -26,7 +27,7 @@ using Vector1d = Eigen::Matrix<double, 1, 1>;
  *
  * Author: Marin Kobilarov
  */
-class CarConnectivity : public GridConnectivity< Eigen::Vector3d, Eigen::Matrix3d > {
+class CarConnectivity : public GridConnectivity< Eigen::Vector3d, Eigen::Matrix3d, SE2Path > {
 public:
   /**
    * Initialize cargrid connectivity
@@ -73,7 +74,7 @@ public:
                      int vseg = 1);
 
   bool operator()(const SE2Cell& from,
-                  std::vector< SE2Path >& paths,
+                  std::vector< std::tuple<SE2Cell*, SE2Path, double> >& paths,
                   bool fwd = true) const override;
 
   bool Free(const Eigen::Matrix3d &g) const override { return true; }
@@ -87,9 +88,10 @@ public:
    * @param v body fixed velocity (vx,vy,w)
    * @return true on success, false if obststructed by obstacle
    */
-  bool Flow(SE2Path& path,
+  bool Flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
             const Eigen::Matrix3d& g0,
             const Eigen::Vector3d& v) const;
+
 
   const CarGrid& grid; ///< the grid
 

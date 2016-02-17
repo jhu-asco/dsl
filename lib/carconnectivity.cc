@@ -10,7 +10,132 @@ using Eigen::Vector3d;
 using Eigen::Matrix3d;
 using std::vector;
 
-bool se2_times(Vector2d& t1,
+
+CarConnectivity::CarConnectivity(const CarGrid& grid,
+                                 bool onlyfwd,
+                                 int wseg,
+                                 double tphimax,
+                                 int vseg,
+                                 double vxmax)
+    : grid(grid) {
+  SetPrimitives(vxmax, tphimax * vxmax, 1, onlyfwd, wseg, vseg);
+}
+
+bool CarConnectivity::SetPrimitives(
+    double vx, double w, double dt, double onlyfwd, int wseg, int vseg) {
+  if (dt <= 0)
+    return false;
+
+  wseg = wseg < 1 ? 1 : wseg;
+
+  this->w = w;
+  this->vx = vx;
+  this->dt = dt;
+
+  vs.clear();
+
+  for (int i = 0; i <= wseg; i++) {
+    for (int j = 1; j <= vseg; j++) {
+      vs.push_back(Vector3d(i * w / wseg, j * vx / vseg, 0));
+      vs.push_back(Vector3d(-i * w / wseg, j * vx / vseg, 0));
+      if (!onlyfwd) {
+        vs.push_back(Vector3d(i * w / wseg, -j * vx / vseg, 0));
+        vs.push_back(Vector3d(-i * w / wseg, -j * vx / vseg, 0));
+      }
+    }
+  }
+
+  return true;
+}
+
+bool CarConnectivity::Flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
+                           const Matrix3d& g0,
+                           const Vector3d& v) const {
+  double d = fabs(v[1]);
+  double s = 2 * grid.cs[1]; // set step-size to side-length
+
+  Matrix3d g;
+  Vector3d q;
+
+  //  path.cells.clear();
+  SE2Path& path = std::get<1>(pathTuple);
+  SE2Cell *to = 0;
+  
+  // might be better to generate it backwards to more efficiently handle
+  // obstacles
+  //  for (double a = d; a > 0; a -= s) {
+  for (double a = s; a <= d; a += s) {
+    Matrix3d dg;
+    se2_exp(dg, (a / d) * v);
+    g = g0 * dg;
+    se2_g2q(q, g);
+
+    to = grid.Get(q);    
+    
+    // if out of bounds return false
+    //    if (!grid.cmap.Valid(q)) {
+    //      return false;
+    //    }
+
+    //    int id = grid.Id(q);
+    //    SE2Cell* cell = grid.cells[id];
+
+    // check if either this cell is not present or is obstructed (i.e. has cost
+    // larger than maxCost)
+    //    if (!cell || cell->cost > grid.maxCost) {
+    //      return false;
+    //    }
+    if (!to) {
+      return false;
+    }
+
+    path.push_back(g);
+  }
+
+  std::get<0>(pathTuple) = to;
+  std::get<2>(pathTuple) = d;
+  
+  return true; 
+}
+
+bool CarConnectivity::
+    operator()(const SE2Cell& from,
+               std::vector< std::tuple<SE2Cell*, SE2Path, double> >& paths,
+               bool fwd) const {
+  Matrix3d g0;
+  se2_q2g(g0, from.c);
+
+  paths.clear();
+  vector< Vector3d >::const_iterator it;
+  for (auto&& s : vs) {
+    // reverse time if fwd=false
+    std::tuple<SE2Cell*, SE2Path, double> pathTuple;
+    if (!Flow(pathTuple, g0, (fwd ? dt : -dt) * s))
+      continue;
+
+    // the path will now end inside the last cell but not exactly at the center,
+    // which is a good enough
+    // approximation if the cells are small
+
+    // For exact trajectory generation to the center, we need to use more
+    // complex inverse kinematics
+    // which can be accomplished by uncommenting the following
+    //    GenTraj(path.data, g0, path.cells.back().data, w,vx, vx, w,vx, dt/5);
+    
+    if (!std::get<1>(pathTuple).size())
+      continue;
+
+    // overwrite cost
+    //    path.cost = cost; //.Real(path.cells.front(), path.cells.back());
+
+    //    path.fwd = fwd;
+    paths.push_back(pathTuple);
+  }
+  return true;
+}
+
+/*
+bool CarConnectivity::se2_times(Vector2d& t1,
                Vector2d& t2,
                Vector2d& t3,
                const Vector3d& s1,
@@ -57,7 +182,7 @@ bool se2_times(Vector2d& t1,
   return true;
 }
 
-static double GenTraj(vector< Matrix3d >& gs,
+static double CarConnectivity::GenTraj(vector< Matrix3d >& gs,
                       const Matrix3d& g0,
                       const Vector3d& s,
                       double t0,
@@ -75,7 +200,7 @@ static double GenTraj(vector< Matrix3d >& gs,
   return t;
 }
 
-bool GenTraj(vector< Matrix3d > gs,
+bool CarConnectivity::GenTraj(vector< Matrix3d > gs,
              const Matrix3d& g0,
              const Matrix3d& gf,
              double w1,
@@ -166,136 +291,6 @@ bool GenTraj(vector< Matrix3d > gs,
 
   return true;
 }
-
-CarConnectivity::CarConnectivity(const CarGrid& grid,
-                                 bool onlyfwd,
-                                 int wseg,
-                                 double tphimax,
-                                 int vseg,
-                                 double vxmax)
-    : grid(grid) {
-//    : grid(grid), amap(grid.xlb.head<1>(), grid.xub.head<1>(), Vector1d(grid.cs[0])) {
-  //  vx = 1;
-  //  SetPrimitives(vx, tphimax*vx, 1, onlyfwd, wseg);
-
-  SetPrimitives(vxmax, tphimax * vxmax, 1, onlyfwd, wseg, vseg);
-}
-
-bool CarConnectivity::SetPrimitives(
-    double vx, double w, double dt, double onlyfwd, int wseg, int vseg) {
-  if (dt <= 0)
-    return false;
-
-  wseg = wseg < 1 ? 1 : wseg;
-
-  this->w = w;
-  this->vx = vx;
-  this->dt = dt;
-
-  vs.clear();
-
-  for (int i = 0; i <= wseg; i++) {
-    for (int j = 1; j <= vseg; j++) {
-      vs.push_back(Vector3d(i * w / wseg, j * vx / vseg, 0));
-      vs.push_back(Vector3d(-i * w / wseg, j * vx / vseg, 0));
-      if (!onlyfwd) {
-        vs.push_back(Vector3d(i * w / wseg, -j * vx / vseg, 0));
-        vs.push_back(Vector3d(-i * w / wseg, -j * vx / vseg, 0));
-      }
-    }
-  }
-
-  return true;
-}
-
-bool CarConnectivity::Flow(SE2Path& path,
-                           const Matrix3d& g0,
-                           const Vector3d& v) const {
-  double d = fabs(v[1]);
-  double s = 2 * grid.cs[1]; // set step-size to side-length
-
-  Matrix3d g;
-  Vector3d q;
-
-  path.cells.clear();
-  path.cost = 0;
-
-  // might be better to generate it backwards to more efficiently handle
-  // obstacles
-  //  for (double a = d; a > 0; a -= s) {
-  for (double a = s; a <= d; a += s) {
-    Matrix3d dg;
-    se2_exp(dg, (a / d) * v);
-    se2_g2q(q, g0 * dg);
-
-    // if out of bounds return false
-    if (!grid.cmap.Valid(q)) {
-      return false;
-    }
-
-    int id = grid.Id(q);
-    SE2Cell* cell = grid.cells[id];
-
-    // check if either this cell is not present or is obstructed (i.e. has cost
-    // larger than maxCost)
-    //    if (!cell || cell->cost > grid.maxCost) {
-    //      return false;
-    //    }
-    if (!cell) {
-      return false;
-    }
-
-    path.cells.push_back(*cell);
-    // path.cost += cell->cost; // add up all cost along cells
-  }
-  // the true Euclidean length of the path is equal to fabs(v[0])
-  path.cost = (path.cost + 1) * fabs(v[1]); // regard cell cost as
-                                            // "traversability" which
-                                            // additionally penalizes the
-                                            // travelled distance
-
-  // additional penalty for reversing
-  //  if (v[1] < 0)
-  //    path.cost *= bp;
-
-  return true;
-}
-
-bool CarConnectivity::
-    operator()(const SE2Cell& from, vector< SE2Path >& paths, bool fwd) const {
-  Matrix3d g0;
-  se2_q2g(g0, from.c);
-
-  paths.clear();
-  vector< Vector3d >::const_iterator it;
-  for (it = vs.begin(); it != vs.end(); ++it) {
-    const Vector3d& s = *it;
-    // reverse time if fwd=false
-    SE2Path path;
-    if (!Flow(path, g0, (fwd ? dt : -dt) * s))
-      continue;
-
-    // the path will now end inside the last cell but not exactly at the center,
-    // which is a good enough
-    // approximation if the cells are small
-
-    // For exact trajectory generation to the center, we need to use more
-    // complex inverse kinematics
-    // which can be accomplished by uncommenting the following
-    //    GenTraj(path.data, g0, path.cells.back().data, w,vx, vx, w,vx, dt/5);
-
-    
-    
-    if (!path.cells.size())
-      continue;
-
-    // overwrite cost
-    path.cost = cost.Heur(path.cells.front(), path.cells.back());
-
-    path.fwd = fwd;
-    paths.push_back(path);
-  }
-  return true;
-}
+*/
 
 }

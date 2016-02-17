@@ -41,8 +41,8 @@ int main(int argc, char** argv)
   TraversabilityCost<Vector2d, double> cost;
   // GridCost<Vector2d, double> cost;
   Grid2dConnectivity connectivity(grid);
-  GridSearch<Vector2d, double> search(grid, connectivity, cost, false);
-  GridPath<Vector2d, double> path, optPath;
+  GridSearch<Vector2d, double, Vector2d> search(grid, connectivity, cost, false);
+  GridPath<Vector2d, double, Vector2d> path, optPath;
 
   search.SetStart(Vector2d(1, height/2));
   search.SetGoal(Vector2d(width - 2, height/2));
@@ -117,7 +117,7 @@ int main(int argc, char** argv)
   // optimize path (experimental)
   
   timer_start(&timer);
-  search.OptPath(path, optPath);
+  //  search.OptPath(path, optPath);
   time = timer_us(&timer);
   printf("opt path time= %ld us\n", time);
   printf("optPath: count=%lu len=%f\n", optPath.cells.size(), optPath.cost);
