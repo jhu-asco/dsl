@@ -24,11 +24,8 @@ using Eigen::Matrix3d;
 CarGrid::CarGrid(const Map<bool, 3> &cmap,
                  const Vector3d& cs) 
     : Grid< Vector3d, Matrix3d >(cmap.xlb, cmap.xub, cs),
-    //    : Grid< 3, Matrix3d >(Vector3d(-M_PI + cs[0] / 2, 0, 0),
-    //                          Vector3d(M_PI + cs[0] / 2, cs[1] * map.width, cs[2] * map.height),
-    //                          Vector3i((int)round(2 * M_PI / cs[0]), map.width, map.height)),
-    cmap(cmap) {  
-  for (int k = 0; k < gs[0]; ++k) {    
+      cmap(cmap) {  
+  for (int k = 0; k < gs[0]; ++k) {
     for (int c = 0; c < gs[1]; ++c) {
       for (int r = 0; r < gs[2]; ++r) {
         // center of cell
@@ -135,51 +132,26 @@ CarGrid::CarGrid(const Map2d &map,
 */
 
 
-/*
+void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3> &cmap) {
 
-static void MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3> &cmap) {
-
-  const int& angRes = cmap.gs[0];
-  for (int k = 0; k < angRes; ++k) {
+  for (int ia = 0; ia < cmap.gs[0]; ++ia) {
     // create a dilated map for a particular angle
-    double theta = cmap.xlb[0] + (k + 0.5) * cmap.cs[0];
+    double theta = cmap.xlb[0] + (ia + 0.5) * cmap.cs[0];
 
-    int id = k*cmap.gs[1]*cmap.gs[2];
+    // dilated map
+    bool dmap[cmap.gs[1]*cmap.gs[2]];
     DilateMap(geom, theta,
               cmap.cs[1], cmap.cs[2], cmap.gs[1], cmap.gs[2], 
-              map.cells, cmap.cells + id); {
-
-    
-    double map_data_dil[map.width * map.height];
-
-    DilateMap(geom, theta, int width, int height,
-              const double* data, double* data_dil);
-
-    getDilatedMap(map_data_dil, map.data, theta);
-
-    for (int c = 0; c < map.width; ++c) {
-      for (int r = 0; r < map.height; ++r) {
-        int idx_2d = r * map.width + c; // since data is in row major format
-        int idx_3d = r * angRes * map.width + c * angRes +
-            k; // 1,2 and 3 dim are a,x and y respectively
-
-        double cost = costScale *
-            map_data_dil[idx_2d]; // Cell cost based on angle and geometry of car
-
-        // add this as a cell only if cost is less than a given max cost
-        // this is useful if maxCost defines map cells that are untreversable,
-        // so
-        // they shouldn't be added to the list of cells
-        if (cost < maxCost) {
-          cells[idx_3d] = new SE2Cell(
-              xlb + Vector3d((k + 0.5) * sa, (c + 0.5) * sx, (r + 0.5) * sy),
-              Vector3d(sa / 2, sx / 2, sy / 2),
-              cost);
-          se2_q2g(cells[idx_3d]->data, cells[idx_3d]->c);
-        }
+              map.cells, dmap);
+    for (int ix = 0; ix < cmap.gs[1]; ++ix) {
+      for (int iy = 0; iy < cmap.gs[2]; ++iy) {
+        cmap.cells[ia + ix*cmap.gs[0] + iy*cmap.gs[0]*cmap.gs[1]] = dmap[ix + iy*cmap.gs[1]];
+        //cmap.cells[ia + ix*cmap.gs[0] + iy*cmap.gs[0]*cmap.gs[1]] = dmap[iy + ix*cmap.gs[2]];
       }
-    }
-
+    }    
+  }
+}
+    
 
  void CarGrid::DilateMap(const CarGeom& geom, double theta,
                          double sx, double sy, int gx, int gy, 
@@ -215,15 +187,15 @@ static void MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3> &
   // zero
   int w_k = size2i_k(0);
   int h_k = size2i_k(1);
-  double data_k[w_k * h_k];
-  fillQuad(data_k,
+  bool data_k[w_k * h_k];
+  fillQuad<bool>(data_k,
            size2i_k(0),
            size2i_k(1),
            verts2i_rotd_pospix.cast< double >(),
            1.0);
 
   // Dilate
-  dilate(data_dil,
+  dilate<bool>(data_dil,
          data,
          gx,
          gy,
@@ -233,6 +205,4 @@ static void MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3> &
          org2i_rotd_pospix(0),
          org2i_rotd_pospix(1));
  }
-
-*/
 }

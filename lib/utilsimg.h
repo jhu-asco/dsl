@@ -145,7 +145,7 @@ void dilate(T* data_dil,
             int h_k,
             int ox_k,
             int oy_k) {
-  vector< double > prod(h_k * w_k);
+  vector< T > prod(h_k * w_k);
 
   // Visit each pixel in the main image
   for (int r = 0; r < h; r++) {
@@ -177,6 +177,7 @@ void dilate(T* data_dil,
       }
       data_dil[id] = *(max_element< typename vector< T >::iterator >(
           prod.begin(), prod.end()));
+
     }
   }
 }
@@ -190,7 +191,7 @@ void dilate(T* data_dil,
  * @param verts The 4 vertices of the quadrilateral
  * @param val the value that is to be fill in. Rest is 0
  */
-template < typename T = double>
+template < typename T = bool>
     void fillQuad(T* data, int w, int h, Matrix2x4d verts, T val) {
   for (int r = 0; r < h; r++) {
     for (int c = 0; c < w; c++) {

@@ -50,13 +50,13 @@ public:
   
   static void MakeMap(const Map<bool, 2> &map, Map<bool, 3> &cmap);
   
-  /*
+  
   static void MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3> &cmap);
   
-  static void DilateMap(const CarGeom& geom, double theta, int width, int height,
+  static void DilateMap(const CarGeom& geom, double theta,
+                        double sx, double sy, int gx, int gy, 
                         const bool* data, bool* data_dil);                        
-                        };
-  */
+ 
 };
 }
 

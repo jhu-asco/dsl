@@ -24,7 +24,7 @@ template < class PointType, class DataType = EmptyData>
  struct Grid {
 
  using Vectorni =  Eigen::Matrix< int, PointType::SizeAtCompileTime, 1 >;
- using TCell = Cell<PointType, DataType>;
+ using TypedCell = Cell<PointType, DataType>;
    
   /**
    * Initialize the grid using state lower bound, state upper bound, the number
@@ -43,8 +43,8 @@ template < class PointType, class DataType = EmptyData>
       nc *= gs[i]; // total number of cells
       cs[i] = (xub[i] - xlb[i]) / gs[i];
     }    
-    cells = new TCell*[nc];
-    memset(cells, 0, nc * sizeof(TCell*)); // initialize all of them nil
+    cells = new TypedCell*[nc];
+    memset(cells, 0, nc * sizeof(TypedCell*)); // initialize all of them nil
   }
 
     /**
@@ -65,13 +65,13 @@ template < class PointType, class DataType = EmptyData>
       nc *= gs[i]; // total number of cells
     }
 
-    cells = new TCell*[nc];
-    memset(cells, 0, nc * sizeof(TCell*)); // initialize all of them nil
+    cells = new TypedCell*[nc];
+    memset(cells, 0, nc * sizeof(TypedCell*)); // initialize all of them nil
   }
 
   Grid(const Grid &grid) : n(grid.n), xlb(grid.xlb), xub(grid.xub), ds(grid.ds), cs(grid.cs), gs(grid.gs), nc(grid.nc) {
-     cells = new TCell*[nc];
-     memcpy(cells, grid.cells, nc * sizeof(TCell*)); // initialize all of them nil
+     cells = new TypedCell*[nc];
+     memcpy(cells, grid.cells, nc * sizeof(TypedCell*)); // initialize all of them nil
    }
 
   virtual ~Grid() {
@@ -170,7 +170,7 @@ template < class PointType, class DataType = EmptyData>
    * if checkValid=0 but dangerous)
    * @return pointer to a cell or 0 if cell does not exist
    */
-   TCell* Get(const PointType& x, bool checkValid = true) const {
+   TypedCell* Get(const PointType& x, bool checkValid = true) const {
     if (checkValid)
       if (!Valid(x))
         return 0;
@@ -182,7 +182,7 @@ template < class PointType, class DataType = EmptyData>
    * @param id a non-negative id
    * @return pointer to a cell or 0 if cell does not exist
    */
-   TCell* Get(int id) const {
+   TypedCell* Get(int id) const {
     assert(id >= 0);
     if (id >= nc)
       return 0;
@@ -198,7 +198,7 @@ template < class PointType, class DataType = EmptyData>
   Vectorni gs;  ///< number of cells per dimension
 
   int nc;        ///< number of cells in grid
-  TCell** cells; ///< array of cell data
+  TypedCell** cells; ///< array of cell data
     
    //  DataType empty;
 };

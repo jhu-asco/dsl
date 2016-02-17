@@ -51,13 +51,13 @@ bool CarConnectivity::SetPrimitives(
 bool CarConnectivity::Flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
                            const Matrix3d& g0,
                            const Vector3d& v) const {
-  double d = fabs(v[1]);
-  double s = 2 * grid.cs[1]; // set step-size to side-length
+
+  double d = fabs(v[1]); // total distance along curve
+  double s = 2 * grid.cs[1]; // set step-size to 2*side-length
 
   Matrix3d g;
   Vector3d q;
 
-  //  path.cells.clear();
   SE2Path& path = std::get<1>(pathTuple);
   SE2Cell *to = 0;
   
@@ -70,21 +70,7 @@ bool CarConnectivity::Flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
     g = g0 * dg;
     se2_g2q(q, g);
 
-    to = grid.Get(q);    
-    
-    // if out of bounds return false
-    //    if (!grid.cmap.Valid(q)) {
-    //      return false;
-    //    }
-
-    //    int id = grid.Id(q);
-    //    SE2Cell* cell = grid.cells[id];
-
-    // check if either this cell is not present or is obstructed (i.e. has cost
-    // larger than maxCost)
-    //    if (!cell || cell->cost > grid.maxCost) {
-    //      return false;
-    //    }
+    to = grid.Get(q);
     if (!to) {
       return false;
     }

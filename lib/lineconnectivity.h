@@ -11,6 +11,7 @@
 
 #include "gridconnectivity.h"
 #include "grid.h"
+#include "spline.h"
 
 namespace dsl {
 
@@ -181,7 +182,7 @@ template < class PointType, class DataType >
         int id = grid.Id(x);
         assert(id >= 0 && id < grid.nc);
         //        if (!grid.cells[id] || grid.cells[id]->cost > freeCost) {
-        if (!grid.cells[id]) {// || !connectivity.Free(grid.cells[id]->data)) {
+        if (!grid.cells[id] || !Free(grid.cells[id]->data)) {
           optPath.cells.push_back(*it1);
           x0 = x1;
           break;
@@ -202,6 +203,7 @@ template < class PointType, class DataType >
                                                              std::vector< PointType >& splinePath,
                                                              double traceStep) const {
   std::vector< double > steps(path.cells.size());
+  int n = lines[0].size();
   std::vector< std::vector< double > > pts(n, std::vector< double >(path.cells.size()));
   for (int i = 0; i < (int)(path.cells.size()); i++) {
     steps[i] = i;
@@ -235,12 +237,14 @@ template < class PointType, class DataType >
       std::cout << "dsl::SplinePath: Cell does not exist" << std::endl;
       return;
     }
+    /*
     splineCells.cells[i] = *(grid.Get(splinePath[i]));
     if(i > 0)
     {
       splineCells.cost +=
     (splineCells.cells[i].c-splineCells.cells[i-1].c).norm();
     }
+    */
   }
 }
 

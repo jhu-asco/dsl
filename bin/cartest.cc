@@ -11,10 +11,13 @@ using namespace dsl;
 using namespace std;
 using namespace Eigen;
 
-vector<Vector2d> ToVector2dPath(const SE2Path &path) {
+using CarPath = GridPath<Vector3d, Matrix3d, SE2Path>;
+
+vector<Vector2d> ToVector2dPath(const CarPath &path) {
   vector<Vector2d> path2d;
-  for (auto&& cell : path.cells)
-    path2d.push_back(Vector2d(cell.c.tail<2>()));
+  for (auto&& connection : path.connections)
+    for (auto&& g : connection)      
+      path2d.push_back(g.topRightCorner<2,1>());
   return path2d;
 }
 
@@ -62,7 +65,15 @@ int main(int argc, char** argv)
   // configuration-space map
   dsl::Map<bool, 3> cmap(xlb, xub, ocs);
   
-  CarGrid::MakeMap(omap, cmap);
+  //  CarGrid::MakeMap(omap, cmap);
+    double l=0.75;
+  double b=0.43;
+  double ox = -0.15;
+  double oy = 0.0;
+
+  CarGeom geom(l, b, ox, oy);
+  CarGrid::MakeMap(geom, omap, cmap);
+
   
   CarGrid grid(cmap, gcs);
   CarCost cost;
@@ -79,8 +90,8 @@ int main(int argc, char** argv)
   struct timeval timer;
   timer_start(&timer);
   
-  GridSearch<Vector3d, Matrix3d> search(grid, connectivity, cost, false);
-  SE2Path path;
+  GridSearch<Vector3d, Matrix3d, SE2Path> search(grid, connectivity, cost, false);
+  CarPath path;
 
   long time = timer_us(&timer);
   printf("graph construction time= %ld  us\n", time);

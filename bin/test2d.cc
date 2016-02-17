@@ -86,7 +86,7 @@ int main(int argc, char** argv)
     search.SetCost(Vector2d(30,18), 1000);
     search.SetCost(Vector2d(31,18), 1000);
   } else {
-    // a better way: by simply removing the passage
+    // another way: by simply removing the passage
     search.RemoveCell(Vector2d(30,18));        
   }
 
@@ -117,7 +117,7 @@ int main(int argc, char** argv)
   // optimize path (experimental)
   
   timer_start(&timer);
-  //  search.OptPath(path, optPath);
+  connectivity.OptPath(path, optPath);
   time = timer_us(&timer);
   printf("opt path time= %ld us\n", time);
   printf("optPath: count=%lu len=%f\n", optPath.cells.size(), optPath.cost);
