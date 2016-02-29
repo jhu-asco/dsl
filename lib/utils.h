@@ -30,6 +30,8 @@ void se2_inv(Eigen::Matrix3d& mi, const Eigen::Matrix3d& m);
 
 void se2_exp(Eigen::Matrix3d& m, const Eigen::Vector3d& v, double tol = 1e-16);
 
+void replaceExt(std::string& s, const std::string& newExt);
+
 /**
  * Function that returns a sign for object of any class as long as the operator
  * - and operator < are defined

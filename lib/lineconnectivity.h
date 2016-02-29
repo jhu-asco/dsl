@@ -103,9 +103,6 @@ template < class PointType, class DataType >
                                                              bool fwd) const {
   paths.clear();
   for (size_t i = 0; i < lines.size(); ++i) {
-    // GridPath< PointType, DataType > path;
-    //  path.cells.push_back(from);
-
     PointType x = from.c;
     if (fwd)
       x += lines[i];
@@ -122,12 +119,7 @@ template < class PointType, class DataType >
     if (!Free(cell->data)) // if obstacle
       continue;
 
-    paths.push_back(std::make_tuple(cell, lines[i], costs[i]));
-    
-    //    path.cells.push_back(*cell);
-    //    path.cost = this->costs[i];
-    //    path.fwd = fwd;
-    //    paths.push_back(path);
+    paths.push_back(std::make_tuple(cell, lines[i], costs[i]));    
   }
   return true;
 }
@@ -150,9 +142,7 @@ template < class PointType, class DataType >
     optPath.cost = path.cost;
     return;
   }
-  //  typename vector< Cell<PointType, DataType> >::const_iterator it0;
   auto it0 = path.cells.begin();
-  //  typename vector< Cell<PointType, DataType> >::const_iterator it1;
   auto it1 = it0 + 1;
 
   PointType x0 = it0->c;
@@ -181,7 +171,6 @@ template < class PointType, class DataType >
         PointType x = x0 + dx1 * d;
         int id = grid.Id(x);
         assert(id >= 0 && id < grid.nc);
-        //        if (!grid.cells[id] || grid.cells[id]->cost > freeCost) {
         if (!grid.cells[id] || !Free(grid.cells[id]->data)) {
           optPath.cells.push_back(*it1);
           x0 = x1;

@@ -24,9 +24,20 @@ struct CarGeom {
   CarGeom (double l = 0, double b = 0, double ox = 0, double oy = 0) : l(l), b(b), ox(ox), oy(oy) {}
   double l;  ///< dim of the rectangle bounding the car along the x direction
   double b;  ///< dim of the rectangle bounding the car along the y direction
+
+  //  Eigen::Vector2d o;
+  
   double ox; ///< x position of the center of the origin of the car wrt to the
   /// center of bounding rectangle
   double oy; ///< y position of the center of the origin of the car wrt to the
+
+  void Raster(const Eigen::Vector2d &cs, std::vector<Eigen::Vector2d> &points) const {
+    points.clear();
+    for (double x = 0; x < l; x += cs[0])
+      for (double y = 0; y < b; y += cs[1])
+        points.push_back(Eigen::Vector2d(x + ox, y + oy));
+  }
+
   /// center of bounding rectangle
 };
 
@@ -43,20 +54,21 @@ public:
   CarGrid(const Map<bool, 3> &cmap,
           const Eigen::Vector3d& cs);
   
-  double maxCost; ///< any cell cost above maxCost is considered obstacle and
-  /// not added to the graph
-
   const Map<bool, 3>& cmap; ///< configuration-space map
   
   static void MakeMap(const Map<bool, 2> &map, Map<bool, 3> &cmap);
-  
   
   static void MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3> &cmap);
   
   static void DilateMap(const CarGeom& geom, double theta,
                         double sx, double sy, int gx, int gy, 
-                        const bool* data, bool* data_dil);                        
- 
+                        const bool* data, bool* data_dil);
+
+
+  void Slice(const Map<bool, 3> &cmap, double a, Map<bool, 2> &map) const;
+
+  
+    //  std::vector<Eigen::Vector2d> raster;
 };
 }
 

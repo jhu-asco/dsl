@@ -17,8 +17,15 @@ namespace dsl {
 struct EmptyData {};
 
 /**
- * An n-dimenensional grid
- * 
+ * An n-dimenensional grid consisting of abstract "cells", or elements
+ * identified by a set of coordinates of type PointType, each cell
+ * containing data of type DataType.
+ * A grid provides instant access to the elements by maintaining
+ * an n-dimensional array of pointers to cells. Cells that are empty,
+ * e.g. that are inside obstacles, correspond to null pointers.
+ *
+ * Note that this data structure is only viable up to a few dimensions,
+ * e.g. dim=5 or 6.
  */
 template < class PointType, class DataType = EmptyData>
  struct Grid {
@@ -79,45 +86,20 @@ template < class PointType, class DataType = EmptyData>
   }
 
   /**
-   * Check if point x is whitin grid bounds
+   * Check if point x is within grid bounds
    * @param x point
    * @return true if within bounds
    */
-  virtual bool Valid(const PointType& x) const {
+  virtual bool Valid(const PointType& x, double eps = 1e-10) const {
     for (int i = 0; i < x.size(); ++i) {
-      if (x[i] < xlb[i])
+      if (x[i] < xlb[i] + eps)
         return false;
-      if (x[i] > xub[i])
+      if (x[i] > xub[i] - eps)
         return false;
     }
     return true;
   }
 
-  /**
-   * Get an id of point x useful for direct lookup in the grid array
-   * @param x point
-   * @return a computed id
-  PointType Point(int id) const {
-       // unroll loop for n=1,2,3,4 for efficiency
-    return floor((x[i] - xlb[i]) / ds[i] * gs[i]);
-
-    if (n==1)
-      return PointType(xlb[0] + id*ds[i]/gs[0]);
-
-    if (n==2)
-      return (x[0] - xlb[0]) / ds[0] * gs[0]) + gs[0]*(x[1] - xlb[1]) / ds[1] * gs[1]);
-
-    if (n==3)
-      return Index(x, 0) + gs[0]*Index(x, 1) + gs[0]*gs[1]*Index(x, 2);
-
-    if (n==4) {
-      int cum = gs[0]*gs[1];
-      return Index(x, 0) + gs[0]*Index(x, 1) + cum*Index(x, 2) + cum*gs[2]*Index(x, 3);
-    }
-  }
-   */
-
-  
   /**
    * Get an id of point x useful for direct lookup in the grid array
    * @param x point
@@ -162,7 +144,7 @@ template < class PointType, class DataType = EmptyData>
     return floor((x[i] - xlb[i]) / (xub[i] - xlb[i]) * gs[i]);
   }
 
-  
+   
   /**
    * Get the cell at position x
    * @param x point
@@ -197,10 +179,8 @@ template < class PointType, class DataType = EmptyData>
   PointType cs;  ///< cell length size per dimension
   Vectorni gs;  ///< number of cells per dimension
 
-  int nc;        ///< number of cells in grid
-  TypedCell** cells; ///< array of cell data
-    
-   //  DataType empty;
+  int nc = 0;        ///< number of cells in grid
+  TypedCell** cells = nullptr; ///< array of cell data
 };
 }
 

@@ -390,7 +390,6 @@ void Search< Tv, Te >::ComputeShortestPath() {
 
   graph.search = this;
 
-  //  assert(!fibheap_empty(openList));
   if (fibheap_empty(openList)) {
     std::cerr << "[W] Search::ComputeShortestPath: openList is empty -- most "
                  "likely this means that a there is no path between start and "
@@ -402,6 +401,7 @@ void Search< Tv, Te >::ComputeShortestPath() {
                       start->rhs != start->g)) {
     u = Top();
 
+    // expand backwards
     Expand(*u, false);
 
     kold[0] = u->key[0];

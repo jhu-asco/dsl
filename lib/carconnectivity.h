@@ -17,18 +17,31 @@
 
 namespace dsl {
 
-  //using SE2Path = GridPath< Eigen::Vector3d, Eigen::Matrix3d >;
 using SE2Path = std::vector<Eigen::Matrix3d>;
 using Vector1d = Eigen::Matrix<double, 1, 1>;
 
 /**
  * Simple car connectivity using primitives. It enables the generation of arcs
  * from a given SE(2) state. These are then used to connect two cells in SE(2)
+ * Each connection corresponds to an SE2Path, i.e. a vector of SE(2) poses
  *
  * Author: Marin Kobilarov
  */
 class CarConnectivity : public GridConnectivity< Eigen::Vector3d, Eigen::Matrix3d, SE2Path > {
 public:
+
+  /**
+   * Initialize cargrid connectivity with primitives corresponding to
+   * motions with constant body fixed velocities for a fixed duration dt
+   * @param grid The car grid
+   * @param vs body-fixed velocities (each v=(vw,vx,vy))
+   * @param dt time duration
+   */
+  CarConnectivity(const CarGrid& grid,
+                  const std::vector<Eigen::Vector3d>& vs,
+                  double dt = .25);
+  
+  
   /**
    * Initialize cargrid connectivity
    * @param grid The car grid
@@ -42,10 +55,10 @@ public:
    */
   CarConnectivity(const CarGrid& grid,
                   bool onlyfwd = false,
-                  int wseg = 2,
+                  int wseg = 4,
                   double tphimax = 0.577,
-                  int vseg = 1,
-                  double vxmax = 1);
+                  int vseg = 2,
+                  double vxmax = 5);
 
   /**
    * Use a set of primitive motions, i.e. arcs with body fixed forward
@@ -70,8 +83,8 @@ public:
                      double w,
                      double dt,
                      double onlyfwd = false,
-                     int wseg = 2,
-                     int vseg = 1);
+                     int wseg = 4,
+                     int vseg = 2);
 
   bool operator()(const SE2Cell& from,
                   std::vector< std::tuple<SE2Cell*, SE2Path, double> >& paths,
@@ -95,16 +108,12 @@ public:
 
   const CarGrid& grid; ///< the grid
 
-  double vx; ///< maximum forward velocity
-  double w;  ///< maximum angular velocity
-  double dt; ///< how long are the primitives
-
   std::vector< Eigen::Vector3d >
       vs; ///< primitives defined using motions with constant
   /// body-fixed velocities (w,vx,vy)
 
-  //  dsl::Map< std::vector<SE2Path>, 1 > amap;
-  
+  double dt = .5; ///< how long are the primitives
+
   CarCost cost;
 };
 }

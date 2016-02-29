@@ -12,14 +12,13 @@
 #include <iostream>
 #include "utilsimg.h"
 
-using namespace dsl;
-using namespace Eigen;
-using namespace std;
-
 namespace dsl {
 
 using Eigen::Vector3d;
+using Eigen::Vector2d;
 using Eigen::Matrix3d;
+
+using std::vector;
 
 CarGrid::CarGrid(const Map<bool, 3> &cmap,
                  const Vector3d& cs) 
@@ -30,12 +29,12 @@ CarGrid::CarGrid(const Map<bool, 3> &cmap,
       for (int r = 0; r < gs[2]; ++r) {
         // center of cell
         Vector3d x = xlb + Vector3d((k + 0.5) * cs[0], (c + 0.5) * cs[1], (r + 0.5) * cs[2]);
+          int id = r*gs[0]*gs[1] + c*gs[0] + k;
 
         bool occ = cmap.Get(x, false);
         if (!occ) {
-          int id = r*gs[0]*gs[1] + c*gs[0] + k;
-          cells[id] = new SE2Cell(id,
-                                  x);
+          cells[id] = new SE2Cell(id, x);
+
           se2_q2g(cells[id]->data, cells[id]->c);
         }
       }
@@ -52,87 +51,89 @@ void CarGrid::MakeMap(const Map<bool, 2> &map, Map<bool, 3> &cmap) {
     for (int j = 0; j < cmap.gs[1]; ++j) {
       for (int k = 0; k < cmap.gs[2]; ++k) {
         int id2 = j + cmap.gs[1]*k; //2d index ito map
-        int id3 = i + cmap.gs[0]*j + cmap.gs[0]*cmap.gs[1]*k; // 3d index into cmap        
+        assert(id2 < map.nc);
+        int id3 = i + cmap.gs[0]*j + cmap.gs[0]*cmap.gs[1]*k; // 3d index into cmap
+        assert(id3 < cmap.nc);              
         cmap.cells[id3] = map.cells[id2];
       }
     }
   }
 }
 
+void CarGrid::Slice(const Map<bool, 3> &cmap, double a, Map<bool, 2> &map) const {
+  assert(map.gs[0] == cmap.gs[1]);
+  assert(map.gs[1] == cmap.gs[2]);
 
-/*
-  
-  const int& angRes = gs[0];
-  for (int k = 0; k < angRes; ++k) {
-    // create a dilated map for a particular angle
-    double theta = xlb(0) + (k + 0.5) * sa;
-    double map_data_dil[map.width * map.height];
-    getDilatedMap(map_data_dil, map.data, theta);
-
-    for (int c = 0; c < map.width; ++c) {
-      for (int r = 0; r < map.height; ++r) {
-        int idx_2d = r * map.width + c; // since data is in row major format
-        int idx_3d = r * angRes * map.width + c * angRes +
-            k; // 1,2 and 3 dim are a,x and y respectively
-
-        double cost = costScale *
-            map_data_dil[idx_2d]; // Cell cost based on angle and geometry of car
-
-        // add this as a cell only if cost is less than a given max cost
-        // this is useful if maxCost defines map cells that are untreversable,
-        // so
-        // they shouldn't be added to the list of cells
-        if (cost < maxCost) {
-          cells[idx_3d] = new SE2Cell(
-              xlb + Vector3d((k + 0.5) * sa, (c + 0.5) * sx, (r + 0.5) * sy),
-              Vector3d(sa / 2, sx / 2, sy / 2),
-              cost);
-          se2_q2g(cells[idx_3d]->data, cells[idx_3d]->c);
-        }
-      }
+  int ia = cmap.Index(a, 0);
+  for (int ix = 0; ix < cmap.gs[1]; ++ix) {
+    for (int iy = 0; iy < cmap.gs[2]; ++iy) {
+      // index into workspace
+      int id2 = ix + iy*cmap.gs[1];
+      assert(id2 < map.nc);
+        // index into configuration space
+      int id3 = ia + ix*cmap.gs[0] + iy*cmap.gs[0]*cmap.gs[1];
+      assert(id3 < cmap.nc);
+      map.cells[id2] = cmap.cells[id3];
     }
-  }
+  }    
 }
-
-CarGrid::CarGrid(const Map2d &map,
-                 double sx,
-                 double sy,
-                 double sa,
-                 double costScale,
-                 double maxCost)
-  : Grid< 3, Matrix3d >(Vector3d(-M_PI + sa / 2, 0, 0),
-                        Vector3d(M_PI + sa / 2, sx * map.width, sy * map.height),
-                        Vector3i((int)round(2 * M_PI / sa), map.width, map.height)),
-    maxCost(maxCost) {
-  const int& angRes = gs[0];
-  for (int c = 0; c < map.width; ++c) {
-    for (int r = 0; r < map.height; ++r) {
-      int idx_2d = r * map.width + c;
-      // The pixel value in
-      double cost =
-          map.data[idx_2d] * costScale; // cell cost = height/occupany/traversability
-      for (int k = 0; k < angRes; ++k) {
-        int idx_3d = r * angRes * map.width + c * angRes + k;
-
-        // add this as a cell only if cost is less than a given max cost
-        // this is useful if maxCost defines map cells that are untreversable,
-        // so
-        // they shouldn't be added to the list of cells
-        if (cost < maxCost) {
-          cells[idx_3d] = new SE2Cell(
-              xlb + Vector3d((k + 0.5) * sa, (c + 0.5) * sx, (r + 0.5) * sy),
-              Vector3d(sa / 2, sx / 2, sy / 2),
-              cost);
-          se2_q2g(cells[idx_3d]->data, cells[idx_3d]->c);
-        }
-      }
-    }
-  }
-}
-*/
 
 
 void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3> &cmap) {
+  assert(map.gs[0] == cmap.gs[1]);
+  assert(map.gs[1] == cmap.gs[2]);
+
+  vector<Vector2d> points;
+  geom.Raster(map.cs, points);
+
+  Matrix2d R;
+
+  for (int ia = 0; ia < cmap.gs[0]; ++ia) {
+    // dilate map for a particular angle
+    double theta = (ia + 0.5) * cmap.cs[0] + cmap.xlb[0];
+
+    // make a rotation matrix
+    double ct = cos(theta);
+    double st = sin(theta);
+    R(0,0) = ct; R(0,1) = -st;
+    R(1,0) = st; R(1,1) = ct;
+    
+    // dilated map
+    //    bool dmap[cmap.gs[1]*cmap.gs[2]];
+    //    DilateMap(geom, theta,
+    //              cmap.cs[1], cmap.cs[2], cmap.gs[1], cmap.gs[2], 
+    //              map.cells, dmap);
+    for (int ix = 0; ix < cmap.gs[1]; ++ix) {
+      double x = (ix + 0.5)*cmap.cs[1] + cmap.xlb[1];
+      
+      for (int iy = 0; iy < cmap.gs[2]; ++iy) {
+        // index into workspace
+        int id2 = ix + iy*cmap.gs[1];
+        assert(id2 < map.nc);
+        // if free continue
+        if (!map.cells[id2])
+          continue;
+
+        double y = (iy + 0.5)*cmap.cs[2] + cmap.xlb[2];
+
+        // index into configuration space
+        //        int id3 = ia + ix*cmap.gs[0] + iy*cmap.gs[0]*cmap.gs[1];
+
+        Vector2d p0(x,y); // position of car origin
+        for (auto&& dp : points) {
+          Vector2d p = p0 + R*dp; // point on the car
+          cmap.Set(Vector3d(theta, p[0], p[1]), true);
+        }
+      }
+    }    
+  }
+}
+
+
+/*
+void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3> &cmap) {
+  assert(map.gs[0] == cmap.gs[1]);
+  assert(map.gs[1] == cmap.gs[2]);
 
   for (int ia = 0; ia < cmap.gs[0]; ++ia) {
     // create a dilated map for a particular angle
@@ -146,12 +147,11 @@ void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3>
     for (int ix = 0; ix < cmap.gs[1]; ++ix) {
       for (int iy = 0; iy < cmap.gs[2]; ++iy) {
         cmap.cells[ia + ix*cmap.gs[0] + iy*cmap.gs[0]*cmap.gs[1]] = dmap[ix + iy*cmap.gs[1]];
-        //cmap.cells[ia + ix*cmap.gs[0] + iy*cmap.gs[0]*cmap.gs[1]] = dmap[iy + ix*cmap.gs[2]];
       }
     }    
   }
 }
-    
+*/
 
  void CarGrid::DilateMap(const CarGeom& geom, double theta,
                          double sx, double sy, int gx, int gy, 

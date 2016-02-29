@@ -43,39 +43,58 @@ int main(int argc, char** argv)
   string mapName;
   params.GetString("map", mapName);
 
+  // get map
+  string cmapName;
+  bool cmapValid = params.GetString("cmap", cmapName);
+  
   // occupancy cell size
   Vector3d ocs;
-  params.GetVector3d("ocs", ocs);  
+  params.GetVector3d("ocs", ocs);
 
   // grid cell size (normally larger than ocs)
   Vector3d gcs;
-  params.GetVector3d("gcs", gcs);  
+  params.GetVector3d("gcs", gcs);
 
+  Vector4d whxy;
+  bool useGeom = params.GetVector4d("geom", whxy);
+  
   // load an occupancy map from ppm file
   dsl::Map<bool, 2> omap = load(mapName.c_str(), ocs.tail<2>());
 
   // a map that we'll use for display
   dsl::Map<bool, 2> dmap = omap;
 
-
   // dimensions are determined from occupancy map
   Vector3d xlb(-M_PI + gcs[0]/2, omap.xlb[0], omap.xlb[1]);
   Vector3d xub(M_PI + gcs[0]/2, omap.xub[0], omap.xub[1]);
 
   // configuration-space map
-  dsl::Map<bool, 3> cmap(xlb, xub, ocs);
+  dsl::Map<bool, 3> *cmap = 0;
   
   //  CarGrid::MakeMap(omap, cmap);
-    double l=0.75;
-  double b=0.43;
-  double ox = -0.15;
-  double oy = 0.0;
+  // for non-point geometry comment this out 
+  if (!cmapValid) {
+    cmap = new dsl::Map<bool, 3>(xlb, xub, ocs);
+    std::cout << "Making cmap... " << std::endl;
 
-  CarGeom geom(l, b, ox, oy);
-  CarGrid::MakeMap(geom, omap, cmap);
-
+    if (useGeom) {
+      CarGeom geom(whxy(0), whxy(1), whxy(2), whxy(3));
+      CarGrid::MakeMap(geom, omap, *cmap);
+    } else {
+      CarGrid::MakeMap(omap, *cmap);      
+    }
+    
+    cmapName = mapName;
+    replaceExt(cmapName, string("cmap"));
+    dsl::Map<bool,3>::Save(*cmap, cmapName.c_str());
+    std::cout << "Saved cmap " << cmapName << " with xlb=" << cmap->xlb.transpose() << " xub=" << cmap->xub.transpose() << " gs=" << cmap->gs.transpose() << std::endl;
+    
+  } else {
+    cmap = dsl::Map<bool,3>::Load(cmapName.c_str());
+    std::cout << "Loaded map with xlb=" << cmap->xlb.transpose() << " xub=" << cmap->xub.transpose() << " gs=" << cmap->gs.transpose() << std::endl;
+  }
   
-  CarGrid grid(cmap, gcs);
+  CarGrid grid(*cmap, gcs);
   CarCost cost;
   CarConnectivity connectivity(grid);
 
@@ -110,26 +129,6 @@ int main(int argc, char** argv)
   printf("path: edges=%lu len=%f\n", path.cells.size(), path.cost);
 
   cout << "Graph has " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
-  /*
-  // draw lattice
-  for (int i =0; i < grid.nc; ++i) {
-    if (grid.cells[i]) {
-      int id = dmap.Id(grid.cells[i]->c.tail<2>());
-      dmap.cells[id] = 1;// path.cells[i].p[1]*width +  path.cells[i].p[0]] = 2;
-    }
-  }
-  */
-
-  /*
-  printf("\n");
-  for (y = 0; y < height; ++y) {
-    for (x = 0; x < width; ++x) {
-      printf("%d ", mapPath[y*width + x]);
-    }
-    printf("\n");
-  }
-  fflush(stdout);
-  */
   
   // save it to image for viewing
   vector<Vector2d> path2d = ToVector2dPath(path);
@@ -137,72 +136,6 @@ int main(int argc, char** argv)
 
   cout << "Map and path saved to path1.ppm" << endl;
 
-  return 0;
-  /*
-  // follow path until middle
-  Vector3d c = path.cells[path.cells.size()/2].c;
-  search.SetStart(c);
-
-  // simulate closing the narrow passage
-  if (0) {
-    for (double a = grid.xlb[0]+grid.cs[0]/2; a < grid.xub[0] + grid.cs[0]/2; a += grid.cs[0]) {
-      // by increasing the cost drastically
-      //      search.SetCost(Vector3d(29,18,a), 1000);
-      //      search.SetCost(Vector3d(30,18,a), 1000);
-      //      search.SetCost(Vector3d(31,18,a), 1000);
-    }
-  } else {
-  // a better way: by simply removing the passage
-    for (double y = c[1] - 2; y < c[1] +2; ++y)  {
-      for (double a = grid.xlb[0]+grid.cs[0]/2; a < grid.xub[0] + grid.cs[0]/2; a += grid.cs[0]) {     
-        search.RemoveCell(Vector3d(a, c[0],y));
-      }
-    }
-  }
-
-  // this is just for display
-  memcpy(mapPath, chmap, width*height);
-  mapPath[18*width + 29] = 1;  mapPath[18*width + 30] = 1;  mapPath[18*width + 31] = 1;
-
-  // replan
-  timer_start(&timer);
-  search.Plan(path);
-  time = timer_us(&timer);
-  printf("replan path time= %ld us\n", time);
-  printf("path: count=%lu len=%f\n", path.cells.size(), path.cost);
-  fflush(stdout);
-  
-  */
-  // bypass the old vertex
-  //  gdsl.AddEdge(29,18,31,18);  
-  // // replan
- // timer_start(&timer);
- // gdsl.Plan(path);
- // time = timer_ns(&timer);
- // printf("replan path time= %ld\n", time);
- // printf("path: count=%d len=%f\n", path.count, path.cost);
- // fflush(stdout);
-  
-  
-  // optimize path (experimental)
-  
-  /*
-  timer_start(&timer);
-  search.OptPath(path, optPath);
-  time = timer_us(&timer);
-  printf("opt path time= %ld us\n", time);
-  printf("optPath: count=%lu len=%f\n", optPath.cells.size(), optPath.cost);
-  */
-
-  /*
-  for (it = path.cells.begin(); it != path.cells.end(); ++it) {
-    int x = grid.Index(it->c, 0);
-    int y = grid.Index(it->c, 1);
-    mapPath[y*width + x] = 2;// path.cells[i].p[1]*width +  path.cells[i].p[0]] = 2;
-  }
-  // save it to image for viewing
-  save_map(mapPath, width, height, "path2.ppm");
-  */
-
+  delete cmap;
   return 0;
 }

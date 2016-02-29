@@ -218,4 +218,13 @@ void se2_exp(Matrix3d& m, const Vector3d& v, double tol) {
   m(2, 1) = 0;
   m(2, 2) = 1;
 }
+
+
+void replaceExt(std::string& s, const std::string& newExt) {
+  std::string::size_type i = s.rfind('.', s.length());
+  if (i != std::string::npos) {
+    s.replace(i+1, newExt.length(), newExt);
+  }
+}
+
 }

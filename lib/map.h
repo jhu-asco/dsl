@@ -9,6 +9,9 @@
 #ifndef DSL_MAP_H
 #define DSL_MAP_H
 
+#include <iostream>
+#include <fstream>
+
 namespace dsl {
 
 /**
@@ -74,17 +77,17 @@ public:
   virtual ~Map() {
     delete[] cells;
   }
-
+  
   /**
    * Check if point x is whitin map bounds
    * @param x point
    * @return true if within bounds
    */
-  virtual bool Valid(const Vectornd& x) const {
+  virtual bool Valid(const Vectornd& x, double eps = 1e-10) const {
     for (int i = 0; i < x.size(); ++i) {
-      if (x[i] < xlb[i])
+      if (x[i] < xlb[i] + eps)
         return false;
-      if (x[i] > xub[i])
+      if (x[i] > xub[i] - eps)
         return false;
     }
     return true;
@@ -136,6 +139,17 @@ public:
   }
 
   /**
+   * Get the map index of i-th dimension of point x
+   * @param xi i-th coordinate of point
+   * @param i coordinate index
+   * @return index into cell array
+   */
+  int Index(double xi, int i) const {
+    return floor((xi - xlb[i]) / ds[i] * gs[i]);
+  }
+
+  
+  /**
    * Get the cell at position x
    * @param x point
    * @param checkValid whether to check if within valid bounds (more efficient
@@ -155,6 +169,26 @@ public:
   }
 
   /**
+   * Get the cell at position x
+   * @param x point
+   * @param checkValid whether to check if within valid bounds (more efficient
+   * if checkValid=0 but dangerous)
+   * @return contents of cell
+   */
+  void Set(const Vectornd& x, const T& data, bool checkValid = true)  {
+    if (checkValid)
+      if (!Valid(x))
+        return;
+
+    int id = Id(x);
+    if (id<0 || id>=nc)
+      std::cout << "id=" << id << " x=" << x.transpose() << " xlb=" << xlb.transpose() << " xub=" << xub.transpose() << std::endl;
+    assert(id >= 0 && id < nc);
+    cells[id] = data;
+  }
+
+  
+  /**
    * Get the cell at a given cell id
    * @param id a non-negative id
    * @return pointer to a cell or 0 if cell does not exist
@@ -165,7 +199,54 @@ public:
       return 0;
     return cells[id];
   }
+  
+  /**
+   * Get the cell at a given cell id
+   * @param id a non-negative id
+   * @return pointer to a cell or 0 if cell does not exist
+   */
+  void Set(int id, const T& data) {
+    assert(id >= 0);
+    if (id >= nc)
+      return;
+    cells[id] = data;
+  }
 
+
+  static void Save(const Map<T,n>& map, const char* filename) {
+    std::ofstream fs(filename, std::fstream::out | std::ios::binary);
+    assert(fs.is_open());
+    
+    for (int i = 0; i < map.xlb.size(); ++i)
+      fs.write((char*)&map.xlb[i], sizeof(double));
+    for (int i = 0; i < map.xub.size(); ++i)
+      fs.write((char*)&map.xub[i], sizeof(double));
+    for (int i = 0; i < map.gs.size(); ++i)
+      fs.write((char*)&map.gs[i], sizeof(double));
+    
+    fs.write((char*)map.cells, map.nc*sizeof(T));
+    fs.close();
+  }
+
+  static Map<T,n>* Load(const char* filename) {
+    std::ifstream fs (filename, std::fstream::in | std::ios::binary);
+    assert(fs.is_open());
+    Vectornd xlb, xub;
+    Vectorni gs;
+
+    for (int i = 0; i < xlb.size(); ++i)
+      fs.read((char*)&xlb[i], sizeof(double));
+    for (int i = 0; i < xub.size(); ++i)
+      fs.read((char*)&xub[i], sizeof(double));
+    for (int i = 0; i < gs.size(); ++i)
+      fs.read((char*)&gs[i], sizeof(double));
+
+    Map<T,n> *map = new Map(xlb, xub, gs);
+    fs.read((char*)map->cells, map->nc*sizeof(T));
+    fs.close();
+    return map;
+  }
+  
   Vectornd xlb; ///< state lower bound
   Vectornd xub; ///< state upper bound
   Vectornd ds;  ///< dimensions (ds=xub-xlb)

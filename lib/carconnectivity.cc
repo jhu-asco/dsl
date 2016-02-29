@@ -12,6 +12,14 @@ using std::vector;
 
 
 CarConnectivity::CarConnectivity(const CarGrid& grid,
+                                 const vector<Eigen::Vector3d> &vs,
+                                 double dt) : grid(grid), vs(vs), dt(dt)
+{
+}
+
+
+
+CarConnectivity::CarConnectivity(const CarGrid& grid,
                                  bool onlyfwd,
                                  int wseg,
                                  double tphimax,
@@ -28,8 +36,6 @@ bool CarConnectivity::SetPrimitives(
 
   wseg = wseg < 1 ? 1 : wseg;
 
-  this->w = w;
-  this->vx = vx;
   this->dt = dt;
 
   vs.clear();
@@ -59,7 +65,7 @@ bool CarConnectivity::Flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
   Vector3d q;
 
   SE2Path& path = std::get<1>(pathTuple);
-  SE2Cell *to = 0;
+  SE2Cell *to = nullptr;
   
   // might be better to generate it backwards to more efficiently handle
   // obstacles
@@ -69,15 +75,24 @@ bool CarConnectivity::Flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
     se2_exp(dg, (a / d) * v);
     g = g0 * dg;
     se2_g2q(q, g);
-
+    
     to = grid.Get(q);
     if (!to) {
       return false;
     }
 
+    if (to->id == 2232865) {
+      std::cout << "PUTAN " << q.transpose() << std::endl;
+    }
+
+
     path.push_back(g);
   }
 
+  if (!to)
+    return false;
+
+  
   std::get<0>(pathTuple) = to;
   std::get<2>(pathTuple) = d;
   
@@ -92,13 +107,17 @@ bool CarConnectivity::
   se2_q2g(g0, from.c);
 
   paths.clear();
-  vector< Vector3d >::const_iterator it;
+  //  vector< Vector3d >::const_iterator it;
   for (auto&& s : vs) {
     // reverse time if fwd=false
     std::tuple<SE2Cell*, SE2Path, double> pathTuple;
     if (!Flow(pathTuple, g0, (fwd ? dt : -dt) * s))
       continue;
 
+    assert(std::get<0>(pathTuple));
+
+    
+    
     // the path will now end inside the last cell but not exactly at the center,
     // which is a good enough
     // approximation if the cells are small
@@ -111,7 +130,7 @@ bool CarConnectivity::
     if (!std::get<1>(pathTuple).size())
       continue;
 
-    // overwrite cost
+    // overwrite cost 
     //    path.cost = cost; //.Real(path.cells.front(), path.cells.back());
 
     //    path.fwd = fwd;
@@ -119,6 +138,7 @@ bool CarConnectivity::
   }
   return true;
 }
+
 
 /*
 bool CarConnectivity::se2_times(Vector2d& t1,
