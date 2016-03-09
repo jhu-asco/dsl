@@ -20,38 +20,41 @@ CarConnectivity::CarConnectivity(const CarGrid& grid,
 
 
 CarConnectivity::CarConnectivity(const CarGrid& grid,
-                                 bool onlyfwd,
-                                 int wseg,
-                                 double tphimax,
-                                 int vseg,
-                                 double vxmax)
+                                 double dt,
+                                 double vx,
+                                 double kmax,
+                                 int kseg,
+                                 bool onlyfwd)
     : grid(grid) {
-  SetPrimitives(vxmax, tphimax * vxmax, 1, onlyfwd, wseg, vseg);
+  SetPrimitives(dt, vx, kmax, kseg, onlyfwd);
 }
 
-bool CarConnectivity::SetPrimitives(
-    double vx, double w, double dt, double onlyfwd, int wseg, int vseg) {
+bool CarConnectivity::SetPrimitives(double dt, double vx, double kmax, int kseg, bool onlyfwd) {
   if (dt <= 0)
     return false;
 
-  wseg = wseg < 1 ? 1 : wseg;
+  kseg = kseg < 1 ? 1 : kseg;
 
   this->dt = dt;
 
   vs.clear();
 
-  for (int i = 0; i <= wseg; i++) {
-    for (int j = 1; j <= vseg; j++) {
-      vs.push_back(Vector3d(i * w / wseg, j * vx / vseg, 0));
-      vs.push_back(Vector3d(-i * w / wseg, j * vx / vseg, 0));
-      if (!onlyfwd) {
-        vs.push_back(Vector3d(i * w / wseg, -j * vx / vseg, 0));
-        vs.push_back(Vector3d(-i * w / wseg, -j * vx / vseg, 0));
-      }
+  for (int i = 0; i <= kseg; i++) {
+    double k = i*kmax/kseg;
+    double w = vx*k;
+    vs.push_back(Vector3d(w, vx, 0));
+    vs.push_back(Vector3d(-w, vx, 0));
+    if (!onlyfwd) {
+      vs.push_back(Vector3d(w, -vx, 0));
+      vs.push_back(Vector3d(-w, -vx, 0));
     }
   }
 
   return true;
+}
+
+static Vector2d position(const Matrix3d &g) {
+  return Vector2d(g(0,2), g(1,2));
 }
 
 bool CarConnectivity::Flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
@@ -65,12 +68,14 @@ bool CarConnectivity::Flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
   Vector3d q;
 
   SE2Path& path = std::get<1>(pathTuple);
+  path.clear();
   SE2Cell *to = nullptr;
   
   // might be better to generate it backwards to more efficiently handle
   // obstacles
   //  for (double a = d; a > 0; a -= s) {
-  for (double a = s; a <= d; a += s) {
+  double eps = 1e-10;
+  for (double a = s; a <= d + eps; a += s) {
     Matrix3d dg;
     se2_exp(dg, (a / d) * v);
     g = g0 * dg;
@@ -81,20 +86,16 @@ bool CarConnectivity::Flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
       return false;
     }
 
-    if (to->id == 2232865) {
-      std::cout << "PUTAN " << q.transpose() << std::endl;
-    }
-
-
     path.push_back(g);
   }
 
   if (!to)
     return false;
 
-  
   std::get<0>(pathTuple) = to;
-  std::get<2>(pathTuple) = d;
+
+  // add distance + mismatch
+  std::get<2>(pathTuple) = d + (position(to->data) - position(g)).norm();;
   
   return true; 
 }
@@ -115,7 +116,6 @@ bool CarConnectivity::
       continue;
 
     assert(std::get<0>(pathTuple));
-
     
     
     // the path will now end inside the last cell but not exactly at the center,

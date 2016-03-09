@@ -96,20 +96,33 @@ int main(int argc, char** argv)
   
   CarGrid grid(*cmap, gcs);
   CarCost cost;
+  params.GetDouble("ac", cost.ac);    
+  
   CarConnectivity connectivity(grid);
 
-  double vx, w, dt;
+  double dt = .25;
+  double vx = 4;
+  double kmax = 0.57;
+  int kseg = 4;
+  bool onlyfwd = false;
+  params.GetDouble("dt", dt);  
   params.GetDouble("vx", vx);
-  params.GetDouble("w", w);
-  params.GetDouble("dt", dt);
-  connectivity.SetPrimitives(vx, w, dt);
+  params.GetDouble("kmax", kmax);
+  params.GetInt("kseg", kseg);
+  params.GetBool("onlyfwd", onlyfwd);
+
+  connectivity.SetPrimitives(dt, vx, kmax, kseg, onlyfwd);
 
   cout << "Creating a graph..." << endl;
   // create planner
   struct timeval timer;
   timer_start(&timer);
+
+  bool initExpand = false;
+  params.GetBool("initExpand", initExpand);
+
   
-  GridSearch<Vector3d, Matrix3d, SE2Path> search(grid, connectivity, cost, false);
+  GridSearch<Vector3d, Matrix3d, SE2Path> search(grid, connectivity, cost, initExpand);
   CarPath path;
 
   long time = timer_us(&timer);

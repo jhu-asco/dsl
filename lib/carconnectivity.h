@@ -45,21 +45,20 @@ public:
   /**
    * Initialize cargrid connectivity
    * @param grid The car grid
+   * @param dt time duration
+   * @param vx forward velocity.
+   * @param kmax maximum curvature k = Tan(max steering angle)/axle_length; Default value is 0.577=tan(M_PI/6)/1
+   * @param kseg It decides the discretization of max angular velocity when
+   * making the motion primitives
    * @param onlyfwd If true, then only +ve forward velocity is used
-   * @param wseg It decides the discretization of max angular velocity when
-   * making the motion primitives
-   * @param tphimax Tan(max steering angle). Default value is 0.577=tan(M_PI/6)
-   * @param vseg It decides the discretization of max forward velocity when
-   * making the motion primitives
-   * @param vxmax maximum forward velocity.
    */
   CarConnectivity(const CarGrid& grid,
-                  bool onlyfwd = false,
-                  int wseg = 4,
-                  double tphimax = 0.577,
-                  int vseg = 2,
-                  double vxmax = 5);
-
+                  double dt = .25,
+                  double vx = 5,
+                  double kmax = 0.577,
+                  int kseg = 4,
+                  bool onlyfwd = false);
+  
   /**
    * Use a set of primitive motions, i.e. arcs with body fixed forward
    * velocities (-v,v) and
@@ -67,25 +66,22 @@ public:
    * such combinations.
    * In addition we made it configurable so that more primitves with angular
    * velocities in between(-w,w)
-   * can be added in between by choosing the wseg parameter >2. Also only +ve
+   * can be added in between by choosing the kseg parameter >2. Also only +ve
    * forward velocity can be chosen
-   * @param vx forward velocity
-   * @param w angular velocity
    * @param dt time duration
-   * @param onlyfwd If true, then primitives with +ve forward velocity are made
-   * @param wseg The discretization of max angular velocity for making the
-   * primitives
-   * @param vseg The discretization of max forward velocity for making the
-   * primitives
-   * @return
+   * @param vx forward velocity.
+   * @param kmax maximum curvature k = Tan(max steering angle)/axle_length; Default value is 0.577=tan(M_PI/6)/1
+   * @param kseg It decides the discretization of max angular velocity when
+   * making the motion primitives
+   * @param onlyfwd If true, then only +ve forward velocity is used
+   * @return true on success
    */
-  bool SetPrimitives(double vx,
-                     double w,
-                     double dt,
-                     double onlyfwd = false,
-                     int wseg = 4,
-                     int vseg = 2);
-
+  bool SetPrimitives(double dt,
+                     double vx,
+                     double kmax,
+                     int kseg = 4,
+                     bool onlyfwd = false);
+  
   bool operator()(const SE2Cell& from,
                   std::vector< std::tuple<SE2Cell*, SE2Path, double> >& paths,
                   bool fwd = true) const override;
@@ -108,9 +104,7 @@ public:
 
   const CarGrid& grid; ///< the grid
 
-  std::vector< Eigen::Vector3d >
-      vs; ///< primitives defined using motions with constant
-  /// body-fixed velocities (w,vx,vy)
+  std::vector< Eigen::Vector3d > vs; ///< primitives defined using motions with constant body-fixed velocities (w,vx,vy)
 
   double dt = .5; ///< how long are the primitives
 

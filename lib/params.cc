@@ -128,7 +128,7 @@ void Params::Parse(char *line)
   string sname = string(name);
   sname.erase( std::remove_if( sname.begin(), sname.end(), RemoveDelimiter()), sname.end()); 
 
-  cout << svalue << endl;
+  cout << sname << " = " << svalue << endl;
   valueMap[sname] = svalue;
 }
 
