@@ -57,10 +57,12 @@
  * - Get the source and cd into main directory
  * - To compile:
  * - $mkdir build; cd build; cmake ..; make
- * - To test:
- * - $bin/test2d ../bin/map.ppm (look at the generated ppm images to view the
+ * - To test (from main projec directory)
+ * -- 1) 2d point test
+ * -- $build/bin/test2d bin/map.ppm (look at the generated ppm images to view the
  *result)
- * - $bin/cartest ../bin/map4.ppm (look at the generated ppm images to view the
+ * -- 2) kinematic car test
+ * -- $build/bin/cartest bin/lanes.cfg (look at the generated ppm images to view the
  *result)
  *
  * \subsection Class Reference

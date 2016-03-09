@@ -95,11 +95,13 @@ int main(int argc, char** argv)
   }
   
   CarGrid grid(*cmap, gcs);
+
+  // create cost and set custom angular cost mixing factor ac
   CarCost cost;
   params.GetDouble("ac", cost.ac);    
-  
-  CarConnectivity connectivity(grid);
 
+  // load car connectivity and set custom parameters
+  CarConnectivity connectivity(grid);
   double dt = .25;
   double vx = 4;
   double kmax = 0.57;
@@ -110,7 +112,6 @@ int main(int argc, char** argv)
   params.GetDouble("kmax", kmax);
   params.GetInt("kseg", kseg);
   params.GetBool("onlyfwd", onlyfwd);
-
   connectivity.SetPrimitives(dt, vx, kmax, kseg, onlyfwd);
 
   cout << "Creating a graph..." << endl;
