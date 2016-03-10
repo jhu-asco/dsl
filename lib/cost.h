@@ -26,7 +26,7 @@ namespace dsl {
  *
  * Author: Marin Kobilarov -- Copyright (C) 2004
  */
-template < class Tv >
+template < class VertexData >
 class Cost {
 public:
   /**
@@ -38,7 +38,7 @@ public:
    * @param vb second vertex data
    * @return heuristic distance (optimal cost)
    */
-  virtual double Heur(const Tv& va, const Tv& vb) const = 0;
+  virtual double Heur(const VertexData& va, const VertexData& vb) const = 0;
 
   /**
    * Real best possible distance b/n two vertices.
@@ -48,7 +48,7 @@ public:
    * @param vb second vertex data
    * @return real minimum possible cost b/n va and vb
    */
-  virtual double Real(const Tv& va, const Tv& vb) const = 0;
+  virtual double Real(const VertexData& va, const VertexData& vb) const = 0;
 };
 }
 

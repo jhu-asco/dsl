@@ -25,7 +25,7 @@ template < class Tv, class Te >
 class Vertex;
 
 /// an empty object used as a default user-supplied edge data
-struct empty {};
+struct Empty {};
 
 /**
  * A generic edge b/n two vertices. Contains an edge cost
@@ -36,9 +36,8 @@ struct empty {};
  *
  * Author: Marin Kobilarov
  */
-template < class Tv, class Te = empty >
-class Edge {
-public:
+template < class Tv, class Te = Empty >
+struct Edge {
   /**
    * Initialize an edge using two vertices and a cost;
    * all parameters are optional since an edge does not
@@ -47,7 +46,11 @@ public:
    * @param to to vertex (optional)
    * @param cost cost (optional)
    */
-  Edge(Vertex< Tv, Te >* from = 0, Vertex< Tv, Te >* to = 0, double cost = 0);
+  Edge(Vertex< Tv, Te >* from = 0, Vertex< Tv, Te >* to = 0, double cost = 0)  :
+  id(s_id), from(from), to(to), cost(cost), costChange(DSL_DBL_MIN) {
+    ++s_id;
+  }
+
 
   /**
    * Initialize an edge using its user data, two vertices and a cost;
@@ -61,9 +64,16 @@ public:
   Edge(const Te& data,
        Vertex< Tv, Te >* from = 0,
        Vertex< Tv, Te >* to = 0,
-       double cost = 0);
+       double cost = 0) : id(s_id),
+    data(data),
+    from(from),
+    to(to),
+    cost(cost),
+    costChange(DSL_DBL_MIN) {
+    ++s_id;
+  }
 
-  virtual ~Edge();
+  virtual ~Edge() {};
 
   int id; ///< edge id (set internally at init)
 
@@ -79,64 +89,9 @@ private:
   static int s_id; ///< id counter
 };
 
-template < class Tv, class Te >
-int Edge< Tv, Te >::s_id = 0;
+template<class Tv, class Te>
+int Edge<Tv, Te>::s_id = 0;
 
-template < class Tv, class Te >
-Edge< Tv, Te >::Edge(Vertex< Tv, Te >* from, Vertex< Tv, Te >* to, double cost)
-  : id(s_id), from(from), to(to), cost(cost), costChange(DSL_DBL_MIN) {
-  ++s_id;
-}
-
-template < class Tv, class Te >
-Edge< Tv, Te >::Edge(const Te& data,
-                     Vertex< Tv, Te >* from,
-                     Vertex< Tv, Te >* to,
-                     double cost)
-  : id(s_id),
-    data(data),
-    from(from),
-    to(to),
-    cost(cost),
-    costChange(DSL_DBL_MIN) {
-  ++s_id;
-}
-
-template < class Tv, class Te >
-Edge< Tv, Te >::~Edge() {}
-
-/**
- * Output the edge to a stream
- * @param os output stream
- * @param e edge
- * @return the output stream
- template<class T>
- std::ostream& operator<<(std::ostream &os, const Edge<Tv, Te> &e) {
- os << e.id << " ";
- if (e.from)
- os << e.from->id << " ";
- else
- os << "-1 ";
- if (e.to)
- os << e.to->id << " ";
- else
- os << "-1 ";
- os << e.cost << " ";
- os << e.costChange;
- return os;
- };
-*/
-
-/**
- * Input the edge from a stream
- * @param is input stream
- * @param e edge
- * @return the input stream
- template<class T>
- std::istream& operator>>(std::istream &is, Edge<Tv, Te> &e) {
- return is;
- }
-*/
 }
 
 #endif

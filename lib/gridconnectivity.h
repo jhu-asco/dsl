@@ -10,12 +10,11 @@
 #define DSL_GRIDCONNECTIVITY_H
 
 #include "gridpath.h"
+#include <tuple>
 
 namespace dsl {
 
-template < int n,
-           class Tc = Matrix< double, n, 1 >,
-           class Tp = std::vector< Tc > >
+  template < class PointType, class DataType, class ConnectionType>
 class GridConnectivity {
 public:
   /**
@@ -28,9 +27,12 @@ public:
    * @param fwd true if generated forward in time
    * @return true on success
    */
-  virtual bool operator()(const Cell< n, Tc >& from,
-                          std::vector< GridPath< n, Tc, Tp > >& paths,
+  virtual bool operator()(const Cell<PointType, DataType>& from,
+                          std::vector< std::tuple<Cell<PointType, DataType>*, ConnectionType, double> >& toCells,
                           bool fwd = true) const = 0;
+
+  virtual bool Free(const DataType &data) const = 0;
+
 };
 }
 

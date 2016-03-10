@@ -18,10 +18,10 @@ namespace dsl {
  * The default implementation is the 8-cell Moore neighborhood connectivity.
  * The costs are the Euclidean distances b/n the cell centers.
  */
-class Grid2dConnectivity : public LineConnectivity< 2 > {
-public:
-  Grid2dConnectivity(const Grid< 2 >& grid);
-};
+  class Grid2dConnectivity : public LineConnectivity< Eigen::Vector2d, double> {
+ public:
+    Grid2dConnectivity(const Grid< Eigen::Vector2d, double >& grid);
+  };
 }
 
 #endif

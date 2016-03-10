@@ -9,6 +9,7 @@ add_library(dsl SHARED fibheap.c
                        grid3dconnectivity.cc
                        carconnectivity.cc
                        carcost.cc
+                       params.cc
 )
 
 SET_TARGET_PROPERTIES(dsl
@@ -45,4 +46,5 @@ INSTALL(FILES fibheap.h
               grid3dconnectivity.h
               gridsearch.h
               spline.h
+              params.h
               DESTINATION include/dsl)              

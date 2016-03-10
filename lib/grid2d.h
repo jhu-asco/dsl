@@ -17,7 +17,7 @@ namespace dsl {
  * A 2d grid with coordinates (x,y)
  *
  */
-class Grid2d : public Grid< 2 > {
+  class Grid2d : public Grid< Eigen::Vector2d, double> {
 public:
   /**
    * Initialize the grid using a 2d configuration-space map
@@ -26,7 +26,6 @@ public:
    * @param map the map
    * @param sx x-scale of each grid cell
    * @param sy y-scale of each grid cell
-   * @param costScale multiple the value of each grid cell by costScale
    * @param maxCost any cell cost above maxCost is considered obstacle and not
    * added to the graph
    */
@@ -35,7 +34,6 @@ public:
          const double* map,
          double sx,
          double sy,
-         double costScale,
          double maxCost = 1);
 };
 }

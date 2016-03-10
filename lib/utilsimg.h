@@ -45,15 +45,6 @@ void getRotdVertsInPixWrtOrg(Matrix2x4d& verts2d_rotd_pix,
                              double sy,
                              double theta);
 
-/**
- * Fills a quadrilateral with a given value
- * @param data pointer to the img data
- * @param w Width of the img
- * @param h Height of the img
- * @param verts The 4 vertices of the quadrilateral
- * @param val the value that is to be fill in. Rest is 0
- */
-void fillQuad(double* data, int w, int h, Matrix2x4d verts, double val);
 
 /**
  * Scales up an image with the same scaling factor in x and y direction
@@ -154,7 +145,7 @@ void dilate(T* data_dil,
             int h_k,
             int ox_k,
             int oy_k) {
-  vector< double > prod(h_k * w_k);
+  vector< T > prod(h_k * w_k);
 
   // Visit each pixel in the main image
   for (int r = 0; r < h; r++) {
@@ -186,8 +177,32 @@ void dilate(T* data_dil,
       }
       data_dil[id] = *(max_element< typename vector< T >::iterator >(
           prod.begin(), prod.end()));
+
     }
   }
 }
+
+
+/**
+ * Fills a quadrilateral with a given value
+ * @param data pointer to the img data
+ * @param w Width of the img
+ * @param h Height of the img
+ * @param verts The 4 vertices of the quadrilateral
+ * @param val the value that is to be fill in. Rest is 0
+ */
+template < typename T = bool>
+    void fillQuad(T* data, int w, int h, Matrix2x4d verts, T val) {
+  for (int r = 0; r < h; r++) {
+    for (int c = 0; c < w; c++) {
+      int idx_2d = c + r * w;
+      if (inPoly(verts, Vector2d(c, r)))
+        data[idx_2d] = val;
+      else
+        data[idx_2d] = 0;
+    }
+  }
+}
+
 }
 #endif /* DSL_UTILSIMG_H */

@@ -3,7 +3,7 @@ project (dsl)
 #set(CMAKE_BUILD_TYPE Debug)
 include_directories(lib)
 
-ADD_DEFINITIONS(-g -O -Wall -W -Wno-unused-parameter -Wno-unused-variable)
+ADD_DEFINITIONS(-g -O -Wall -W -Wno-unused-parameter -Wno-unused-variable -std=c++11)
 
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Dynamic D* Lite Graph Search Library")
 SET(CPACK_PACKAGE_VENDOR "Marin Kobilarov")

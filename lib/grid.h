@@ -10,20 +10,29 @@
 #define DSL_GRID_H
 
 #include "cell.h"
+#include <Eigen/Dense>
 
 namespace dsl {
 
-using namespace Eigen;
+struct EmptyData {};
 
 /**
- * An n-dimenensional regular grid
+ * An n-dimenensional grid consisting of abstract "cells", or elements
+ * identified by a set of coordinates of type PointType, each cell
+ * containing data of type DataType.
+ * A grid provides instant access to the elements by maintaining
+ * an n-dimensional array of pointers to cells. Cells that are empty,
+ * e.g. that are inside obstacles, correspond to null pointers.
+ *
+ * Note that this data structure is only viable up to a few dimensions,
+ * e.g. dim=5 or 6.
  */
-template < int n, class T = Matrix< double, n, 1 > >
-class Grid {
-  typedef Matrix< double, n, 1 > Vectornd;
-  typedef Matrix< int, n, 1 > Vectorni;
+template < class PointType, class DataType = EmptyData>
+ struct Grid {
 
-public:
+ using Vectorni =  Eigen::Matrix< int, PointType::SizeAtCompileTime, 1 >;
+ using TypedCell = Cell<PointType, DataType>;
+   
   /**
    * Initialize the grid using state lower bound, state upper bound, the number
    * of grid cells
@@ -31,18 +40,18 @@ public:
    * @param xub state upper bound
    * @param gs number of grid cells per each dimension
    */
-  Grid(const Vectornd& xlb, const Vectornd& xub, const Vectorni& gs)
-    : xlb(xlb), xub(xub), gs(gs) {
+  Grid(const PointType& xlb, const PointType& xub, const Vectorni& gs)
+      : n(xlb.size()), xlb(xlb), xub(xub), gs(gs) {
+    ds = xub - xlb;
     nc = 1;
     for (int i = 0; i < n; ++i) {
       assert(xlb[i] <= xub[i]);
       assert(gs[i] > 0);
       nc *= gs[i]; // total number of cells
       cs[i] = (xub[i] - xlb[i]) / gs[i];
-    }
-    
-    cells = new Cell< n, T >* [nc];
-    memset(cells, 0, nc * sizeof(Cell< n, T >*)); // initialize all of them nil
+    }    
+    cells = new TypedCell*[nc];
+    memset(cells, 0, nc * sizeof(TypedCell*)); // initialize all of them nil
   }
 
     /**
@@ -52,37 +61,40 @@ public:
    * @param xub state upper bound
    * @param cs cell dimensions
    */
-  Grid(const Vectornd& xlb, const Vectornd& xub, const Vectornd& cs)
-    : xlb(xlb), xub(xub), cs(cs) {
+  Grid(const PointType& xlb, const PointType& xub, const PointType& cs)
+      : n(xlb.size()), xlb(xlb), xub(xub), cs(cs) {
+    ds = xub - xlb;
     nc = 1;
     for (int i = 0; i < n; ++i) {
-      assert(xlb[i] <= xub[i]);
+      assert(xlb[i] < xub[i]);
       assert(cs[i] > 0);
       gs[i] = floor((xub[i] - xlb[i]) / cs[i]);
       nc *= gs[i]; // total number of cells
     }
 
-    cells = new Cell< n, T >* [nc];
-    memset(cells, 0, nc * sizeof(Cell< n, T >*)); // initialize all of them nil
+    cells = new TypedCell*[nc];
+    memset(cells, 0, nc * sizeof(TypedCell*)); // initialize all of them nil
   }
 
+  Grid(const Grid &grid) : n(grid.n), xlb(grid.xlb), xub(grid.xub), ds(grid.ds), cs(grid.cs), gs(grid.gs), nc(grid.nc) {
+     cells = new TypedCell*[nc];
+     memcpy(cells, grid.cells, nc * sizeof(TypedCell*)); // initialize all of them nil
+   }
 
   virtual ~Grid() {
-    for (int i = 0; i < nc; ++i)
-      delete cells[i];
     delete[] cells;
   }
 
   /**
-   * Check if point x is whitin grid bounds
+   * Check if point x is within grid bounds
    * @param x point
    * @return true if within bounds
    */
-  virtual bool Valid(const Vectornd& x) const {
+  virtual bool Valid(const PointType& x, double eps = 1e-10) const {
     for (int i = 0; i < x.size(); ++i) {
-      if (x[i] < xlb[i])
+      if (x[i] < xlb[i] + eps)
         return false;
-      if (x[i] > xub[i])
+      if (x[i] > xub[i] - eps)
         return false;
     }
     return true;
@@ -93,22 +105,24 @@ public:
    * @param x point
    * @return a computed id
    */
-  int Id(const Vectornd& x) const {
+  int Id(const PointType& x) const {
 
-    // TODO: unroll loop for n=2,3 for efficiency
-    // if (n==2) {
-    //   return gs[0]*ids[1] + ids[0];
-    //}
-    // for n=2
-    // id=     gs[0]*ids[1] + ids[0];
-    // for n=3
-    // id=     gs[0]*gs[1]*ids[2] + gs[0]*ids[1] + ids[0];
-    //      assert(Valid(x));
+       // unroll loop for n=1,2,3,4 for efficiency
+    if (n==1)
+      return Index(x, 0);
 
-    
-    //      int ids[n];  // dimension indices
+    if (n==2)
+      return Index(x, 0) + gs[0]*Index(x, 1);
+
+    if (n==3)
+      return Index(x, 0) + gs[0]*Index(x, 1) + gs[0]*gs[1]*Index(x, 2);
+
+    if (n==4) {
+      int cum = gs[0]*gs[1];
+      return Index(x, 0) + gs[0]*Index(x, 1) + cum*Index(x, 2) + cum*gs[2]*Index(x, 3);
+    }
+
     int cum = 1; // cumulative offset for next dimension
-
     int id = 0;
     for (int i = 0; i < x.size(); ++i) {
       // index of i-th dimension
@@ -126,10 +140,11 @@ public:
    * @param i coordinate index
    * @return index into cell array
    */
-  int Index(const Vectornd& x, int i) const {
+  int Index(const PointType& x, int i) const {
     return floor((x[i] - xlb[i]) / (xub[i] - xlb[i]) * gs[i]);
   }
 
+   
   /**
    * Get the cell at position x
    * @param x point
@@ -137,16 +152,11 @@ public:
    * if checkValid=0 but dangerous)
    * @return pointer to a cell or 0 if cell does not exist
    */
-  Cell< n, T >* Get(const Vectornd& x, bool checkValid = true) const {
+   TypedCell* Get(const PointType& x, bool checkValid = true) const {
     if (checkValid)
       if (!Valid(x))
         return 0;
-
-    int id = Id(x);
-    assert(id >= 0);
-    if (id >= nc)
-      return 0;
-    return cells[id];
+    return Get(Id(x));
   }
 
   /**
@@ -154,20 +164,23 @@ public:
    * @param id a non-negative id
    * @return pointer to a cell or 0 if cell does not exist
    */
-  Cell< n, T >* Get(int id) const {
+   TypedCell* Get(int id) const {
     assert(id >= 0);
     if (id >= nc)
       return 0;
     return cells[id];
   }
 
-  Vectornd xlb; ///< state lower bound
-  Vectornd xub; ///< state upper bound
+  int n;      ///< grid dimension
+  
+  PointType xlb; ///< state lower bound
+  PointType xub; ///< state upper bound
+  PointType ds;  ///< dimensions (ds=xub-xlb)
+  PointType cs;  ///< cell length size per dimension
   Vectorni gs;  ///< number of cells per dimension
-  Vectornd cs;  ///< cell length size per dimension
 
-  int nc;               ///< total maximum number of cells
-  Cell< n, T >** cells; ///< array of pointers to cells
+  int nc = 0;        ///< number of cells in grid
+  TypedCell** cells = nullptr; ///< array of cell data
 };
 }
 

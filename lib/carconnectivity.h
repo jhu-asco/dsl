@@ -12,40 +12,53 @@
 #include "gridconnectivity.h"
 #include "cargrid.h"
 #include <vector>
+#include "carcost.h"
+#include "map.h"
 
 namespace dsl {
 
-typedef GridPath< 3, Matrix3d > SE2Path;
+using SE2Path = std::vector<Eigen::Matrix3d>;
+using Vector1d = Eigen::Matrix<double, 1, 1>;
 
 /**
  * Simple car connectivity using primitives. It enables the generation of arcs
  * from a given SE(2) state. These are then used to connect two cells in SE(2)
+ * Each connection corresponds to an SE2Path, i.e. a vector of SE(2) poses
  *
  * Author: Marin Kobilarov
  */
-class CarConnectivity : public GridConnectivity< 3, Matrix3d > {
+class CarConnectivity : public GridConnectivity< Eigen::Vector3d, Eigen::Matrix3d, SE2Path > {
 public:
+
+  /**
+   * Initialize cargrid connectivity with primitives corresponding to
+   * motions with constant body fixed velocities for a fixed duration dt
+   * @param grid The car grid
+   * @param vs body-fixed velocities (each v=(vw,vx,vy))
+   * @param dt time duration
+   */
+  CarConnectivity(const CarGrid& grid,
+                  const std::vector<Eigen::Vector3d>& vs,
+                  double dt = .25);
+  
+  
   /**
    * Initialize cargrid connectivity
    * @param grid The car grid
-   * @param bp A scaling factor for penalizing going backward. Cost going
-   * backward= bp*cost going forward
+   * @param dt time duration
+   * @param vx forward velocity.
+   * @param kmax maximum curvature k = Tan(max steering angle)/axle_length; Default value is 0.577=tan(M_PI/6)/1
+   * @param kseg It decides the discretization of max angular velocity when
+   * making the motion primitives
    * @param onlyfwd If true, then only +ve forward velocity is used
-   * @param wseg It decides the discretization of max angular velocity when
-   * making the motion primitives
-   * @param tphimax Tan(max steering angle). Default value is 0.577=tan(M_PI/6)
-   * @param vseg It decides the discretization of max forward velocity when
-   * making the motion primitives
-   * @param vxmax maximum forward velocity.
    */
   CarConnectivity(const CarGrid& grid,
-                  double bp = 1.0,
-                  bool onlyfwd = false,
-                  int wseg = 2,
-                  double tphimax = 0.577,
-                  int vseg = 1,
-                  double vxmax = 1);
-
+                  double dt = .25,
+                  double vx = 5,
+                  double kmax = 0.577,
+                  int kseg = 4,
+                  bool onlyfwd = false);
+  
   /**
    * Use a set of primitive motions, i.e. arcs with body fixed forward
    * velocities (-v,v) and
@@ -53,28 +66,27 @@ public:
    * such combinations.
    * In addition we made it configurable so that more primitves with angular
    * velocities in between(-w,w)
-   * can be added in between by choosing the wseg parameter >2. Also only +ve
+   * can be added in between by choosing the kseg parameter >2. Also only +ve
    * forward velocity can be chosen
-   * @param vx forward velocity
-   * @param w angular velocity
    * @param dt time duration
-   * @param onlyfwd If true, then primitives with +ve forward velocity are made
-   * @param wseg The discretization of max angular velocity for making the
-   * primitives
-   * @param vseg The discretization of max forward velocity for making the
-   * primitives
-   * @return
+   * @param vx forward velocity.
+   * @param kmax maximum curvature k = Tan(max steering angle)/axle_length; Default value is 0.577=tan(M_PI/6)/1
+   * @param kseg It decides the discretization of max angular velocity when
+   * making the motion primitives
+   * @param onlyfwd If true, then only +ve forward velocity is used
+   * @return true on success
    */
-  bool SetPrimitives(double vx,
-                     double w,
-                     double dt,
-                     double onlyfwd = false,
-                     int wseg = 2,
-                     int vseg = 1);
-
+  bool SetPrimitives(double dt,
+                     double vx,
+                     double kmax,
+                     int kseg = 4,
+                     bool onlyfwd = false);
+  
   bool operator()(const SE2Cell& from,
-                  std::vector< SE2Path >& paths,
-                  bool fwd = true) const;
+                  std::vector< std::tuple<SE2Cell*, SE2Path, double> >& paths,
+                  bool fwd = true) const override;
+
+  bool Free(const Eigen::Matrix3d &g) const override { return true; }
 
   /**
    * Generate a path (a sequence of points) from initialize state in SE(2)
@@ -85,21 +97,18 @@ public:
    * @param v body fixed velocity (vx,vy,w)
    * @return true on success, false if obststructed by obstacle
    */
-  bool Flow(SE2Path& path,
+  bool Flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
             const Eigen::Matrix3d& g0,
             const Eigen::Vector3d& v) const;
 
+
   const CarGrid& grid; ///< the grid
 
-  double vx; ///< maximum forward velocity
-  double w;  ///< maximum angular velocity
-  double dt; ///< how long are the primitives
-  double bp; ///< A scaling factor for penalizing going backward. Cost going
-  /// backward= bp*cost going forward
+  std::vector< Eigen::Vector3d > vs; ///< primitives defined using motions with constant body-fixed velocities (w,vx,vy)
 
-  std::vector< Vector3d >
-      vs; ///< primitives defined using motions with constant
-  /// body-fixed velocities (w,vx,vy)
+  double dt = .5; ///< how long are the primitives
+
+  CarCost cost;
 };
 }
 

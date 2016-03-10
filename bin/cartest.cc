@@ -4,67 +4,135 @@
 #include "carcost.h"
 #include "carconnectivity.h"
 #include "utils.h"
+#include "params.h"
+#include <fstream>
 
 using namespace dsl;
 using namespace std;
 using namespace Eigen;
 
+using CarPath = GridPath<Vector3d, Matrix3d, SE2Path>;
+
+vector<Vector2d> ToVector2dPath(const CarPath &path) {
+  vector<Vector2d> path2d;
+  for (auto&& connection : path.connections)
+    for (auto&& g : connection)      
+      path2d.push_back(g.topRightCorner<2,1>());
+  return path2d;
+}
+
 
 int main(int argc, char** argv)
 {
   if (argc!=2) {
-    cout << "Usage: $./cartest map4.ppm" << endl;
-    cout << "\t\t where map4.ppm is a map graphics file" << endl;
+    cout << "Usage: $./cartest params.cfg" << endl;
+    cout << "\t\t where params.cfg is a parameter file" << endl;
     cout << "\t\t output will be written to graphics files path1.ppm and path2.pppm" << endl;
     return 0;
   }
   assert(argc == 2);
 
+  Params params(argv[1]);
 
+  // get start and goal
   Vector3d goal, start;
-  //goal <<      0,  1, 11;
-  //start<< M_PI/2, 24, 12;
+  params.GetVector3d("start", start);
+  params.GetVector3d("goal", goal);
 
+  // get map
+  string mapName;
+  params.GetString("map", mapName);
 
-  // load a map from ppm file
-  int width, height; 
-  char* chmap = load_map(width, height, argv[1]);
-  char mapPath[width*height];
-  double map_data[width*height];
-  for (int i = 0; i < width*height; ++i)
-    map_data[i] = 1000*(double)chmap[i];
+  // get map
+  string cmapName;
+  bool cmapValid = params.GetString("cmap", cmapName);
+  
+  // occupancy cell size
+  Vector3d ocs;
+  params.GetVector3d("ocs", ocs);
 
-  // this is just for display
-  memcpy(mapPath, chmap, width*height);
+  // grid cell size (normally larger than ocs)
+  Vector3d gcs;
+  params.GetVector3d("gcs", gcs);
+
+  Vector4d whxy;
+  bool useGeom = params.GetVector4d("geom", whxy);
+  
+  // load an occupancy map from ppm file
+  dsl::Map<bool, 2> omap = load(mapName.c_str(), ocs.tail<2>());
+
+  // a map that we'll use for display
+  dsl::Map<bool, 2> dmap = omap;
+
+  // dimensions are determined from occupancy map
+  Vector3d xlb(-M_PI + gcs[0]/2, omap.xlb[0], omap.xlb[1]);
+  Vector3d xub(M_PI + gcs[0]/2, omap.xub[0], omap.xub[1]);
+
+  // configuration-space map
+  dsl::Map<bool, 3> *cmap = 0;
+  
+  //  CarGrid::MakeMap(omap, cmap);
+  // for non-point geometry comment this out 
+  if (!cmapValid) {
+    cmap = new dsl::Map<bool, 3>(xlb, xub, ocs);
+    std::cout << "Making cmap... " << std::endl;
+
+    if (useGeom) {
+      CarGeom geom(whxy(0), whxy(1), whxy(2), whxy(3));
+      CarGrid::MakeMap(geom, omap, *cmap);
+    } else {
+      CarGrid::MakeMap(omap, *cmap);      
+    }
+    
+    cmapName = mapName;
+    replaceExt(cmapName, string("cmap"));
+    dsl::Map<bool,3>::Save(*cmap, cmapName.c_str());
+    std::cout << "Saved cmap " << cmapName << " with xlb=" << cmap->xlb.transpose() << " xub=" << cmap->xub.transpose() << " gs=" << cmap->gs.transpose() << std::endl;
+    
+  } else {
+    cmap = dsl::Map<bool,3>::Load(cmapName.c_str());
+    std::cout << "Loaded map with xlb=" << cmap->xlb.transpose() << " xub=" << cmap->xub.transpose() << " gs=" << cmap->gs.transpose() << std::endl;
+  }
+  
+  CarGrid grid(*cmap, gcs);
+
+  // create cost and set custom angular cost mixing factor ac
+  CarCost cost;
+  params.GetDouble("ac", cost.ac);    
+
+  // load car connectivity and set custom parameters
+  CarConnectivity connectivity(grid);
+  double dt = .25;
+  double vx = 4;
+  double kmax = 0.57;
+  int kseg = 4;
+  bool onlyfwd = false;
+  params.GetDouble("dt", dt);  
+  params.GetDouble("vx", vx);
+  params.GetDouble("kmax", kmax);
+  params.GetInt("kseg", kseg);
+  params.GetBool("onlyfwd", onlyfwd);
+  connectivity.SetPrimitives(dt, vx, kmax, kseg, onlyfwd);
 
   cout << "Creating a graph..." << endl;
-
   // create planner
   struct timeval timer;
   timer_start(&timer);
 
-  Map2d map(width, height, map_data);
-  
-  CarGrid grid(map, .1, .1, M_PI/16, 1, 0.5);
-  CarCost cost;
-  CarConnectivity connectivity(grid);
-  //  connectivity.SetPrimitives(1, tan(M_PI/3), 1);
+  bool initExpand = false;
+  params.GetBool("initExpand", initExpand);
 
-  GridSearch<3, Matrix3d> search(grid, connectivity, cost, false);
-  SE2Path path, optPath;
+  
+  GridSearch<Vector3d, Matrix3d, SE2Path> search(grid, connectivity, cost, initExpand);
+  CarPath path;
 
   long time = timer_us(&timer);
   printf("graph construction time= %ld  us\n", time);
 
-  start << 0, .1, grid.xub[2]/2;
-  goal << 0, grid.xub[1] - .1, grid.xub[2]/2 ;
   search.SetStart(start);
   search.SetGoal(goal);
-  //  search.SetStart(Vector3d(0, .1, grid.xub[2]/2));
-  //  search.SetGoal(Vector3d(0, grid.xub[1] - .1, grid.xub[2]/2));
-  //  search.SetGoal(Vector3d(grid.xub[0]*.5, grid.xub[1]*.58, 15.0/16*M_PI));
 
-  cout << "Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
+  cout << "Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges." << endl;
 
   cout << "Planning a path..." << endl;
   // plan
@@ -75,95 +143,13 @@ int main(int argc, char** argv)
   printf("path: edges=%lu len=%f\n", path.cells.size(), path.cost);
 
   cout << "Graph has " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
-
-  // print results
-  vector<SE2Cell>::iterator it; 
-  for (it = path.cells.begin(); it != path.cells.end(); ++it) {
-    //    printf("(%d,%d) ",  path.cells[i].p[0], path.cells[i].p[1]);    
-    int x = grid.Index(it->c, 1);
-    int y = grid.Index(it->c, 2);
-    mapPath[y*width + x] = 2;// path.cells[i].p[1]*width +  path.cells[i].p[0]] = 2;
-  }
-  /*
-  printf("\n");
-  for (y = 0; y < height; ++y) {
-    for (x = 0; x < width; ++x) {
-      printf("%d ", mapPath[y*width + x]);
-    }
-    printf("\n");
-  }
-  fflush(stdout);
-  */
   
   // save it to image for viewing
-  save_map(mapPath, width, height, "path1.ppm");
+  vector<Vector2d> path2d = ToVector2dPath(path);
+  save(dmap, "path1.ppm", &path2d);
+
   cout << "Map and path saved to path1.ppm" << endl;
 
-  return 0;
-  
-  // follow path until middle
-  Vector3d c = path.cells[path.cells.size()/2].c;
-  search.SetStart(c);
-
-  // simulate closing the narrow passage
-  if (0) {
-    for (double a = grid.xlb[0]+grid.cs[0]/2; a < grid.xub[0] + grid.cs[0]/2; a += grid.cs[0]) {
-      // by increasing the cost drastically
-      //      search.SetCost(Vector3d(29,18,a), 1000);
-      //      search.SetCost(Vector3d(30,18,a), 1000);
-      //      search.SetCost(Vector3d(31,18,a), 1000);
-    }
-  } else {
-  // a better way: by simply removing the passage
-    for (double y = c[1] - 2; y < c[1] +2; ++y)  {
-      for (double a = grid.xlb[0]+grid.cs[0]/2; a < grid.xub[0] + grid.cs[0]/2; a += grid.cs[0]) {     
-        search.RemoveCell(Vector3d(a, c[0],y));
-      }
-    }
-  }
-
-  // this is just for display
-  memcpy(mapPath, chmap, width*height);
-  mapPath[18*width + 29] = 1;  mapPath[18*width + 30] = 1;  mapPath[18*width + 31] = 1;
-
-  // replan
-  timer_start(&timer);
-  search.Plan(path);
-  time = timer_us(&timer);
-  printf("replan path time= %ld us\n", time);
-  printf("path: count=%lu len=%f\n", path.cells.size(), path.cost);
-  fflush(stdout);
-  
-
-  // bypass the old vertex
-  //  gdsl.AddEdge(29,18,31,18);  
-  // // replan
- // timer_start(&timer);
- // gdsl.Plan(path);
- // time = timer_ns(&timer);
- // printf("replan path time= %ld\n", time);
- // printf("path: count=%d len=%f\n", path.count, path.cost);
- // fflush(stdout);
-  
-  
-  // optimize path (experimental)
-  
-  /*
-  timer_start(&timer);
-  search.OptPath(path, optPath);
-  time = timer_us(&timer);
-  printf("opt path time= %ld us\n", time);
-  printf("optPath: count=%lu len=%f\n", optPath.cells.size(), optPath.cost);
-  */
-
-  for (it = path.cells.begin(); it != path.cells.end(); ++it) {
-    int x = grid.Index(it->c, 0);
-    int y = grid.Index(it->c, 1);
-    mapPath[y*width + x] = 2;// path.cells[i].p[1]*width +  path.cells[i].p[0]] = 2;
-  }
-  // save it to image for viewing
-  save_map(mapPath, width, height, "path2.ppm");
-  
-
+  delete cmap;
   return 0;
 }
