@@ -112,18 +112,19 @@ int main(int argc, char** argv)
   params.GetInt("kseg", kseg);
   params.GetBool("onlyfwd", onlyfwd);
 
-
   // load car connectivity and set custom parameters
   dsl::CarPrimitiveCfg prim_cfg;
   prim_cfg.fwdonly = onlyfwd;
   prim_cfg.tphioverlmax = kmax;
-  prim_cfg.lmin = gcs(1)*2;
-  prim_cfg.lmax = gcs(1)*10;
+//  prim_cfg.lmin = gcs(1)*3;
+//  prim_cfg.lmax = gcs(1)*10;
+  prim_cfg.lmin = 0.32;
+  prim_cfg.lmax = 2.0;
   prim_cfg.nl = 2 ;
   prim_cfg.amax = 1.57; //primitives turn by atmost pi/2 radians
-  prim_cfg.na = 2*kseg+1;
+  prim_cfg.na = kseg;
+  prim_cfg.pert = true;
   CarConnectivity2 connectivity(grid, prim_cfg);
-
 
   cout << "Creating a graph..." << endl;
   // create planner
