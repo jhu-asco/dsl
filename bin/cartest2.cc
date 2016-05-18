@@ -1,8 +1,8 @@
+#include <carconnwithpath.h>
 #include <string.h>
 #include "gridsearch.h"
 #include "cargrid.h"
 #include "carcost.h"
-#include "carconnectivity2.h"
 #include "utils.h"
 #include "params.h"
 #include <fstream>
@@ -124,7 +124,7 @@ int main(int argc, char** argv)
   prim_cfg.amax = 1.57; //primitives turn by atmost pi/2 radians
   prim_cfg.na = kseg;
   prim_cfg.pert = true;
-  CarConnectivity2 connectivity(grid, prim_cfg);
+  CarConnWithPath connectivity(grid, prim_cfg);
 
   cout << "Creating a graph..." << endl;
   // create planner

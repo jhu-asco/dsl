@@ -1,4 +1,4 @@
-#include "carconnectivity2.h"
+#include "carconnwithprim.h"
 #include <iostream>
 #include "utils.h"
 #include <algorithm>
@@ -18,12 +18,12 @@ using std::vector;
 
 typedef Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> MatrixXbool;
 
-CarConnectivity2::CarConnectivity2(const CarGrid& grid, CarPrimitiveCfg& cfg)
+CarConnWithPrim::CarConnWithPrim(const CarGrid& grid, CarPrimitiveCfg& cfg)
   :grid(grid){
 SetPrimitives(1, cfg);
 }
 
-Vector2d xy2wt( double xf,double yf, double u ){
+Vector2d xy2wt2( double xf,double yf, double u ){
 double w, t;
   if(abs(yf)<1e-12){
     w=0;
@@ -35,13 +35,13 @@ double w, t;
   return Vector2d(w,t);
 }
 
-CarConnectivity2::CarConnectivity2(const CarGrid& grid,
+CarConnWithPrim::CarConnWithPrim(const CarGrid& grid,
                                  const vector<Eigen::Vector3d> &vs,
                                  double dt) : grid(grid), vs(vs), dt(dt)
 {
 }
 
-CarConnectivity2::CarConnectivity2(const CarGrid& grid,
+CarConnWithPrim::CarConnWithPrim(const CarGrid& grid,
                                  double dt,
                                  double vx,
                                  double kmax,
@@ -51,7 +51,7 @@ CarConnectivity2::CarConnectivity2(const CarGrid& grid,
   SetPrimitives(dt, vx, kmax, kseg, onlyfwd);
 }
 
-bool CarConnectivity2::SetPrimitives(double dt, CarPrimitiveCfg& cfg){
+bool CarConnWithPrim::SetPrimitives(double dt, CarPrimitiveCfg& cfg){
 
   cfg.nl = cfg.nl<2 ? 2: cfg.nl;  //! Make sure the number of different traj length is atleast 2
   cfg.na = cfg.na<3 ? 3: cfg.na;  //! Make sure the number of differentsteering angle is atleast 3
@@ -120,7 +120,7 @@ bool CarConnectivity2::SetPrimitives(double dt, CarPrimitiveCfg& cfg){
 
             Vector3d xyzend_snapped = igorg_to_car.inverse()* (idxi.cast<double>()) ;
             //cout<<"xyzend_snapped:"<<xyzend_snapped.transpose()<<endl;
-            Vector2d wtend= xy2wt(xyzend_snapped(0), xyzend_snapped(1),u);
+            Vector2d wtend= xy2wt2(xyzend_snapped(0), xyzend_snapped(1),u);
             double wend = wtend(0); double tend = wtend(1);
             Vector3d vfp(wend*tend, u*tend,0);
             Vector3d vfn(-wend*tend, u*tend,0);
@@ -147,103 +147,7 @@ bool CarConnectivity2::SetPrimitives(double dt, CarPrimitiveCfg& cfg){
   return true;
 }
 
-//bool CarConnectivity2::SetPrimitives(double dt, CarPrimitiveCfg& cfg){
-//
-//
-//
-//  cfg.nl = cfg.nl<2 ? 2: cfg.nl;  //! Make sure the number of different traj length is atleast 2
-//  cfg.na = cfg.na<3 ? 3 : (cfg.na%2==0 ? cfg.na + 1: cfg.na );// make sure that number of divisions of steering angle
-//                                                              // is a odd number and at least 3
-//
-//  double u = 1.0; //The speed can be anything. Using for clarity
-//
-//  double tmin = cfg.lmin/u;
-//  double tmax = cfg.lmax/u;
-//  double wmax = u*cfg.tphioverlmax;
-//  double rmax = cfg.lmax/cfg.amax;
-//  double ymax = rmax - rmax*cos(cfg.amax);
-//  double xmax = cfg.lmax;
-//
-//  this->dt = dt;
-//
-//  double del_t = exp(log(tmax/tmin)/(cfg.nl-1));
-//
-//  double del_w = wmax/(cfg.na-1);
-//
-//  double sx = grid.cs(1);
-//  double sy = grid.cs(2);
-//
-//
-//  //create a grid which can accomodate any primitive starting from any orientation
-//  uint grid_nhc = ceil(max(ymax/sy, xmax/sx)); // number of half cells
-//  uint grid_nc  = 2*grid_nhc + 1;
-//  MatrixXbool grid_seen(grid_nc, grid_nc);
-//
-//
-//  Affine3d igorg_to_mgcorg = Scaling(Vector3d(1/sx, 1/sy, 1)) *Translation3d(Vector3d(grid_nhc*sx, grid_nhc*sx, 0));
-//
-//
-//  //Allocate space for the
-//  vss.resize(grid.gs(0));
-//  for(size_t i=0;i<vss.size();i++)
-//    vss[i].reserve(cfg.na*cfg.nl);
-//
-//  for(int idx_a=0; idx_a < grid.gs(0);idx_a++){
-//    double th = grid.xlb(0) + grid.cs(0)*(idx_a+0.5);
-//    for (size_t i = 0, size = grid_seen.size(); i < size; i++)
-//      *(grid_seen.data()+i) = false;
-//    Affine3d igorg_to_car = igorg_to_mgcorg * AngleAxisd(th,Vector3d::UnitZ());
-//    for(size_t idx_t=0 ; idx_t< cfg.nl;idx_t++){
-//        double t = tmin*pow(del_t, idx_t);
-//        for(size_t idx_w=0 ; idx_w < cfg.na; idx_w++){
-//            double w = idx_w*del_w;
-//            double tpert = t*(1 + 0.2*(cos(40*w)-1)); // t perturbed
-//           // double tpert = t;
-//            double apert = w*tpert;                      // angle perturbed
-//            double lpert = u*tpert;
-//            if(apert > cfg.amax || lpert > cfg.lmax || lpert < cfg.lmin)
-//                continue;
-//            Matrix3d gend; se2_exp(gend,Vector3d(w*tpert, u*tpert, 0));
-//            Vector3d xyzend(gend(0,2),gend(1,2),0);
-//            Vector3d idxd = igorg_to_car * xyzend;
-//            Vector3i idxi(round(idxd(0)),round(idxd(1)),round(idxd(2)));
-//            if((uint)idxi(1)>grid_nc-1 || (uint)idxi(0)>grid_nc-1)
-//                continue;
-//
-//            if(grid_seen(idxi(1), idxi(0))==true)
-//                continue;
-//            else
-//              grid_seen(idxi(1), idxi(0))=true;
-//
-//            Vector3d xyzend_snapped = igorg_to_car.inverse()* (idxi.cast<double>()) ;
-//            Vector2d wtend= xy2wt(xyzend_snapped(0), xyzend_snapped(1),u);
-//            double wend = wtend(0); double tend = wtend(1);
-//            Vector3d vfp(wend*tend, u*tend,0);
-//            Vector3d vfn(-wend*tend, u*tend,0);
-//            Vector3d vbp(wend*tend, -u*tend,0);
-//            Vector3d vbn(-wend*tend, -u*tend,0);
-//
-//            if(abs(wend)<1e-10){
-//                vss[idx_a].push_back(vfp);
-//                if(!cfg.fwdonly)
-//                  vss[idx_a].push_back(vbp);
-//            }else{
-//              vss[idx_a].push_back(vfp);
-//              vss[idx_a].push_back(vfn);
-//              if(!cfg.fwdonly){
-//                vss[idx_a].push_back(vbp);
-//                vss[idx_a].push_back(vbn);
-//              }
-//            }
-//        }
-//    }
-//  }
-//
-//
-//  return true;
-//}
-
-bool CarConnectivity2::SetPrimitives(double dt, double vx, double kmax, int kseg, bool onlyfwd) {
+bool CarConnWithPrim::SetPrimitives(double dt, double vx, double kmax, int kseg, bool onlyfwd) {
   if (dt <= 0)
     return false;
 
@@ -271,7 +175,7 @@ static Vector2d position(const Matrix3d &g) {
   return Vector2d(g(0,2), g(1,2));
 }
 
-bool CarConnectivity2::Flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
+bool CarConnWithPrim::Flow(std::tuple< SE2Cell*, SE2Prim, double>& pathTuple,
                            const Matrix3d& g0,
                            const Vector3d& v) const {
 
@@ -281,8 +185,8 @@ bool CarConnectivity2::Flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
   Matrix3d g;
   Vector3d q;
 
-  SE2Path& path = std::get<1>(pathTuple);
-  path.clear();
+  std::get<1>(pathTuple) = v;
+
   SE2Cell *to = nullptr;
   
   // might be better to generate it backwards to more efficiently handle
@@ -299,8 +203,6 @@ bool CarConnectivity2::Flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
     if (!to) {
       return false;
     }
-
-    path.push_back(g);
   }
 
   if (!to)
@@ -314,9 +216,9 @@ bool CarConnectivity2::Flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
   return true; 
 }
 
-bool CarConnectivity2::
+bool CarConnWithPrim::
     operator()(const SE2Cell& from,
-               std::vector< std::tuple<SE2Cell*, SE2Path, double> >& paths,
+               std::vector< std::tuple<SE2Cell*, SE2Prim, double> >& paths,
                bool fwd) const {
   Matrix3d g0;
   se2_q2g(g0, from.c);
@@ -332,7 +234,7 @@ bool CarConnectivity2::
   //  vector< Vector3d >::const_iterator it;
   for (auto&& s : *p_vstemp) {
     // reverse time if fwd=false
-    std::tuple<SE2Cell*, SE2Path, double> pathTuple;
+    std::tuple<SE2Cell*, SE2Prim, double> pathTuple;
     if (!Flow(pathTuple, g0, (fwd ? dt : -dt) * s))
       continue;
 
@@ -348,8 +250,8 @@ bool CarConnectivity2::
     // which can be accomplished by uncommenting the following
     //    GenTraj(path.data, g0, path.cells.back().data, w,vx, vx, w,vx, dt/5);
     
-    if (!std::get<1>(pathTuple).size())
-      continue;
+//    if (!std::get<1>(pathTuple).size())
+//      continue;
 
     // overwrite cost 
     //    path.cost = cost; //.Real(path.cells.front(), path.cells.back());

@@ -6,8 +6,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_CARCONNECTIVITY2_H
-#define DSL_CARCONNECTIVITY2_H
+#ifndef DSL_CARCONNWITHPATH_H
+#define DSL_CARCONNWITHPATH_H
 
 #include "gridconnectivity.h"
 #include "cargrid.h"
@@ -47,7 +47,7 @@ struct CarPrimitiveCfg {
  *
  * Author: Marin Kobilarov
  */
-class CarConnectivity2 : public GridConnectivity< Eigen::Vector3d, Eigen::Matrix3d, SE2Path > {
+class CarConnWithPath : public GridConnectivity< Eigen::Vector3d, Eigen::Matrix3d, SE2Path > {
 public:
 
   /**
@@ -55,7 +55,7 @@ public:
    * @param grid The car grid
    * @param cfg The configuration for generating primitives
    */
-  CarConnectivity2(const CarGrid& grid, CarPrimitiveCfg& cfg);
+  CarConnWithPath(const CarGrid& grid, CarPrimitiveCfg& cfg);
 
   /**
    * Initialize cargrid connectivity with primitives corresponding to
@@ -64,7 +64,7 @@ public:
    * @param vs body-fixed velocities (each v=(vw,vx,vy))
    * @param dt time duration
    */
-  CarConnectivity2(const CarGrid& grid,
+  CarConnWithPath(const CarGrid& grid,
                   const std::vector<Eigen::Vector3d>& vs,
                   double dt = .25);
   
@@ -79,7 +79,7 @@ public:
    * making the motion primitives
    * @param onlyfwd If true, then only +ve forward velocity is used
    */
-  CarConnectivity2(const CarGrid& grid,
+  CarConnWithPath(const CarGrid& grid,
                   double dt = .25,
                   double vx = 5,
                   double kmax = 0.577,
@@ -148,4 +148,4 @@ public:
 };
 }
 
-#endif //DSL_CARCONNECTIVITY2_H
+#endif //DSL_CARCONNWITHPATH_H

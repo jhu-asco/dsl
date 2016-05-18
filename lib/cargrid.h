@@ -30,15 +30,39 @@ struct CarGeom {
   double ox; ///< x position of the center of the origin of the car wrt to the
   /// center of bounding rectangle
   double oy; ///< y position of the center of the origin of the car wrt to the
+  /// center of bounding rectangle
 
+  /**
+   * Fills the bounding rectangle of the car with regularly spaced points
+   * @param cs
+   * @param points
+   */
   void Raster(const Eigen::Vector2d &cs, std::vector<Eigen::Vector2d> &points) const {
     points.clear();
+    //  ______________
+    // |              l
+    // |              |
+    // |              |
+    // |              |
+    // |              |
+    // |       ^      |
+    // |       x      |
+    // |center |      |
+    // |  <-y--*      |
+    // |              |
+    // |       ^      |
+    // |origin x      |
+    // |  <-y--*      |
+    // |              ^
+    // |      raster  x
+    // |      origin  |
+    // b----------<-y-*
+
     for (double x = 0; x < l; x += cs[0])
       for (double y = 0; y < b; y += cs[1])
-        points.push_back(Eigen::Vector2d(x + ox, y + oy));
+        points.push_back(Eigen::Vector2d(x - ox -l/2, y - oy - b/2));
+        //points.push_back(Eigen::Vector2d(x + ox, y + oy));
   }
-
-  /// center of bounding rectangle
 };
 
 

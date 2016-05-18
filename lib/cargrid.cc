@@ -75,62 +75,62 @@ void CarGrid::Slice(const Map<bool, 3> &cmap, double a, Map<bool, 2> &map) const
       assert(id3 < cmap.nc);
       map.cells[id2] = cmap.cells[id3];
     }
-  }    
-}
-
-
-void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3> &cmap) {
-  assert(map.gs[0] == cmap.gs[1]);
-  assert(map.gs[1] == cmap.gs[2]);
-
-  vector<Vector2d> points;
-  geom.Raster(map.cs, points);
-
-  Matrix2d R;
-
-  for (int ia = 0; ia < cmap.gs[0]; ++ia) {
-    // dilate map for a particular angle
-    double theta = (ia + 0.5) * cmap.cs[0] + cmap.xlb[0];
-
-    // make a rotation matrix
-    double ct = cos(theta);
-    double st = sin(theta);
-    R(0,0) = ct; R(0,1) = -st;
-    R(1,0) = st; R(1,1) = ct;
-    
-    // dilated map
-    //    bool dmap[cmap.gs[1]*cmap.gs[2]];
-    //    DilateMap(geom, theta,
-    //              cmap.cs[1], cmap.cs[2], cmap.gs[1], cmap.gs[2], 
-    //              map.cells, dmap);
-    for (int ix = 0; ix < cmap.gs[1]; ++ix) {
-      double x = (ix + 0.5)*cmap.cs[1] + cmap.xlb[1];
-      
-      for (int iy = 0; iy < cmap.gs[2]; ++iy) {
-        // index into workspace
-        int id2 = ix + iy*cmap.gs[1];
-        assert(id2 < map.nc);
-        // if free continue
-        if (!map.cells[id2])
-          continue;
-
-        double y = (iy + 0.5)*cmap.cs[2] + cmap.xlb[2];
-
-        // index into configuration space
-        //        int id3 = ia + ix*cmap.gs[0] + iy*cmap.gs[0]*cmap.gs[1];
-
-        Vector2d p0(x,y); // position of car origin
-        for (auto&& dp : points) {
-          Vector2d p = p0 + R*dp; // point on the car
-          cmap.Set(Vector3d(theta, p[0], p[1]), true);
-        }
-      }
-    }    
   }
 }
 
+//
+//void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3> &cmap) {
+//  assert(map.gs[0] == cmap.gs[1]);
+//  assert(map.gs[1] == cmap.gs[2]);
+//
+//  vector<Vector2d> points;
+//  geom.Raster(map.cs, points);
+//
+//  Matrix2d R;
+//
+//  for (int ia = 0; ia < cmap.gs[0]; ++ia) {
+//    // dilate map for a particular angle
+//    double theta = (ia + 0.5) * cmap.cs[0] + cmap.xlb[0];
+//
+//    // make a rotation matrix
+//    double ct = cos(theta);
+//    double st = sin(theta);
+//    R(0,0) = ct; R(0,1) = -st;
+//    R(1,0) = st; R(1,1) = ct;
+//
+//    // dilated map
+//    //    bool dmap[cmap.gs[1]*cmap.gs[2]];
+//    //    DilateMap(geom, theta,
+//    //              cmap.cs[1], cmap.cs[2], cmap.gs[1], cmap.gs[2],
+//    //              map.cells, dmap);
+//    for (int ix = 0; ix < cmap.gs[1]; ++ix) {
+//      double x = (ix + 0.5)*cmap.cs[1] + cmap.xlb[1];
+//
+//      for (int iy = 0; iy < cmap.gs[2]; ++iy) {
+//        // index into workspace
+//        int id2 = ix + iy*cmap.gs[1];
+//        assert(id2 < map.nc);
+//        // if free continue
+//        if (!map.cells[id2])
+//          continue;
+//
+//        double y = (iy + 0.5)*cmap.cs[2] + cmap.xlb[2];
+//
+//        // index into configuration space
+//        //        int id3 = ia + ix*cmap.gs[0] + iy*cmap.gs[0]*cmap.gs[1];
+//
+//        Vector2d p0(x,y); // position of car origin
+//        for (auto&& dp : points) {
+//          Vector2d p = p0 + R*dp; // point on the car
+//          cmap.Set(Vector3d(theta, p[0], p[1]), true);
+//        }
+//      }
+//    }
+//  }
+//}
 
-/*
+
+
 void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3> &cmap) {
   assert(map.gs[0] == cmap.gs[1]);
   assert(map.gs[1] == cmap.gs[2]);
@@ -142,16 +142,16 @@ void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3>
     // dilated map
     bool dmap[cmap.gs[1]*cmap.gs[2]];
     DilateMap(geom, theta,
-              cmap.cs[1], cmap.cs[2], cmap.gs[1], cmap.gs[2], 
+              cmap.cs[1], cmap.cs[2], cmap.gs[1], cmap.gs[2],
               map.cells, dmap);
     for (int ix = 0; ix < cmap.gs[1]; ++ix) {
       for (int iy = 0; iy < cmap.gs[2]; ++iy) {
         cmap.cells[ia + ix*cmap.gs[0] + iy*cmap.gs[0]*cmap.gs[1]] = dmap[ix + iy*cmap.gs[1]];
       }
-    }    
+    }
   }
 }
-*/
+
 
  void CarGrid::DilateMap(const CarGeom& geom, double theta,
                          double sx, double sy, int gx, int gy, 
