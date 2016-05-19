@@ -19,12 +19,12 @@ using std::vector;
 typedef Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> MatrixXbool;
 
 CarConnWithPrim::CarConnWithPrim(const CarGrid& grid, CarPrimitiveCfg& cfg)
-  :grid(grid){
-SetPrimitives(1, cfg);
+:grid(grid){
+  SetPrimitives(1, cfg);
 }
 
 Vector2d xy2wt2( double xf,double yf, double u ){
-double w, t;
+  double w, t;
   if(abs(yf)<1e-12){
     w=0;
     t=xf/u;
@@ -47,7 +47,7 @@ CarConnWithPrim::CarConnWithPrim(const CarGrid& grid,
                                  double kmax,
                                  int kseg,
                                  bool onlyfwd)
-    : grid(grid) {
+: grid(grid) {
   SetPrimitives(dt, vx, kmax, kseg, onlyfwd);
 }
 
@@ -86,63 +86,102 @@ bool CarConnWithPrim::SetPrimitives(double dt, CarPrimitiveCfg& cfg){
   for(size_t i=0;i<vss.size();i++)
     vss[i].reserve(cfg.na*cfg.nl);
 
-  for(int idx_a=0; idx_a < grid.gs(0);idx_a++){
-    //cout<<"idx_a:"<<idx_a<<endl;
-    double th = grid.xlb(0) + grid.cs(0)*(idx_a+0.5);
-    for (size_t i = 0, size = grid_seen.size(); i < size; i++)
-      *(grid_seen.data()+i) = false;
-    Affine3d igorg_to_car = igorg_to_mgcorg * AngleAxisd(th,Vector3d::UnitZ());
-    for(size_t idx_t=0 ; idx_t< cfg.nl;idx_t++){
+  if(cfg.tocenter){
+    for(int idx_a=0; idx_a < grid.gs(0);idx_a++){
+      //cout<<"idx_a:"<<idx_a<<endl;
+      double th = grid.xlb(0) + grid.cs(0)*(idx_a+0.5);
+      for (size_t i = 0, size = grid_seen.size(); i < size; i++)
+        *(grid_seen.data()+i) = false;
+      Affine3d igorg_to_car = igorg_to_mgcorg * AngleAxisd(th,Vector3d::UnitZ());
+      for(size_t idx_t=0 ; idx_t< cfg.nl;idx_t++){
         double t = tmin*pow(del_t, idx_t);
         for(size_t idx_w=0 ; idx_w < cfg.na; idx_w++){
-            double w = idx_w*del_w;
-            double tpert;
-            if(cfg.pert)
-              tpert = t*(1 + 0.2*(cos(40*w)-1)); // t perturbed
-            else
-              tpert = t;
-            double apert = w*tpert;              // angle perturbed
-            double lpert = u*tpert;
-            if(apert > cfg.amax || lpert > cfg.lmax || lpert < 0.7*cfg.lmin)
-                continue;
-            Matrix3d gend; se2_exp(gend,Vector3d(w*tpert, u*tpert, 0));
-            Vector3d xyzend(gend(0,2),gend(1,2),0);
-            Vector3d idxd = igorg_to_car * xyzend;
-            Vector3i idxi(round(idxd(0)),round(idxd(1)),round(idxd(2)));
+          double w = idx_w*del_w;
+          double tpert;
+          if(cfg.pert)
+            tpert = t*(1 + 0.2*(cos(40*w)-1)); // t perturbed
+          else
+            tpert = t;
+          double apert = w*tpert;              // angle perturbed
+          double lpert = u*tpert;
+          if(apert > cfg.amax || lpert > cfg.lmax || lpert < 0.7*cfg.lmin)
+            continue;
+          Matrix3d gend; se2_exp(gend,Vector3d(w*tpert, u*tpert, 0));
+          Vector3d xyzend(gend(0,2),gend(1,2),0);
+          Vector3d idxd = igorg_to_car * xyzend;
+          Vector3i idxi(round(idxd(0)),round(idxd(1)),round(idxd(2)));
 
-            if((uint)idxi(1)>grid_nc-1 || (uint)idxi(0)>grid_nc-1) //Shouldn't be necessary
-                continue;
+          if((uint)idxi(1)>grid_nc-1 || (uint)idxi(0)>grid_nc-1) //Shouldn't be necessary
+            continue;
 
-            if(grid_seen(idxi(1), idxi(0))==true)
-                continue;
-            else
-              grid_seen(idxi(1), idxi(0))=true;
+          if(grid_seen(idxi(1), idxi(0))==true)
+            continue;
+          else
+            grid_seen(idxi(1), idxi(0))=true;
 
-            Vector3d xyzend_snapped = igorg_to_car.inverse()* (idxi.cast<double>()) ;
-            //cout<<"xyzend_snapped:"<<xyzend_snapped.transpose()<<endl;
-            Vector2d wtend= xy2wt2(xyzend_snapped(0), xyzend_snapped(1),u);
-            double wend = wtend(0); double tend = wtend(1);
-            Vector3d vfp(wend*tend, u*tend,0);
-            Vector3d vfn(-wend*tend, u*tend,0);
-            Vector3d vbp(wend*tend, -u*tend,0);
-            Vector3d vbn(-wend*tend, -u*tend,0);
+          Vector3d xyzend_snapped = igorg_to_car.inverse()* (idxi.cast<double>()) ;
+          //cout<<"xyzend_snapped:"<<xyzend_snapped.transpose()<<endl;
+          Vector2d wtend= xy2wt2(xyzend_snapped(0), xyzend_snapped(1),u);
+          double wend = wtend(0); double tend = wtend(1);
+          Vector3d vfp(wend*tend, u*tend,0);
+          Vector3d vfn(-wend*tend, u*tend,0);
+          Vector3d vbp(wend*tend, -u*tend,0);
+          Vector3d vbn(-wend*tend, -u*tend,0);
 
-            if(abs(wend)<1e-10){
-                vss[idx_a].push_back(vfp);
-                if(!cfg.fwdonly)
-                  vss[idx_a].push_back(vbp);
-            }else{
-              vss[idx_a].push_back(vfp);
-              vss[idx_a].push_back(vfn);
-              if(!cfg.fwdonly){
-                vss[idx_a].push_back(vbp);
-                vss[idx_a].push_back(vbn);
-              }
+          if(abs(wend)<1e-10){
+            vss[idx_a].push_back(vfp);
+            if(!cfg.fwdonly)
+              vss[idx_a].push_back(vbp);
+          }else{
+            vss[idx_a].push_back(vfp);
+            vss[idx_a].push_back(vfn);
+            if(!cfg.fwdonly){
+              vss[idx_a].push_back(vbp);
+              vss[idx_a].push_back(vbn);
             }
+          }
         }
+      }
     }
-  }
+  }else{
 
+    for(size_t idx_t=0 ; idx_t< cfg.nl;idx_t++){
+      double t = tmin*pow(del_t, idx_t);
+      for(size_t idx_w=0 ; idx_w < cfg.na; idx_w++){
+        double w = idx_w*del_w;
+        double tpert;
+        if(cfg.pert)
+          tpert = t*(1 + 0.2*(cos(40*w)-1)); // t perturbed
+        else
+          tpert = t;
+        double apert = w*tpert;              // angle perturbed
+        double lpert = u*tpert;
+        if(apert > cfg.amax || lpert > cfg.lmax || lpert < 0.7*cfg.lmin)
+          continue;
+
+        Vector3d vfp(w*tpert, u*tpert,0);
+        Vector3d vfn(-w*tpert, u*tpert,0);
+        Vector3d vbp(w*tpert, -u*tpert,0);
+        Vector3d vbn(-w*tpert, -u*tpert,0);
+        //Put the same set of primitive for all angles
+        for(int idx_a=0; idx_a < grid.gs(0);idx_a++){
+          if(abs(w)<1e-10){
+            vss[idx_a].push_back(vfp);
+            if(!cfg.fwdonly)
+              vss[idx_a].push_back(vbp);
+          }else{
+            vss[idx_a].push_back(vfp);
+            vss[idx_a].push_back(vfn);
+            if(!cfg.fwdonly){
+              vss[idx_a].push_back(vbp);
+              vss[idx_a].push_back(vbn);
+            }
+          }
+        }
+      }
+    }
+
+  }
 
   return true;
 }
@@ -188,7 +227,7 @@ bool CarConnWithPrim::Flow(std::tuple< SE2Cell*, SE2Prim, double>& pathTuple,
   std::get<1>(pathTuple) = v;
 
   SE2Cell *to = nullptr;
-  
+
   // might be better to generate it backwards to more efficiently handle
   // obstacles
   //  for (double a = d; a > 0; a -= s) {
@@ -198,7 +237,7 @@ bool CarConnWithPrim::Flow(std::tuple< SE2Cell*, SE2Prim, double>& pathTuple,
     se2_exp(dg, (a / d) * v);
     g = g0 * dg;
     se2_g2q(q, g);
-    
+
     to = grid.Get(q);
     if (!to) {
       return false;
@@ -212,14 +251,14 @@ bool CarConnWithPrim::Flow(std::tuple< SE2Cell*, SE2Prim, double>& pathTuple,
 
   // add distance + mismatch
   std::get<2>(pathTuple) = d + (position(to->data) - position(g)).norm();;
-  
+
   return true; 
 }
 
 bool CarConnWithPrim::
-    operator()(const SE2Cell& from,
-               std::vector< std::tuple<SE2Cell*, SE2Prim, double> >& paths,
-               bool fwd) const {
+operator()(const SE2Cell& from,
+           std::vector< std::tuple<SE2Cell*, SE2Prim, double> >& paths,
+           bool fwd) const {
   Matrix3d g0;
   se2_q2g(g0, from.c);
 
@@ -239,8 +278,8 @@ bool CarConnWithPrim::
       continue;
 
     assert(std::get<0>(pathTuple));
-    
-    
+
+
     // the path will now end inside the last cell but not exactly at the center,
     // which is a good enough
     // approximation if the cells are small
@@ -249,9 +288,9 @@ bool CarConnWithPrim::
     // complex inverse kinematics
     // which can be accomplished by uncommenting the following
     //    GenTraj(path.data, g0, path.cells.back().data, w,vx, vx, w,vx, dt/5);
-    
-//    if (!std::get<1>(pathTuple).size())
-//      continue;
+
+    //    if (!std::get<1>(pathTuple).size())
+    //      continue;
 
     // overwrite cost 
     //    path.cost = cost; //.Real(path.cells.front(), path.cells.back());

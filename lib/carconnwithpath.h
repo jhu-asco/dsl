@@ -13,6 +13,7 @@
 #include "cargrid.h"
 #include <vector>
 #include "carcost.h"
+#include "carprimcfg.h"
 #include "map.h"
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
@@ -21,24 +22,6 @@ namespace dsl {
 
 using SE2Path = std::vector<Eigen::Matrix3d>;
 using Vector1d = Eigen::Matrix<double, 1, 1>;
-
-/**
- * Car primitive configuration
- */
-struct CarPrimitiveCfg {
-  CarPrimitiveCfg(){}
-
-  CarPrimitiveCfg(bool fwdonly,double tphioverlmx, double lmin, double lmax, uint nl, double amax, uint na, bool pert)
-  : fwdonly(fwdonly), tphioverlmax(tphioverlmx), lmin(lmin),lmax(lmax), nl(nl), amax(amax), na(na), pert(pert){}
-  bool    fwdonly;      //! Decides if the car moves only in the forward direction
-  double  tphioverlmax; //! Max(tan(phi)/l) possible for the car
-  double  lmin;         //! Min length of the pimitive
-  double  lmax;         //! Max length of the primitive
-  uint    nl;           //! Number of different primitive lengths from lenmin to lenmax
-  double  amax;         //! Maximum angle turned
-  uint    na;           //! number of steering angles from 0 to phi. If even changed to next odd number
-  bool    pert;         //! preturb primitive length or not
-};
 
 /**
  * Simple car connectivity using primitives. It enables the generation of arcs
