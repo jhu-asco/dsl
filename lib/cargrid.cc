@@ -42,6 +42,15 @@ CarGrid::CarGrid(const Map<bool, 3> &cmap,
   }
 }
 
+CarGrid::~CarGrid() {
+  for (int i = 0; i < nc; i++) {
+    if(cells[i]) {
+      delete cells[i];
+      cells[i] = NULL;
+    } 
+  }
+}
+
 
 void CarGrid::MakeMap(const Map<bool, 2> &map, Map<bool, 3> &cmap) {
   assert(map.gs[0] == cmap.gs[1]);

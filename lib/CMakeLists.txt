@@ -45,7 +45,7 @@ INSTALL(FILES fibheap.h
               carconnwithprim.h              
               carcost.h
               cargrid.h
-              carcost.h
+              traversabilitycost.h
               grid2d.h
               grid2dconnectivity.h
               grid3d.h

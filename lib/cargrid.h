@@ -77,6 +77,8 @@ class CarGrid : public Grid< Eigen::Vector3d, Eigen::Matrix3d > {
 public:
   CarGrid(const Map<bool, 3> &cmap,
           const Eigen::Vector3d& cs);
+
+  virtual ~CarGrid();
   
   const Map<bool, 3>& cmap; ///< configuration-space map
   
