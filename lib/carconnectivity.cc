@@ -53,51 +53,35 @@ bool CarConnectivity::SetPrimitives(double dt, double vx, double kmax, int kseg,
   return true;
 }
 
-static Vector2d position(const Matrix3d &g) {
-  return Vector2d(g(0,2), g(1,2));
-}
-
 bool CarConnectivity::Flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
                            const Matrix3d& g0,
                            const Vector3d& v) const {
 
-  double d = fabs(v[1]); // total distance along curve
-  double s = 2 * grid.cs[1]; // set step-size to 2*side-length
-
-  Matrix3d g;
-  Vector3d q;
-
-  SE2Path& path = std::get<1>(pathTuple);
-  path.clear();
-  SE2Cell *to = nullptr;
-  
-  // might be better to generate it backwards to more efficiently handle
-  // obstacles
-  //  for (double a = d; a > 0; a -= s) {
-  double eps = 1e-10;
-  for (double a = s; a <= d + eps; a += s) {
-    Matrix3d dg;
-    se2_exp(dg, (a / d) * v);
-    g = g0 * dg;
-    se2_g2q(q, g);
-    
-    to = grid.Get(q);
-    if (!to) {
-      return false;
+    //check if the cells encountered along the primitive and at the end, are free from obstacles or not
+    double d = fabs(v[1]); // total distance along curve
+    int n_seg = ceil(d/ (2 * grid.cs[1])); // 2 * grid.cs[1] is to improve efficiency
+    double s = d/n_seg;
+    SE2Cell* to = nullptr;
+    SE2Path path;
+    path.clear();
+    for (int i_seg=1; i_seg<=n_seg; i_seg++) {
+      Vector3d axy;
+      Matrix3d g, dg;
+      se2_exp(dg, (s*i_seg / d) * v);
+      g = g0 * dg;
+      se2_g2q(axy, g);
+      to = grid.Get(axy);
+      if (!to)
+        return false;
+      path.push_back(g);
     }
 
-    path.push_back(g);
-  }
+    //Set the path tupule
+    std::get<0>(pathTuple) = to;
+    std::get<1>(pathTuple) = path;
+    std::get<2>(pathTuple) = d; //replace this by bullet prim cost if it satisfies the relationship
 
-  if (!to)
-    return false;
-
-  std::get<0>(pathTuple) = to;
-
-  // add distance + mismatch
-  std::get<2>(pathTuple) = d + (position(to->data) - position(g)).norm();;
-  
-  return true; 
+    return true;
 }
 
 bool CarConnectivity::
