@@ -29,7 +29,6 @@ struct EmptyData {};
  */
 template < class PointType, class DataType = EmptyData>
  struct Grid {
-
  using Vectorni =  Eigen::Matrix< int, PointType::SizeAtCompileTime, 1 >;
  using TypedCell = Cell<PointType, DataType>;
    
@@ -40,8 +39,8 @@ template < class PointType, class DataType = EmptyData>
    * @param xub state upper bound
    * @param gs number of grid cells per each dimension
    */
-  Grid(const PointType& xlb, const PointType& xub, const Vectorni& gs)
-      : n(xlb.size()), xlb(xlb), xub(xub), gs(gs) {
+  Grid(const PointType& xlb, const PointType& xub, const Vectorni& gs, Vectorni wd = Vectorni::Zero())
+      : n(xlb.size()), xlb(xlb), xub(xub), gs(gs),wd(wd) {
     ds = xub - xlb;
     nc = 1;
     for (int i = 0; i < n; ++i) {
@@ -61,8 +60,8 @@ template < class PointType, class DataType = EmptyData>
    * @param xub state upper bound
    * @param cs cell dimensions
    */
-  Grid(const PointType& xlb, const PointType& xub, const PointType& cs)
-      : n(xlb.size()), xlb(xlb), xub(xub), cs(cs) {
+  Grid(const PointType& xlb, const PointType& xub, const PointType& cs, Vectorni wd = Vectorni::Zero())
+      : n(xlb.size()), xlb(xlb), xub(xub), cs(cs),wd(wd) {
     ds = xub - xlb;
     nc = 1;
     for (int i = 0; i < n; ++i) {
@@ -76,7 +75,7 @@ template < class PointType, class DataType = EmptyData>
     memset(cells, 0, nc * sizeof(TypedCell*)); // initialize all of them nil
   }
 
-  Grid(const Grid &grid) : n(grid.n), xlb(grid.xlb), xub(grid.xub), ds(grid.ds), cs(grid.cs), gs(grid.gs), nc(grid.nc) {
+  Grid(const Grid &grid) : n(grid.n), xlb(grid.xlb), xub(grid.xub), ds(grid.ds), cs(grid.cs), gs(grid.gs), nc(grid.nc),wd(grid.wd) {
      cells = new TypedCell*[nc];
      memcpy(cells, grid.cells, nc * sizeof(TypedCell*)); // initialize all of them nil
    }
@@ -92,13 +91,15 @@ template < class PointType, class DataType = EmptyData>
    */
   virtual bool Valid(const PointType& x, double eps = 1e-10) const {
     for (int i = 0; i < x.size(); ++i) {
-      if (x[i] < xlb[i] + eps)
-        return false;
-      if (x[i] > xub[i] - eps)
-        return false;
-    }
-    return true;
+      if(!wd[i]){ //if dimension is flat
+        if (x[i] < xlb[i] + eps)
+          return false;
+        if (x[i] > xub[i] - eps)
+          return false;
+      }
   }
+  return true;
+}
 
   /**
    * Get an id of point x useful for direct lookup in the grid array
@@ -141,7 +142,15 @@ template < class PointType, class DataType = EmptyData>
    * @return index into cell array
    */
   int Index(const PointType& x, int i) const {
-    return floor((x[i] - xlb[i]) / (xub[i] - xlb[i]) * gs[i]);
+    double span = xub[i] - xlb[i];
+    if(!wd[i]){ //dimension is flat
+      return floor((x[i] - xlb[i]) / span * gs[i]);
+    }else{  //dimension is wrapped
+      double xi = x[i];
+      while(xi < xlb[i]){xi += span;}
+      while(xi > xub[i]){xi -= span;}
+      return floor((xi - xlb[i]) / span * gs[i]);
+    }
   }
 
    
@@ -172,12 +181,13 @@ template < class PointType, class DataType = EmptyData>
   }
 
   int n;      ///< grid dimension
-  
+
   PointType xlb; ///< state lower bound
   PointType xub; ///< state upper bound
   PointType ds;  ///< dimensions (ds=xub-xlb)
   PointType cs;  ///< cell length size per dimension
   Vectorni gs;  ///< number of cells per dimension
+  Vectorni wd;  ///< which dimensions are wrapped
 
   int nc = 0;        ///< number of cells in grid
   TypedCell** cells = nullptr; ///< array of cell data

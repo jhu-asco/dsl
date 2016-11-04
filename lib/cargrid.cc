@@ -22,7 +22,7 @@ using std::vector;
 
 CarGrid::CarGrid(const Map<bool, 3> &cmap,
                  const Vector3d& cs) 
-    : Grid< Vector3d, Matrix3d >(cmap.xlb, cmap.xub, cs),
+    : Grid< Vector3d, Matrix3d >(cmap.xlb, cmap.xub, cs,Vector3i(1,0,0)),
       cmap(cmap) {  
   for (int k = 0; k < gs[0]; ++k) {
     for (int c = 0; c < gs[1]; ++c) {
