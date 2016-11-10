@@ -83,7 +83,7 @@ public:
                      bool onlyfwd = false);
   
   bool operator()(const SE2Cell& from,
-                  std::vector< std::tuple<SE2Cell*, SE2Path, double> >& paths,
+                  std::vector< std::tuple<SE2CellPtr, SE2Path, double> >& paths,
                   bool fwd = true) const override;
 
   bool Free(const Eigen::Matrix3d &g) const override { return true; }
@@ -97,7 +97,7 @@ public:
    * @param v body fixed velocity (vx,vy,w)
    * @return true on success, false if obststructed by obstacle
    */
-  bool Flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
+  bool Flow(std::tuple< SE2CellPtr, SE2Path, double>& pathTuple,
             const Eigen::Matrix3d& g0,
             const Eigen::Vector3d& v) const;
 

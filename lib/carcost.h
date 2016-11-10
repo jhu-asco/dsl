@@ -11,11 +11,14 @@
 
 #include <Eigen/Dense>
 #include "gridcost.h"
+#include <memory>
 
 namespace dsl {
+using std::shared_ptr;
 
   // a cell that stores an SE(2) transformation  matrix
-  typedef Cell< Eigen::Vector3d, Eigen::Matrix3d > SE2Cell;
+  using SE2Cell =  Cell< Eigen::Vector3d, Eigen::Matrix3d >;
+  using SE2CellPtr = shared_ptr<SE2Cell>;
 
 /**
  * Car cost interface

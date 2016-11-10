@@ -11,11 +11,14 @@
 
 #include "cell.h"
 #include <Eigen/Dense>
+#include <vector>
+#include <memory>
 
 namespace dsl {
 
 struct EmptyData {};
-
+using std::shared_ptr;
+using std::vector;
 /**
  * An n-dimenensional grid consisting of abstract "cells", or elements
  * identified by a set of coordinates of type PointType, each cell
@@ -31,7 +34,8 @@ template < class PointType, class DataType = EmptyData>
  struct Grid {
  using Vectorni =  Eigen::Matrix< int, PointType::SizeAtCompileTime, 1 >;
  using TypedCell = Cell<PointType, DataType>;
-   
+ using TypedCellPtr = shared_ptr<TypedCell>;
+
   /**
    * Initialize the grid using state lower bound, state upper bound, the number
    * of grid cells
@@ -40,7 +44,7 @@ template < class PointType, class DataType = EmptyData>
    * @param gs number of grid cells per each dimension
    */
   Grid(const PointType& xlb, const PointType& xub, const Vectorni& gs, Vectorni wd = Vectorni::Zero())
-      : n(xlb.size()), xlb(xlb), xub(xub), gs(gs),wd(wd) {
+      : n(xlb.size()), xlb(xlb), xub(xub), gs(gs),wd(wd),cells(0) {
     ds = xub - xlb;
     nc = 1;
     for (int i = 0; i < n; ++i) {
@@ -48,9 +52,8 @@ template < class PointType, class DataType = EmptyData>
       assert(gs[i] > 0);
       nc *= gs[i]; // total number of cells
       cs[i] = (xub[i] - xlb[i]) / gs[i];
-    }    
-    cells = new TypedCell*[nc];
-    memset(cells, 0, nc * sizeof(TypedCell*)); // initialize all of them nil
+    }
+    cells.resize(nc);
   }
 
     /**
@@ -61,7 +64,7 @@ template < class PointType, class DataType = EmptyData>
    * @param cs cell dimensions
    */
   Grid(const PointType& xlb, const PointType& xub, const PointType& cs, Vectorni wd = Vectorni::Zero())
-      : n(xlb.size()), xlb(xlb), xub(xub), cs(cs),wd(wd) {
+      : n(xlb.size()), xlb(xlb), xub(xub), cs(cs),wd(wd),cells(0) {
     ds = xub - xlb;
     nc = 1;
     for (int i = 0; i < n; ++i) {
@@ -71,8 +74,7 @@ template < class PointType, class DataType = EmptyData>
       nc *= gs[i]; // total number of cells
     }
 
-    cells = new TypedCell*[nc];
-    memset(cells, 0, nc * sizeof(TypedCell*)); // initialize all of them nil
+    cells.resize(nc);
   }
 
   Grid(const Grid &grid) : n(grid.n), xlb(grid.xlb), xub(grid.xub), ds(grid.ds), cs(grid.cs), gs(grid.gs), nc(grid.nc),wd(grid.wd) {
@@ -81,7 +83,6 @@ template < class PointType, class DataType = EmptyData>
    }
 
   virtual ~Grid() {
-    delete[] cells;
   }
 
   /**
@@ -161,7 +162,7 @@ template < class PointType, class DataType = EmptyData>
    * if checkValid=0 but dangerous)
    * @return pointer to a cell or 0 if cell does not exist
    */
-   TypedCell* Get(const PointType& x, bool checkValid = true) const {
+   TypedCellPtr Get(const PointType& x, bool checkValid = true) const {
     if (checkValid)
       if (!Valid(x))
         return 0;
@@ -173,7 +174,7 @@ template < class PointType, class DataType = EmptyData>
    * @param id a non-negative id
    * @return pointer to a cell or 0 if cell does not exist
    */
-   TypedCell* Get(int id) const {
+   TypedCellPtr Get(int id) const {
     assert(id >= 0);
     if (id >= nc)
       return 0;
@@ -190,7 +191,7 @@ template < class PointType, class DataType = EmptyData>
   Vectorni wd;  ///< which dimensions are wrapped
 
   int nc = 0;        ///< number of cells in grid
-  TypedCell** cells = nullptr; ///< array of cell data
+  vector<TypedCellPtr> cells = nullptr; ///< array of cell data
 };
 }
 

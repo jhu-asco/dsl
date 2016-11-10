@@ -210,14 +210,14 @@ bool CarConnTwistPrim::SetPrimitives(double dt, double vx, double kmax, int kseg
   return true;
 }
 
-bool CarConnTwistPrim::Flow(std::tuple< SE2Cell*, SE2Prim, double>& pathTuple,
+bool CarConnTwistPrim::Flow(std::tuple< SE2CellPtr, SE2Prim, double>& pathTuple,
                            const Matrix3d& g_from,
                            const Vector3d& v) const {
   //check if the cells encountered along the primitive and at the end, are free from obstacles or not
     double d = fabs(v[1]); // total distance along curve
     int n_seg = ceil(d/ (2 * grid.cs[1])); // 2 * grid.cs[1] is to improve efficiency
     double s = d/n_seg;
-    SE2Cell* to = nullptr;
+    SE2CellPtr to = nullptr;
     Vector3d axy;
     for (int i_seg=1; i_seg<=n_seg; i_seg++) {
       Matrix3d g, dg;
@@ -239,7 +239,7 @@ bool CarConnTwistPrim::Flow(std::tuple< SE2Cell*, SE2Prim, double>& pathTuple,
 
 bool CarConnTwistPrim::
 operator()(const SE2Cell& from,
-           std::vector< std::tuple<SE2Cell*, SE2Prim, double> >& paths,
+           std::vector< std::tuple<SE2CellPtr, SE2Prim, double> >& paths,
            bool fwd) const {
   Matrix3d g0;
   se2_q2g(g0, from.c);
@@ -255,7 +255,7 @@ operator()(const SE2Cell& from,
   //  vector< Vector3d >::const_iterator it;
   for (auto&& s : *p_vstemp) {
     // reverse time if fwd=false
-    std::tuple<SE2Cell*, SE2Prim, double> pathTuple;
+    std::tuple<SE2CellPtr, SE2Prim, double> pathTuple;
     if (!Flow(pathTuple, g0, (fwd ? dt : -dt) * s))
       continue;
 

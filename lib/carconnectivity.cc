@@ -53,7 +53,7 @@ bool CarConnectivity::SetPrimitives(double dt, double vx, double kmax, int kseg,
   return true;
 }
 
-bool CarConnectivity::Flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
+bool CarConnectivity::Flow(std::tuple< SE2CellPtr, SE2Path, double>& pathTuple,
                            const Matrix3d& g0,
                            const Vector3d& v) const {
 
@@ -61,7 +61,7 @@ bool CarConnectivity::Flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
     double d = fabs(v[1]); // total distance along curve
     int n_seg = ceil(d/ (2 * grid.cs[1])); // 2 * grid.cs[1] is to improve efficiency
     double s = d/n_seg;
-    SE2Cell* to = nullptr;
+    SE2CellPtr to(nullptr);
     SE2Path path;
     path.clear();
     for (int i_seg=1; i_seg<=n_seg; i_seg++) {
@@ -86,7 +86,7 @@ bool CarConnectivity::Flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
 
 bool CarConnectivity::
     operator()(const SE2Cell& from,
-               std::vector< std::tuple<SE2Cell*, SE2Path, double> >& paths,
+               std::vector< std::tuple<SE2CellPtr, SE2Path, double> >& paths,
                bool fwd) const {
   Matrix3d g0;
   se2_q2g(g0, from.c);
@@ -95,7 +95,7 @@ bool CarConnectivity::
   //  vector< Vector3d >::const_iterator it;
   for (auto&& s : vs) {
     // reverse time if fwd=false
-    std::tuple<SE2Cell*, SE2Path, double> pathTuple;
+    std::tuple<SE2CellPtr, SE2Path, double> pathTuple;
     if (!Flow(pathTuple, g0, (fwd ? dt : -dt) * s))
       continue;
 

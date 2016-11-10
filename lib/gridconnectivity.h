@@ -11,12 +11,17 @@
 
 #include "gridpath.h"
 #include <tuple>
+#include <memory>
 
 namespace dsl {
+using std::shared_ptr;
 
   template < class PointType, class DataType, class ConnectionType>
 class GridConnectivity {
 public:
+    using TypedCell = Cell<PointType, DataType>;
+    using TypedCellPtr = shared_ptr<Cell<PointType, DataType>>;
+
   /**
    * Connectivity operator providing primitive paths from a given vertex. This
    * function should generate connections from the given vertex and store them
@@ -27,8 +32,8 @@ public:
    * @param fwd true if generated forward in time
    * @return true on success
    */
-  virtual bool operator()(const Cell<PointType, DataType>& from,
-                          std::vector< std::tuple<Cell<PointType, DataType>*, ConnectionType, double> >& toCells,
+  virtual bool operator()(const TypedCell& from,
+                          std::vector< std::tuple<TypedCellPtr, ConnectionType, double> >& toCells,
                           bool fwd = true) const = 0;
 
   virtual bool Free(const DataType &data) const = 0;

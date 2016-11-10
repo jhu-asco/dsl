@@ -12,9 +12,11 @@
 #include "gridconnectivity.h"
 #include "grid.h"
 #include "spline.h"
+#include <memory>
 
 namespace dsl {
 
+using std::shared_ptr;
 /**
  * The most basic grid connectivity: each cell is connected with "lines" to
  * other cells, and each line has an associate cost.
@@ -26,10 +28,10 @@ namespace dsl {
  */
 template < class PointType, class DataType = EmptyData>
     class LineConnectivity : public GridConnectivity< PointType, DataType, PointType> {
+
 public:
-
-using TypedCell = Cell<PointType, DataType>;
-
+  using TypedCell = Cell<PointType, DataType>;
+  using TypedCellPtr = shared_ptr<TypedCell>;
   /**
    * Initialize connectivity using a grid
    * @param grid the grid
@@ -48,8 +50,8 @@ using TypedCell = Cell<PointType, DataType>;
 
   virtual bool Free(const DataType &cost) const override { return cost < 0.5; }
 
-  virtual bool operator()(const Cell<PointType, DataType>& from,
-                          std::vector< std::tuple<Cell<PointType, DataType>*, PointType, double> >& paths,
+  virtual bool operator()(const TypedCell& from,
+                          std::vector< std::tuple<TypedCellPtr, PointType, double> >& paths,
                           bool fwd = true) const;
 
   /**
@@ -98,8 +100,8 @@ LineConnectivity< PointType, DataType >::LineConnectivity(const Grid<  PointType
   : grid(grid), lines(lines), costs(costs) {}
 
 template < class PointType, class DataType >
-    bool LineConnectivity< PointType, DataType >::operator()(const Cell< PointType, DataType >& from,
-                                                             std::vector< std::tuple<Cell<PointType, DataType>*, PointType, double> >& paths,
+    bool LineConnectivity< PointType, DataType >::operator()(const TypedCell& from,
+                                                             std::vector< std::tuple<TypedCellPtr, PointType, double> >& paths,
                                                              bool fwd) const {
   paths.clear();
   for (size_t i = 0; i < lines.size(); ++i) {
@@ -112,7 +114,7 @@ template < class PointType, class DataType >
     if (!grid.Valid(x))
       continue;
 
-    TypedCell *cell = grid.Get(x, false);
+    TypedCellPtr cell = grid.Get(x, false);
     if (!cell)
       continue;
 
