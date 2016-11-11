@@ -101,23 +101,23 @@ public:
                      bool onlyfwd = false);
   
   bool operator()(const SE2Cell& from,
-                  std::vector< std::tuple<SE2CellPtr, SE2Prim, double> >& paths,
-                  bool fwd = true) const override;
+                    std::vector< std::tuple<SE2CellPtr, SE2Prim, double> >& paths,
+                    bool fwd = true) const override;
 
-  bool Free(const Eigen::Matrix3d &g) const override { return true; }
+    bool Free(const Eigen::Matrix3d &g) const override { return true; }
 
-  /**
-   * Generate a path (a sequence of points) from initialize state in SE(2)
-   * following
-   * body-fixed velocity v=(vx,vy,w) for a unit time
-   * @param path resulting path
-   * @param g0 starting pose, matrix in SE(2)
-   * @param v body fixed velocity (vx,vy,w)
-   * @return true on success, false if obststructed by obstacle
-   */
-  bool Flow(std::tuple< SE2CellPtr, SE2Prim, double>& pathTuple,
-            const Eigen::Matrix3d& g0,
-            const Eigen::Vector3d& v) const;
+    /**
+     * Generate a path (a sequence of points) from initialize state in SE(2)
+     * following
+     * body-fixed velocity v=(vx,vy,w) for a unit time
+     * @param path resulting path
+     * @param g0 starting pose, matrix in SE(2)
+     * @param v body fixed velocity (vx,vy,w)
+     * @return true on success, false if obststructed by obstacle
+     */
+    bool Flow(std::tuple< SE2CellPtr, SE2Prim, double>& pathTuple,
+              const Eigen::Matrix3d& g0,
+              const Eigen::Vector3d& v,bool fwd) const;
 
 
   const CarGrid& grid; ///< the grid

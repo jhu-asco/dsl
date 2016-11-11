@@ -212,15 +212,15 @@ bool CarConnTwistPrim::SetPrimitives(double dt, double vx, double kmax, int kseg
 
 bool CarConnTwistPrim::Flow(std::tuple< SE2CellPtr, SE2Prim, double>& pathTuple,
                            const Matrix3d& g_from,
-                           const Vector3d& v) const {
+                           const Vector3d& v, bool fwd) const {
   //check if the cells encountered along the primitive and at the end, are free from obstacles or not
     double d = fabs(v[1]); // total distance along curve
     int n_seg = ceil(d/ (2 * grid.cs[1])); // 2 * grid.cs[1] is to improve efficiency
     double s = d/n_seg;
-    SE2CellPtr to = nullptr;
+    SE2CellPtr to(nullptr);
     Vector3d axy;
+    Matrix3d g, dg,g_from_inv;
     for (int i_seg=1; i_seg<=n_seg; i_seg++) {
-      Matrix3d g, dg;
       se2_exp(dg, (s*i_seg / d) * v);
       g = g_from * dg;
       se2_g2q(axy, g);
@@ -229,9 +229,18 @@ bool CarConnTwistPrim::Flow(std::tuple< SE2CellPtr, SE2Prim, double>& pathTuple,
         return false;
     }
 
+    //Finding the twist element that take you exactly to the center of the cell
+    se2_inv(g_from_inv,g_from);
+    dg = g_from_inv*(to->data);
+    Vector3d wvxvy_timesdt; se2_log(wvxvy_timesdt,dg);
+
+
     //Set the path tupule
     std::get<0>(pathTuple) = to;
-    std::get<1>(pathTuple) = v;
+    if(fwd)
+      std::get<1>(pathTuple) = wvxvy_timesdt;
+    else
+      std::get<1>(pathTuple) = -wvxvy_timesdt;
     std::get<2>(pathTuple) = d; //replace this by bullet prim cost if it satisfies the relationship
 
     return true;
@@ -256,7 +265,7 @@ operator()(const SE2Cell& from,
   for (auto&& s : *p_vstemp) {
     // reverse time if fwd=false
     std::tuple<SE2CellPtr, SE2Prim, double> pathTuple;
-    if (!Flow(pathTuple, g0, (fwd ? dt : -dt) * s))
+    if (!Flow(pathTuple, g0, (fwd ? dt : -dt) * s,fwd))
       continue;
 
     assert(std::get<0>(pathTuple));

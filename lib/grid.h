@@ -77,9 +77,9 @@ template < class PointType, class DataType = EmptyData>
     cells.resize(nc);
   }
 
-  Grid(const Grid &grid) : n(grid.n), xlb(grid.xlb), xub(grid.xub), ds(grid.ds), cs(grid.cs), gs(grid.gs), nc(grid.nc),wd(grid.wd) {
-     cells = new TypedCell*[nc];
-     memcpy(cells, grid.cells, nc * sizeof(TypedCell*)); // initialize all of them nil
+  Grid(const Grid &grid) : n(grid.n), xlb(grid.xlb), xub(grid.xub), ds(grid.ds), cs(grid.cs), gs(grid.gs), nc(grid.nc),wd(grid.wd),cells(0) {
+     cells.resize(nc);
+     cells = grid.cells;
    }
 
   virtual ~Grid() {

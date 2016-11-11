@@ -219,6 +219,21 @@ void se2_exp(Matrix3d& m, const Vector3d& v, double tol) {
   m(2, 2) = 1;
 }
 
+void se2_log(Vector3d &v, const Matrix3d &m, double tol){
+  double th = atan2(m(1,0),m(0,0));
+  v(0) = th;
+  const double& x = m(0,2);
+  const double& y = m(1,2);
+  if (fabs(th) < tol) {
+    v(1) = x;
+    v(2) = y;
+    return;
+  }
+  double th2 = th/2;
+  double a = th2/tan(th/2);
+  v(1) = a*x + th2*y;
+  v(2) = -th2*x + a*y;
+}
 
 void replaceExt(std::string& s, const std::string& newExt) {
   std::string::size_type i = s.rfind('.', s.length());
