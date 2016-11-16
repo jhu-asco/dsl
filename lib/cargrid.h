@@ -58,8 +58,6 @@ public:
                           double sx, double sy, int gx, int gy,
                           const vector<bool>& data, vector<bool>& data_dil);
 
-  static void Slice(const Map<bool, 3> &cmap, double a, Map<bool, 2> &map);
-
 };
 }
 

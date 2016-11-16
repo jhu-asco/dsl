@@ -72,28 +72,6 @@ void CarGrid::MakeMap(const Map<bool, 2> &map, Map<bool, 3> &cmap) {
   }
 }
 
-void CarGrid::Slice(const Map<bool, 3> &cmap, double a, Map<bool, 2> &map) {
-  map.gs[0] = cmap.gs[1];
-  map.gs[1] = cmap.gs[2];
-  map.cs[0] = cmap.cs[1];
-  map.cs[1] = cmap.cs[2];
-  map.cells.resize( round(cmap.nc/cmap.gs[0]));
-
-  int ia = cmap.Index(a, 0);
-  for (int ix = 0; ix < cmap.gs[1]; ++ix) {
-    for (int iy = 0; iy < cmap.gs[2]; ++iy) {
-      // index into workspace
-      int id2 = ix + iy*cmap.gs[1];
-      assert(id2 < map.nc);
-        // index into configuration space
-      int id3 = ia + ix*cmap.gs[0] + iy*cmap.gs[0]*cmap.gs[1];
-      assert(id3 < cmap.nc);
-      map.cells[id2] = cmap.cells[id3];
-    }
-  }    
-}
-
-
 //void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &omap, Map<bool, 3> &cmap) {
 //  assert(omap.gs[0] == cmap.gs[1]);
 //  assert(omap.gs[1] == cmap.gs[2]);

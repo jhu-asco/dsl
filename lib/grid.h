@@ -1,6 +1,6 @@
 // This file is part of libdsl, a library for heuristic graph search
 //
-// Copyright (C) 2004 Marin Kobilarov <marin@jhu.edu>
+// Copyright (C) 2004 Marin Kobilarov <marin@jhu.edu> and Subhransu Mishra <subhransu.kumar.mishra@gmail.com>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -28,8 +28,16 @@ using std::vector;
 using namespace Eigen;
 
 /**
- * An n-dimenensional gridcore consisting of methods that converts ppoint type to grid index
- * and grid index to point type
+* An n-dimenensional grid consisting of abstract "cells", or elements
+* identified by a set of coordinates of type PointType, each cell
+* containing data of type CellContent. The CellContent can directly be
+* the intended data or shared_ptr to intended data. Using the shared_ptr
+* is useful to avoid memory allocation until it's actually needed.
+* CellContent=bool/double can be used to make a grid of occupancy or
+* traversibility of a cell
+*
+* Note that this data structure is only viable up to a few dimensions,
+* e.g. dim=5 or 6.
  */
 template < class PointType, class CellContent>
  class GridCore {
@@ -198,12 +206,23 @@ template < class PointType, class CellContent>
     GridCoreSlicePtr pslice(new GridCoreSlice(xlb_slice,xub_slice, gs_slice, wd_slice));
 
     for(int id_slice=0; id_slice < pslice->nc; id_slice++){
-      Vectornm1i midx_slice; pslice->IdToIndex(midx_slice,id_slice);
+      Vectornm1i midx_slice; pslice->Index(midx_slice,id_slice);
       Vectorni midx = insertDim(midx_slice,dim,idx); //midx is multidim index
       pslice->cells[id_slice] = Get(Id(midx));
     }
     return pslice;
   }
+
+  /**
+    * Create a slice of the current grid along dimension at particular index
+    * @param idx
+    * @param dim
+    * @return
+    */
+   GridCoreSlicePtr Slice(double val, int dim) const {
+     int idx = Index(val,dim);
+     return Slice(idx,dim);
+   }
 
   /**
    * Create new GridCore object whose cell resolution is scale times higher.
@@ -283,7 +302,7 @@ template < class PointType, class CellContent>
     if(id>=nc || id<0)
       return false;
     Vectorni idx;
-    if(IdToIndex(idx,id)){
+    if(Index(idx,id)){
       x = xlb.array() +  (idx.template cast<double>()+Vectornd::Constant(0.5)).array()*cs.array() ;
       return true;
     }else{
@@ -313,7 +332,7 @@ template < class PointType, class CellContent>
 
   /**
    * Get the id of a point corresponding to the multidimensional index
-   * @param idx Multidimensional index
+   * @param idx index in a grid along all coordinate/dimension
    * @return a computed id
    */
   int Id(const Vectorni& idx) const {
@@ -321,10 +340,10 @@ template < class PointType, class CellContent>
   }
 
   /**
-   * Get the grid index of i-th dimension of point x
+   * Get the grid index of the point x along i coordinate index
    * @param x point
-   * @param i coordinate index
-   * @return index into cell array
+   * @param i coordinate/dimension index
+   * @return index in a grid along i coordinate/dimension
    */
   int Index(const Vectornd& x, int i) const {
     if(!wd[i]){ //dimension is flat
@@ -338,10 +357,10 @@ template < class PointType, class CellContent>
   }
 
   /**
-   * Get the grid index of i-th dimension
-   * @param xi i-th coordinate of point
-   * @param i coordinate index
-   * @return index into cell array
+   * Get the grid index of i coordinate/dimension
+   * @param xi value of a point at i coordinate/dimension
+   * @param i coordinate/dimension index
+   * @return index in a grid along i coordinate/dimension
    */
   int Index(double xi, int i) const {
     if(!wd[i]){ //dimension is flat
@@ -355,7 +374,7 @@ template < class PointType, class CellContent>
 
   /**
    * Get the grid index along all the dimensions
-   * @param idx
+   * @param idx index in a grid along all coordinate/dimension
    * @param x point
    */
   void Index(Vectorni& idx, const Vectornd& x) const {
@@ -372,11 +391,11 @@ template < class PointType, class CellContent>
   }
 
   /**
-   * Converts an id to index(grid index along each dimension)
-   * @param id
+   * Get the grid index along all the dimensions from the direct lookup id
+   * @param id id for direct lookup in the grid array
    * @return false if index is out of range
    */
-  bool IdToIndex(Vectorni& idx, int id) const {
+  bool Index(Vectorni& idx, int id) const {
     if(id>=nc || id<0)
       return false;
     for(int i=n-1; i>=0; i--){
@@ -531,10 +550,13 @@ using Grid = GridCore< PointType,shared_ptr< Cell<PointType, DataType> > >;
 
 
 /**
- * An n-dimenensional occupancy map storing type T in every cell
+ * An n-dimenensional occupancy map storing type T in every cell. T=Bool
+ * is works well to represent the occupancy
  */
 template <typename T, int n>
 using Map = GridCore< Matrix<double,n,1>, T >;
+
+
 
 }
 

@@ -62,13 +62,12 @@ int main(int argc, char** argv)
   
   CarGrid grid(cmap, gcs);
 
-  dsl::Map<bool, 2> smap = dmap;
-
-  grid.Slice(cmap, -M_PI+0.05, smap);
+  shared_ptr<dsl::Map<bool,2> > smap;
+  cmap.Slice(-M_PI+0.05, 0);  // grid.Slice(cmap, -M_PI+0.05, smap);
   
   // save it to image for viewing
   save(dmap, "path1.ppm");
-  save(smap, "slice0.ppm");
+  save(*smap, "slice0.ppm");
 
   //  save(dmap, "path1.ppm");
 
