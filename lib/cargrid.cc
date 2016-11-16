@@ -42,7 +42,7 @@ CarGrid::CarGrid(const Map<bool, 3> &cmap,
         Vector3i idx(idx_a,idx_x,idx_y);
         Vector3d cc; //CellCenter
         bool gotcenter = CellCenter(cc,idx,true);
-        assert(!gotcenter);
+        assert(gotcenter);
 
         bool occ = cmap.Get(cc, false);
         if (!occ) {
@@ -55,21 +55,25 @@ CarGrid::CarGrid(const Map<bool, 3> &cmap,
   }
 }
 
-void CarGrid::MakeMap(const Map<bool, 2> &map, Map<bool, 3> &cmap) {
-  assert(map.gs[0] == cmap.gs[1]);
-  assert(map.gs[1] == cmap.gs[2]);
+bool CarGrid::MakeMap(const Map<bool, 2> &omap, Map<bool, 3> &cmap) {
+  assert(omap.gs[0] == cmap.gs[1]);
+  assert(omap.gs[1] == cmap.gs[2]);
   
+  if(omap.gs[0] != cmap.gs[1] || omap.gs[1] != cmap.gs[2])
+    return false;
+
   for (int i = 0; i < cmap.gs[0]; ++i) {
     for (int j = 0; j < cmap.gs[1]; ++j) {
       for (int k = 0; k < cmap.gs[2]; ++k) {
         int id2 = j + cmap.gs[1]*k; //2d index ito map
-        assert(id2 < map.nc);
+        assert(id2 < omap.nc);
         int id3 = i + cmap.gs[0]*j + cmap.gs[0]*cmap.gs[1]*k; // 3d index into cmap
         assert(id3 < cmap.nc);              
-        cmap.cells[id3] = map.cells[id2];
+        cmap.cells[id3] = omap.cells[id2];
       }
     }
   }
+  return false;
 }
 
 //void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &omap, Map<bool, 3> &cmap) {
@@ -118,9 +122,12 @@ void CarGrid::MakeMap(const Map<bool, 2> &map, Map<bool, 3> &cmap) {
 //}
 
 
-void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &omap, Map<bool, 3> &cmap) {
-  assert(map.gs[0] == cmap.gs[1]);
-  assert(map.gs[1] == cmap.gs[2]);
+bool CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &omap, Map<bool, 3> &cmap) {
+  assert(omap.gs[0] == cmap.gs[1]);
+  assert(omap.gs[1] == cmap.gs[2]);
+
+  if(omap.gs[0] != cmap.gs[1] || omap.gs[1] != cmap.gs[2])
+    return false;
 
   int dim_a = 0; //The dimension corresponding to angle
 
@@ -140,7 +147,7 @@ void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &omap, Map<bool, 3
       }
     }
   }
-
+  return true;
 }
 
  void CarGrid::DilateMap(const CarGeom& geom, double theta,

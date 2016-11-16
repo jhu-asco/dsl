@@ -45,12 +45,20 @@ template < class PointType, class CellContent>
 
  using Vectornd =  Eigen::Matrix< double, PointType::SizeAtCompileTime, 1 >;     //   n  dim eigen vector of doubles
  using Vectorni =  Eigen::Matrix< int, PointType::SizeAtCompileTime, 1 >;        //   n  dim eigen vector of ints
+
  using Vectornm1d =  Eigen::Matrix< double, PointType::SizeAtCompileTime-1, 1 >; //(n-1) dim eigen vector of doubles
  using Vectornm1i =  Eigen::Matrix< int, PointType::SizeAtCompileTime-1, 1 >;    //(n-1) dim eigen vector of ints
 
+ using Vectornp1d =  Eigen::Matrix< double, PointType::SizeAtCompileTime+1, 1 >; //(n+1) dim eigen vector of doubles
+ using Vectornp1i =  Eigen::Matrix< int, PointType::SizeAtCompileTime+1, 1 >;    //(n+1) dim eigen vector of ints
+
  using GridCorePtr = shared_ptr< GridCore<PointType,CellContent> >;
+
  using GridCoreSlice = GridCore<Vectornm1d,CellContent>;
  using GridCoreSlicePtr = shared_ptr<GridCoreSlice>;
+
+ using GridCoreExtradim = GridCore<Vectornp1d,CellContent>;
+ using GridCoreExtradimPtr = shared_ptr<GridCoreExtradim>;
 
  /**
   * Configuration to control the grid sizes, cell sizes and grid bounds.
@@ -112,7 +120,7 @@ template < class PointType, class CellContent>
     cgs[0] = 1;
     for (int i = 0; i < n; ++i) {
       assert(xlb[i] < xub[i]);
-      assert(cs[i] > 0);
+      assert(scs[i] > 0);
       gs[i] = floor(ds[i] / scs[i]);
       cs[i] = ds[i] / gs[i];
       nc *= gs[i]; // total number of cells
@@ -187,10 +195,23 @@ template < class PointType, class CellContent>
 
   virtual ~GridCore() {}
 
+//  /**
+//   * Adds an extra dimension to the grid and repeat all other dimensions
+//   * @param dim dim coordinate/dimension index
+//   * @param lb lower bound along that dimension
+//   * @param ub upper bound along that dimension
+//   * @param wd dimension is wrapped or not
+//   * @return
+//   */
+//  GridCoreExtradimPtr addDim(int dim, double lb, double ub, bool wrapped){
+//
+//  }
+
+
   /**
    * Create a slice of the current grid along dimension at particular index
-   * @param idx
-   * @param dim
+   * @param idx index in a grid along the dim coordinate/dimension
+   * @param dim coordinate/dimension index
    * @return
    */
   GridCoreSlicePtr Slice(int idx, int dim) const {
@@ -215,8 +236,8 @@ template < class PointType, class CellContent>
 
   /**
     * Create a slice of the current grid along dimension at particular index
-    * @param idx
-    * @param dim
+    * @param idx index in a grid along the dim coordinate/dimension
+    * @param dim coordinate/dimension index
     * @return
     */
    GridCoreSlicePtr Slice(double val, int dim) const {

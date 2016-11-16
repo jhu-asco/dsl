@@ -31,13 +31,17 @@ void se2_log(Eigen::Vector3d& v, const Eigen::Matrix3d& m, double tol = 1e-16);
 void replaceExt(std::string& s, const std::string& newExt);
 
 /**
- * Removes the specified dimension. (1 3 5) = removedDim( (1,2,3,5), 1 );
+ * Removes the specified dimension. [10,56,75] = removedDim( [10,14,56,75], 1 );
  * @param in input vector
  * @param dim dimension to remove
  * @return output vector
  */
 template<typename T,int n>
 Eigen::Matrix<T,n-1,1> removeDim(const Eigen::Matrix<T,n,1>& in, int dim){
+  assert(dim>=0 && dim <n);
+  dim = dim<0 ? 0 : dim;
+  dim = dim>=n ? n-1 : dim;
+
   Eigen::Matrix<T,n-1,1> out;
   out = in.template head<n-1>();
   out.tail(n-1-dim) = in.tail(n-1-dim);
@@ -45,7 +49,11 @@ Eigen::Matrix<T,n-1,1> removeDim(const Eigen::Matrix<T,n,1>& in, int dim){
 }
 
 /**
- *Inserts an extra dim and sets the value at that dim. (1 2 3 4 5) = insertDim( (1,2,3,5), 3, 4);
+ *Inserts an extra dim and sets the value at that dim.
+ *e.g. [100, 10, 14, 56, 75] = insertDim( [10,14,56,75], 100, 0);
+ *e.g. [ 10,100, 14, 56, 75] = insertDim( [10,14,56,75], 100, 1);
+ *e.g. [ 10, 14, 56,100, 75] = insertDim( [10,14,56,75], 100, 3);
+ *e.g. [ 10, 14, 56, 75,100] = insertDim( [10,14,56,75], 100, 4);
  * @param in input vector
  * @param dim dimension where to insert
  * @param val value to insert
@@ -53,6 +61,10 @@ Eigen::Matrix<T,n-1,1> removeDim(const Eigen::Matrix<T,n,1>& in, int dim){
  */
 template<typename T,int n>
 Eigen::Matrix<T,n+1,1> insertDim(const Eigen::Matrix<T,n,1>& in, int dim, T val){
+  assert(dim>=0 && dim <=n);
+  dim = dim<0 ? 0 : dim;
+  dim = dim>n ? n : dim;
+
   Eigen::Matrix<T,n+1,1> out;
   out.template head<n>() = in;
   out(dim) = val;

@@ -98,7 +98,7 @@ public:
    */
   bool Flow(std::tuple< SE2CellPtr, SE2Path, double>& pathTuple,
             const Eigen::Matrix3d& g0,
-            const Eigen::Vector3d& v) const;
+            const Eigen::Vector3d& v, bool fwd) const;
 
 
   const CarGrid& grid; ///< the grid

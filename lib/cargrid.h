@@ -50,9 +50,22 @@ public:
   
   const Map<bool, 3>& cmap; ///< configuration-space map
   
-  static void MakeMap(const Map<bool, 2> &map, Map<bool, 3> &cmap);
+  /**
+   * Takes a 2-dimensional occupancy grid and repeats that for all angles
+   * @param omap  2-dimensional occupancy grid
+   * @param cmap  3-dimensional occupancy grid
+   * @return True if cmap could be modified correctly
+   */
+  static bool MakeMap(const Map<bool, 2> &omap, Map<bool, 3> &cmap);
   
-  static void MakeMap(const CarGeom& geom, const Map<bool, 2> &omap, Map<bool, 3> &cmap);
+  /**
+   * Takes a 2-dim occupancy grid and car geometry to create a 3-dim occ grid for all angles
+   * @param geom Geometry of the car
+   * @param omap 2-dimensional occupancy grid
+   * @param cmap 3-dimensional occupancy grid
+   * @return True if cmap could be modified correctly
+   */
+  static bool MakeMap(const CarGeom& geom, const Map<bool, 2> &omap, Map<bool, 3> &cmap);
 
   static void DilateMap(const CarGeom& geom, double theta,
                           double sx, double sy, int gx, int gy,
