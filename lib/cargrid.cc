@@ -77,7 +77,7 @@ void CarGrid::MakeMap(const Map<bool, 2> &map, Map<bool, 3> &cmap) {
 //  assert(omap.gs[1] == cmap.gs[2]);
 //
 //  vector<Vector2d> points;
-//  geom.Raster(omap.cs/2, points);
+//  geom.Raster(omap.cs, points);
 //
 //  Matrix2d R;
 //
