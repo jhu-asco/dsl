@@ -13,7 +13,6 @@
 #include "cargrid.h"
 #include <vector>
 #include "carcost.h"
-#include "map.h"
 #include "carprimcfg.h"
 #include <Eigen/Dense>
 #include <Eigen/Geometry>

@@ -4,6 +4,7 @@
 #include "carcost.h"
 #include "carconnectivity.h"
 #include "utils.h"
+#include "gridutils.h"
 #include "params.h"
 #include <fstream>
 
@@ -21,6 +22,16 @@ vector<Vector2d> ToVector2dPath(const CarPath &path) {
   return path2d;
 }
 
+vector<Vector3d> ToVector3dPath(const CarPath &path) {
+  vector<Vector3d> path3d;
+  for (auto&& connection : path.connections)
+    for (auto&& g : connection){
+      Vector3d axy; axy.tail<2>() = g.topRightCorner<2,1>();
+      axy(0) = atan2(-g(0,1),g(0,0));
+      path3d.push_back(axy);
+    }
+  return path3d;
+}
 
 int main(int argc, char** argv)
 {
@@ -34,6 +45,9 @@ int main(int argc, char** argv)
 
   Params params(argv[1]);
 
+  //To plot the path as rectanges or just points
+  bool plot_car; params.GetBool("plot_car", plot_car);
+
   // get start and goal
   Vector3d goal, start;
   params.GetVector3d("start", start);
@@ -41,7 +55,10 @@ int main(int argc, char** argv)
 
   // get map
   string mapName;
-  params.GetString("map", mapName);
+  if(!params.GetString("map", mapName)){
+    cout<<"There is no string parameter named map. Exiting."<<endl;
+    return -1;
+  }
 
   // get map
   string cmapName;
@@ -57,6 +74,13 @@ int main(int argc, char** argv)
 
   Vector4d whxy;
   bool useGeom = params.GetVector4d("geom", whxy);
+  CarGeom geom;
+  if(useGeom){
+    geom.l  = whxy(0);
+    geom.b  = whxy(1);
+    geom.ox = whxy(2);
+    geom.oy = whxy(3);
+  }
   
   // load an occupancy map from ppm file
   dsl::Map<bool, 2> omap = load(mapName.c_str(), ocs.tail<2>());
@@ -69,36 +93,38 @@ int main(int argc, char** argv)
   Vector3d xub(M_PI + gcs[0]/2, omap.xub[0], omap.xub[1]);
 
   // configuration-space map
-  dsl::Map<bool, 3> *cmap = 0;
-  
-  //  CarGrid::MakeMap(omap, cmap);
-  // for non-point geometry comment this out 
-  if (!cmapValid) {
-    cmap = new dsl::Map<bool, 3>(xlb, xub, ocs);
-    std::cout << "Making cmap... " << std::endl;
+  shared_ptr<dsl::Map<bool, 3> > cmap;
 
+  //  CarGrid::MakeMap(omap, cmap);
+  // for non-point geometry comment this out
+  struct timeval timer;
+  if (!cmapValid) {
+    cmap.reset(new dsl::Map<bool, 3>(xlb, xub, ocs));
+    std::cout << "Making cmap... " << std::endl;
+    timer_start(&timer);
     if (useGeom) {
-      CarGeom geom(whxy(0), whxy(1), whxy(2), whxy(3));
       CarGrid::MakeMap(geom, omap, *cmap);
     } else {
-      CarGrid::MakeMap(omap, *cmap);      
+      CarGrid::MakeMap(omap, *cmap);
     }
-    
+    long time = timer_us(&timer);
+    printf("cmap construction time= %ld  us\n", time);
+
     cmapName = mapName;
     replaceExt(cmapName, string("cmap"));
-    dsl::Map<bool,3>::Save(*cmap, cmapName.c_str());
+    dsl::Map<bool,3>::Save(*cmap, cmapName);
     std::cout << "Saved cmap " << cmapName << " with xlb=" << cmap->xlb.transpose() << " xub=" << cmap->xub.transpose() << " gs=" << cmap->gs.transpose() << std::endl;
-    
+
   } else {
-    cmap = dsl::Map<bool,3>::Load(cmapName.c_str());
+    cmap = dsl::Map<bool,3>::Load(cmapName);
     std::cout << "Loaded map with xlb=" << cmap->xlb.transpose() << " xub=" << cmap->xub.transpose() << " gs=" << cmap->gs.transpose() << std::endl;
   }
-  
+
   CarGrid grid(*cmap, gcs);
 
   // create cost and set custom angular cost mixing factor ac
   CarCost cost;
-  params.GetDouble("ac", cost.ac);    
+  params.GetDouble("ac", cost.ac);
 
   // load car connectivity and set custom parameters
   CarConnectivity connectivity(grid);
@@ -107,7 +133,7 @@ int main(int argc, char** argv)
   double kmax = 0.57;
   int kseg = 4;
   bool onlyfwd = false;
-  params.GetDouble("dt", dt);  
+  params.GetDouble("dt", dt);
   params.GetDouble("vx", vx);
   params.GetDouble("kmax", kmax);
   params.GetInt("kseg", kseg);
@@ -116,40 +142,59 @@ int main(int argc, char** argv)
 
   cout << "Creating a graph..." << endl;
   // create planner
-  struct timeval timer;
   timer_start(&timer);
 
   bool initExpand = false;
   params.GetBool("initExpand", initExpand);
 
-  
+
   GridSearch<Vector3d, Matrix3d, SE2Path> search(grid, connectivity, cost, initExpand);
   CarPath path;
 
   long time = timer_us(&timer);
   printf("graph construction time= %ld  us\n", time);
 
-  search.SetStart(start);
-  search.SetGoal(goal);
+  bool start_set = search.SetStart(start);
+  bool goal_set = search.SetGoal(goal);
 
-  cout << "Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges." << endl;
+  if(start_set && goal_set){
+    cout << "Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges." << endl;
 
-  cout << "Planning a path..." << endl;
-  // plan
-  timer_start(&timer);
-  search.Plan(path);
-  time = timer_us(&timer);
-  printf("plan path time= %ld  us\n", time);
-  printf("path: edges=%lu len=%f\n", path.cells.size(), path.cost);
+    cout << "Planning a path..." << endl;
+    // plan
+    timer_start(&timer);
+    search.Plan(path);
+    time = timer_us(&timer);
+    printf("plan path time= %ld  us\n", time);
+    printf("path: edges=%lu len=%f\n", path.cells.size(), path.cost);
 
-  cout << "Graph has " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
-  
-  // save it to image for viewing
-  vector<Vector2d> path2d = ToVector2dPath(path);
-  save(dmap, "path1.ppm", &path2d);
+    cout << "Graph has " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
 
-  cout << "Map and path saved to path1.ppm" << endl;
 
-  delete cmap;
+    // save it to image for viewing
+    if(plot_car){
+      vector<Vector3d> path3d = ToVector3dPath(path);
+      saveMapWithPath(dmap, "path1.ppm", path3d, geom, 3);
+    }else{
+      vector<Vector2d> path2d = ToVector2dPath(path);
+      save(dmap, "path1.ppm", &path2d);
+    }
+    cout << "Map and path saved to path1.ppm" << endl;
+  }else{
+
+    if(plot_car){
+      vector<Vector3d> path3d; path3d.push_back(start); path3d.push_back(goal);
+      saveMapWithPath(dmap, "path1.ppm", path3d, geom, 3);
+    }else{
+
+      Vector2d start2d = start.tail<2>(); Vector2d goal2d = goal.tail<2>();
+      vector<Vector2d> path2d; path2d.push_back(start2d); path2d.push_back(goal2d);
+      save(dmap, "path1.ppm", &path2d);
+    }
+    cout << "Map, start and goal (no path) saved to path1.ppm" << endl;
+  }
+
+
+  cmap.reset();
   return 0;
 }

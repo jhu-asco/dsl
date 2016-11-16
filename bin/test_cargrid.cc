@@ -4,6 +4,7 @@
 #include "carcost.h"
 #include "carconnectivity.h"
 #include "utils.h"
+#include "gridutils.h"
 #include "params.h"
 #include <fstream>
 
@@ -54,8 +55,8 @@ int main(int argc, char** argv)
   /* for non-point geometry comment this out */
   double l=3;
   double b=1.5;
-  double ox = -1.5;
-  double oy = -0.75;
+  double ox = -0.75;
+  double oy = 0;
   CarGeom geom(l, b, ox, oy);
   CarGrid::MakeMap(geom, omap, cmap);  
   

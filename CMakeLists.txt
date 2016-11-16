@@ -20,6 +20,8 @@ SET(CPACK_PACKAGE_EXECUTABLES test2d "2D grid test search")
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
+include_directories(third_party)
+
 # add a target to generate API documentation with Doxygen
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
@@ -38,6 +40,9 @@ add_subdirectory (bin)
 
 INSTALL(FILES dsl.pc
         DESTINATION lib/pkgconfig)
+
+#Install the header only serialization library called cereal
+INSTALL(DIRECTORY third_party/cereal DESTINATION include)
 
 set(CPACK_SOURCE_IGNORE_FILES "/.git/;/build/;/CVS/;/\\\\.svn/;\\\\.swp$;~$;\\\\.\\\\#;/\\\\#")
 

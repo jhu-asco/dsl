@@ -10,65 +10,6 @@ namespace dsl {
 
 using namespace Eigen;
 
-Map<bool, 2> load(const char* filename, const Vector2d &cs) {
-  std::string header;
-  int max_col = 0;
-  
-  std::fstream fs (filename, std::fstream::in);
-  assert(fs.is_open());
-  fs >> header;
-  assert (header == std::string("P6"));
-
-  int width, height;
-  fs >> width >> height >> max_col;
-  assert(width > 0);
-  assert(height > 0);
-
-  dsl::Map<bool, 2> map(Vector2d(0,0), Vector2d(cs[0]*width, cs[1]*height), cs);
-
-  int size = width*height;
-  int raster_size = (max_col > 255 ? size*6 : size*3);
-  
-  char *data = (char*)malloc(raster_size);    
-  fs.read(data, raster_size);
-
-  int step = max_col > 255 ? 6 : 3;  
-  for (int i = 0; i < size; i++) 
-    map.cells[i] = (data[step * i] ? 1 : 0);
-  free(data);
-  fs.close();
-  return map;
-}
-
-
-void save(const dsl::Map<bool, 2> &map, const char* filename, const std::vector<Vector2d> *path) {
-  const int &width = map.gs[0];
-  const int &height = map.gs[1];
-  
-  char data[width*height*3];
-  std::fstream fs(filename, std::fstream::out);
-  assert(fs.is_open());
-  fs << "P6" << std::endl << width << " " << height << std::endl << "255" << std::endl;
-
-  int ind = 0;
-  for (int i = 0; i < width * height; i++, ind += 3) {
-    data[ind] = data[ind + 1] = data[ind + 2] = (char)(map.cells[i] * 100);
-  }
-  assert(ind == 3*width*height);
-
-  if (path) {
-    for (auto&& p : *path) {
-      int id = map.Id(p);
-      int id3 = 3*id;
-      data[id3] = 255; data[id3+1] = 0; data[id3 + 2] = 0;
-    }
-  }
-
-  fs.write(data, ind);
-  fs.close();
-}
-
-
 void save_map(const char* map, int width, int height, const char* filename) {
   int i, ind;
   char data[width*height*3];

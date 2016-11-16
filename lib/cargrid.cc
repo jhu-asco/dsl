@@ -20,28 +20,40 @@ using Eigen::Matrix3d;
 
 using std::vector;
 
+CarGeom::CarGeom (double l, double b, double ox, double oy) : l(l), b(b), ox(ox), oy(oy) {}
+
+void CarGeom::Raster(const Eigen::Vector2d &cs, std::vector<Eigen::Vector2d> &points) const {
+  points.clear();
+  for (double x = -l/2; x < l/2; x += cs[0])
+    for (double y = -b/2; y < b/2; y += cs[1])
+      points.push_back(Eigen::Vector2d(x + ox, y + oy));
+}
+
 CarGrid::CarGrid(const Map<bool, 3> &cmap,
                  const Vector3d& cs) 
     : Grid< Vector3d, Matrix3d >(cmap.xlb, cmap.xub, cs,Vector3i(1,0,0)),
       cmap(cmap) {  
-  for (int k = 0; k < gs[0]; ++k) {
-    for (int c = 0; c < gs[1]; ++c) {
-      for (int r = 0; r < gs[2]; ++r) {
+
+  //Allocate memory for grid cells if it is not occupied
+  for (int idx_a = 0; idx_a < gs[0]; ++idx_a) {
+    for (int idx_x = 0; idx_x < gs[1]; ++idx_x) {
+      for (int idx_y = 0; idx_y < gs[2]; ++idx_y) {
         // center of cell
-        Vector3d x = xlb + Vector3d((k + 0.5) * cs[0], (c + 0.5) * cs[1], (r + 0.5) * cs[2]);
-          int id = r*gs[0]*gs[1] + c*gs[0] + k;
+        Vector3i idx(idx_a,idx_x,idx_y);
+        Vector3d cc; //CellCenter
+        bool gotcenter = CellCenter(cc,idx,true);
+        assert(!gotcenter);
 
-        bool occ = cmap.Get(x, false);
+        bool occ = cmap.Get(cc, false);
         if (!occ) {
-          cells[id].reset(new SE2Cell(id, x));
-
+          int id = Id(idx);
+          cells[id].reset(new SE2Cell(id, cc));
           se2_q2g(cells[id]->data, cells[id]->c);
         }
       }
     }
   }
 }
-
 
 void CarGrid::MakeMap(const Map<bool, 2> &map, Map<bool, 3> &cmap) {
   assert(map.gs[0] == cmap.gs[1]);
@@ -60,9 +72,12 @@ void CarGrid::MakeMap(const Map<bool, 2> &map, Map<bool, 3> &cmap) {
   }
 }
 
-void CarGrid::Slice(const Map<bool, 3> &cmap, double a, Map<bool, 2> &map) const {
-  assert(map.gs[0] == cmap.gs[1]);
-  assert(map.gs[1] == cmap.gs[2]);
+void CarGrid::Slice(const Map<bool, 3> &cmap, double a, Map<bool, 2> &map) {
+  map.gs[0] = cmap.gs[1];
+  map.gs[1] = cmap.gs[2];
+  map.cs[0] = cmap.cs[1];
+  map.cs[1] = cmap.cs[2];
+  map.cells.resize( round(cmap.nc/cmap.gs[0]));
 
   int ia = cmap.Index(a, 0);
   for (int ix = 0; ix < cmap.gs[1]; ++ix) {
@@ -79,83 +94,80 @@ void CarGrid::Slice(const Map<bool, 3> &cmap, double a, Map<bool, 2> &map) const
 }
 
 
-void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3> &cmap) {
+//void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &omap, Map<bool, 3> &cmap) {
+//  assert(omap.gs[0] == cmap.gs[1]);
+//  assert(omap.gs[1] == cmap.gs[2]);
+//
+//  vector<Vector2d> points;
+//  geom.Raster(omap.cs/2, points);
+//
+//  Matrix2d R;
+//
+//  int dim_a(0); //dimension for angle
+//  int dim_x(1); //dimension for angle
+//  int dim_y(2); //dimension for angle
+//
+//  for (int idx_a = 0; idx_a < cmap.gs[dim_a]; ++idx_a) {
+//    // dilate map for a particular angle
+//    double theta = cmap.CellCenterIth(idx_a,dim_a);
+//
+//    // make a rotation matrix
+//    double ct = cos(theta);
+//    double st = sin(theta);
+//    R(0,0) = ct; R(0,1) = -st;
+//    R(1,0) = st; R(1,1) = ct;
+//
+//    for (int idx_x = 0; idx_x < cmap.gs[dim_x]; ++idx_x) {
+//      double x = cmap.CellCenterIth(idx_x,dim_x);
+//      for (int idx_y = 0; idx_y < cmap.gs[2]; ++idx_y) {
+//        // index into workspace
+//        int id_omap = omap.Id(Vector2i(idx_x,idx_y));
+//        assert(id_omap < omap.nc);
+//
+//        if (!omap.cells[id_omap])
+//          continue;        // if free continue
+//
+//        double y = cmap.CellCenterIth(idx_y,dim_y);
+//
+//        Vector2d p0(x,y); // position of car origin
+//        for (auto&& dp : points) {
+//          Vector2d p = p0 + R*dp; // point on the car
+//          cmap.Set(Vector3d(theta, p[0], p[1]), true);
+//        }
+//      }
+//    }
+//  }
+//}
+
+
+void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &omap, Map<bool, 3> &cmap) {
   assert(map.gs[0] == cmap.gs[1]);
   assert(map.gs[1] == cmap.gs[2]);
 
-  vector<Vector2d> points;
-  geom.Raster(map.cs, points);
+  int dim_a = 0; //The dimension corresponding to angle
 
-  Matrix2d R;
-
-  for (int ia = 0; ia < cmap.gs[0]; ++ia) {
-    // dilate map for a particular angle
-    double theta = (ia + 0.5) * cmap.cs[0] + cmap.xlb[0];
-
-    // make a rotation matrix
-    double ct = cos(theta);
-    double st = sin(theta);
-    R(0,0) = ct; R(0,1) = -st;
-    R(1,0) = st; R(1,1) = ct;
-    
-    // dilated map
-    //    bool dmap[cmap.gs[1]*cmap.gs[2]];
-    //    DilateMap(geom, theta,
-    //              cmap.cs[1], cmap.cs[2], cmap.gs[1], cmap.gs[2], 
-    //              map.cells, dmap);
-    for (int ix = 0; ix < cmap.gs[1]; ++ix) {
-      double x = (ix + 0.5)*cmap.cs[1] + cmap.xlb[1];
-      
-      for (int iy = 0; iy < cmap.gs[2]; ++iy) {
-        // index into workspace
-        int id2 = ix + iy*cmap.gs[1];
-        assert(id2 < map.nc);
-        // if free continue
-        if (!map.cells[id2])
-          continue;
-
-        double y = (iy + 0.5)*cmap.cs[2] + cmap.xlb[2];
-
-        // index into configuration space
-        //        int id3 = ia + ix*cmap.gs[0] + iy*cmap.gs[0]*cmap.gs[1];
-
-        Vector2d p0(x,y); // position of car origin
-        for (auto&& dp : points) {
-          Vector2d p = p0 + R*dp; // point on the car
-          cmap.Set(Vector3d(theta, p[0], p[1]), true);
-        }
-      }
-    }    
-  }
-}
-
-
-/*
-void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3> &cmap) {
-  assert(map.gs[0] == cmap.gs[1]);
-  assert(map.gs[1] == cmap.gs[2]);
-
-  for (int ia = 0; ia < cmap.gs[0]; ++ia) {
+  for (int idx_a = 0; idx_a < cmap.gs[dim_a]; ++idx_a) {
     // create a dilated map for a particular angle
-    double theta = cmap.xlb[0] + (ia + 0.5) * cmap.cs[0];
+    double theta = cmap.CellCenterIth(idx_a,dim_a);
 
     // dilated map
-    bool dmap[cmap.gs[1]*cmap.gs[2]];
-    DilateMap(geom, theta,
-              cmap.cs[1], cmap.cs[2], cmap.gs[1], cmap.gs[2], 
-              map.cells, dmap);
-    for (int ix = 0; ix < cmap.gs[1]; ++ix) {
-      for (int iy = 0; iy < cmap.gs[2]; ++iy) {
-        cmap.cells[ia + ix*cmap.gs[0] + iy*cmap.gs[0]*cmap.gs[1]] = dmap[ix + iy*cmap.gs[1]];
+    vector<bool> dmap(omap.nc);
+    DilateMap(geom, theta, cmap.cs[1], cmap.cs[2], cmap.gs[1], cmap.gs[2],omap.cells, dmap);
+
+    for (int idx_x = 0; idx_x < cmap.gs[1]; ++idx_x) {
+      for (int idx_y = 0; idx_y < cmap.gs[2]; ++idx_y) {
+        int id_omap = omap.Id( Vector2i(idx_x, idx_y) );
+        int id_cmap = cmap.Id( Vector3i(idx_a, idx_x, idx_y) );
+        cmap.cells[id_cmap] = dmap[id_omap];
       }
-    }    
+    }
   }
+
 }
-*/
 
  void CarGrid::DilateMap(const CarGeom& geom, double theta,
                          double sx, double sy, int gx, int gy, 
-                         const bool* data, bool* data_dil) {
+                         const vector<bool>& data, vector<bool>& data_dil) {
    
    Matrix2x4d verts2d_rotd_pix;
   getRotdVertsInPixWrtOrg(verts2d_rotd_pix, geom.l, geom.b, geom.ox, geom.oy, sx, sy, theta);
@@ -187,7 +199,7 @@ void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3>
   // zero
   int w_k = size2i_k(0);
   int h_k = size2i_k(1);
-  bool data_k[w_k * h_k];
+  vector<bool> data_k(w_k * h_k);
   fillQuad<bool>(data_k,
            size2i_k(0),
            size2i_k(1),

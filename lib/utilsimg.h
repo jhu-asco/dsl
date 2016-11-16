@@ -45,7 +45,6 @@ void getRotdVertsInPixWrtOrg(Matrix2x4d& verts2d_rotd_pix,
                              double sy,
                              double theta);
 
-
 /**
  * Scales up an image with the same scaling factor in x and y direction
  * @param map_scaled pointer to scaled image. It needs to be allocated before
@@ -59,6 +58,33 @@ void scaleMap(T* map_scaled, const T* map, int w, int h, int scale) {
   int ws = scale * w;
   int hs = scale * h;
 
+  for (int rs = 0; rs < hs; rs++) {
+    for (int cs = 0; cs < ws; cs++) {
+      int c = round(cs / scale);
+      int r = round(rs / scale);
+
+      int idx = c + r * w;
+      int idxs = cs + rs * ws;
+
+      map_scaled[idxs] = map[idx];
+    }
+  }
+}
+
+/**
+ * Scales up an image with the same scaling factor in x and y direction
+ * @param map_scaled Reference to scaled map
+ * @param map Original map
+ * @param w Width of the map
+ * @param h Height of the map
+ * @param scale Scaling factor
+ */
+template < typename T >
+void scaleMap(vector<T>& map_scaled, const vector<T>& map, int w, int h, int scale) {
+  int ws = scale * w;
+  int hs = scale * h;
+
+  map_scaled.resize(ws*hs);
   for (int rs = 0; rs < hs; rs++) {
     for (int cs = 0; cs < ws; cs++) {
       int c = round(cs / scale);
@@ -104,8 +130,36 @@ int inPoly(Matrix< T, m, n > verts, Matrix< T, m, 1 > pt) {
  * @param lw linewidth in pixels
  */
 template < typename T >
-void addLine(
-    T* map, int w, int h, Vector2d p1, Vector2d p2, T lval, double lw) {
+void addLine( T* map, int w, int h, Vector2d p1, Vector2d p2, T lval, double lw) {
+  Vector2d n = Rotation2Dd(M_PI / 2) * (p2 - p1).normalized();
+  Matrix2x4d verts2d;
+  verts2d.col(0) = p1 + n * lw / 2;
+  verts2d.col(1) = p1 - n * lw / 2;
+  verts2d.col(2) = p2 - n * lw / 2;
+  verts2d.col(3) = p2 + n * lw / 2;
+
+  for (int r = 0; r < h; r++) {
+    for (int c = 0; c < w; c++) {
+      int idx = c + r * w;
+      if (inPoly(verts2d, Vector2d(c, r)))
+        map[idx] = lval;
+    }
+  }
+}
+
+/**
+ * Takes in an image and end points of a line and adds that line of certain
+ * pixel width
+ * @param map The input image as a vector
+ * @param w The width of the image
+ * @param h The height of the image
+ * @param p1 End point1 for the line in pixel coordinates
+ * @param p2 End point2 for the line in pixel coordinates
+ * @param lval the pixel value for the line
+ * @param lw linewidth in pixels
+ */
+template < typename T >
+void addLine( vector<T>& map, int w, int h, Vector2d p1, Vector2d p2, T lval, double lw) {
   Vector2d n = Rotation2Dd(M_PI / 2) * (p2 - p1).normalized();
   Matrix2x4d verts2d;
   verts2d.col(0) = p1 + n * lw / 2;
@@ -136,11 +190,11 @@ void addLine(
  * @param oy_k y coordinate of the origin of the kernel image
  */
 template < typename T >
-void dilate(T* data_dil,
-            const T* data,
+void dilate(vector<T>& data_dil,
+            const vector<T>&  data,
             int w,
             int h,
-            const T* data_k,
+            const vector<T>& data_k,
             int w_k,
             int h_k,
             int ox_k,
@@ -192,7 +246,7 @@ void dilate(T* data_dil,
  * @param val the value that is to be fill in. Rest is 0
  */
 template < typename T = bool>
-    void fillQuad(T* data, int w, int h, Matrix2x4d verts, T val) {
+    void fillQuad(vector<T>& data, int w, int h, Matrix2x4d verts, T val) {
   for (int r = 0; r < h; r++) {
     for (int c = 0; c < w; c++) {
       int idx_2d = c + r * w;

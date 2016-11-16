@@ -3,15 +3,11 @@
 
 #include <sys/time.h>
 #include <Eigen/Dense>
-#include "map.h"
 #include <vector>
+#include "utilsimg.h"
 
 namespace dsl {
 
-  Map<bool, 2> load(const char* filename, const Eigen::Vector2d &cs);
-
-  void save(const dsl::Map<bool, 2> &map, const char* filename, const std::vector<Eigen::Vector2d> *path = 0);
-  
 void save_map(const char* map, int width, int height, const char* filename);
 
 char* load_map(int &width, int &height, const char* filename);
@@ -33,6 +29,36 @@ void se2_exp(Eigen::Matrix3d& m, const Eigen::Vector3d& v, double tol = 1e-16);
 void se2_log(Eigen::Vector3d& v, const Eigen::Matrix3d& m, double tol = 1e-16);
 
 void replaceExt(std::string& s, const std::string& newExt);
+
+/**
+ * Removes the specified dimension. (1 3 5) = removedDim( (1,2,3,5), 1 );
+ * @param in input vector
+ * @param dim dimension to remove
+ * @return output vector
+ */
+template<typename T,int n>
+Eigen::Matrix<T,n-1,1> removeDim(const Eigen::Matrix<T,n,1>& in, int dim){
+  Eigen::Matrix<T,n-1,1> out;
+  out = in.template head<n-1>();
+  out.tail(n-1-dim) = in.tail(n-1-dim);
+  return out;
+}
+
+/**
+ *Inserts an extra dim and sets the value at that dim. (1 2 3 4 5) = insertDim( (1,2,3,5), 3, 4);
+ * @param in input vector
+ * @param dim dimension where to insert
+ * @param val value to insert
+ * @return output vector
+ */
+template<typename T,int n>
+Eigen::Matrix<T,n+1,1> insertDim(const Eigen::Matrix<T,n,1>& in, int dim, T val){
+  Eigen::Matrix<T,n+1,1> out;
+  out.template head<n>() = in;
+  out(dim) = val;
+  out.tail(n-dim) = in.tail(n-dim);
+  return out;
+}
 
 /**
  * Function that returns a sign for object of any class as long as the operator
