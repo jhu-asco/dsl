@@ -16,15 +16,15 @@ namespace dsl{
 struct CarPrimitiveCfg {
 
   CarPrimitiveCfg(bool fwdonly=true, double tphioverlmx=0.54, double lmin=0.32, double lmax=2,
-                  uint16_t nl=2, double amax=1.57, uint16_t na=12, bool pert=true, bool tocenter=true);
+                  int nl=2, double amax=1.57, int na=12, bool pert=true, bool tocenter=true);
 
   bool    fwdonly;      //! Decides if the car moves only in the forward direction
   double  tphioverlmax; //! Max(tan(phi)/l) possible for the car
   double  lmin;         //! Min length of the pimitive
   double  lmax;         //! Max length of the primitive
-  uint16_t    nl;           //! Number of different primitive lengths from lenmin to lenmax
+  int     nl;           //! Number of different primitive lengths from lenmin to lenmax. If 1 lmin is chosen.
   double  amax;         //! Maximum angle turned
-  uint16_t    na;           //! number of steering angles from 0 to phi. If even changed to next odd number
+  int     na;           //! number of steering angles from 0 to phi. If even changed to next odd number
   bool    pert;         //! preturb primitive length or not
   bool    tocenter;     //! moves the primitives to the center of each cell(only in x and y though), hence creates different set of primitives for each angle
 };

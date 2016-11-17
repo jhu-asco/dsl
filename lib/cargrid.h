@@ -19,20 +19,44 @@ namespace dsl {
   using SE2Cell =  Cell< Eigen::Vector3d, Eigen::Matrix3d >;
   using SE2CellPtr = shared_ptr<SE2Cell>;
 
-// geometry of the car
-struct CarGeom {
-  CarGeom (double l = 3, double b = 1.5, double ox = 0.75, double oy = 0);
-  double l;  ///< dim of the rectangle bounding the car along the x direction (from back to front)
-  double b;  ///< dim of the rectangle bounding the car along the y direction (from right to left)
-  double ox; ///< x position of the center of the origin of the car wrt to the center of bounding rectangle
-  double oy; ///< y position of the center of the origin of the car wrt to the center of bounding rectangle
+/**
+ * Geometry of a car defined as a rectangle with some origin. The position of the origin is
+ * defined relative to the center of rectangle. Safety buffer basically grows the rectange
+ * outward to added safety. For example if you consider a car with length 3m,  width 1.5m,
+ * origin at middle point of rear axle and  safety buffer of 40cm, then we have
+ * l = 3.0, b = 1.5, ox = 0.75, oy = 0.0, sb = 0.4
+ * TODO: Add constructors with a kernel image to indicate the shape of car
+ */
+class CarGeom {
+public:
+  CarGeom (double l = 0, double b = 0, double ox = 0, double oy = 0, double sb = 0);
+
+  void set(double l, double b, double ox, double oy, double sb = 0);
 
   /**
-   * Fill the rectange representing the car with regularly spaced points
+   * Fill the rectangle representing the car with regularly spaced points
    * @param cs
    * @param points
    */
   void Raster(const Eigen::Vector2d &cs, std::vector<Eigen::Vector2d> &points) const;
+
+  double l() const;
+  double b() const;
+  double ox() const;
+  double oy() const;
+  double sb() const;
+  double le() const;
+  double be() const;
+
+private:
+  double l_;  ///< dim of the rectangle bounding the car along the x direction (from back to front)
+  double b_;  ///< dim of the rectangle bounding the car along the y direction (from right to left)
+  double ox_; ///< x position of the center of the origin of the car wrt to the center of bounding rectangle
+  double oy_; ///< y position of the center of the origin of the car wrt to the center of bounding rectangle
+  double sb_; ///< safety buffer. The distance to which the car rectange is expanded
+
+  double le_; ///<Effective l because of safety buffer
+  double be_; ///<Effective b because of safety buffer
 };
 
 
@@ -59,7 +83,7 @@ public:
   static bool MakeMap(const Map<bool, 2> &omap, Map<bool, 3> &cmap);
   
   /**
-   * Takes a 2-dim occupancy grid and car geometry to create a 3-dim occ grid for all angles
+   * Takes a 2-dim occupancy grid and uses car geometry to create a 3-dim occ grid for all angles
    * @param geom Geometry of the car
    * @param omap 2-dimensional occupancy grid
    * @param cmap 3-dimensional occupancy grid

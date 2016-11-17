@@ -138,13 +138,50 @@ void saveMapWithPath(const dsl::Map<bool, 2>& omap, std::string filename,
   fs.close();
 }
 
-void getCarCorners(Matrix2x4d& verts2d_rotd_pix, const CarGeom& geom, double theta){
-  double l = geom.l;
-  double b = geom.b;
-  double ox = geom.ox;
-  double oy = geom.oy;
+void saveMapWithPrims(const dsl::Map<bool, 2>& omap, std::string filename,
+                      const std::vector<vector<Vector2d>>& prims,int scale){
+  shared_ptr< dsl::Map<bool,2> > psmap = omap.ScaleUp(scale);
+   dsl::Map<bool,2>& smap = *psmap; //scaled up for clarity
 
-  Vector2d org_m(-geom.ox, -geom.oy);
+   //The image to be saved
+   char data[smap.nc*3];
+   int ind = 0;
+   for (int i = 0; i < smap.nc; i++, ind += 3)
+     data[ind] = data[ind + 1] = data[ind + 2] = (char)(smap.cells[i] * 100); //copy the map in grey
+
+
+   Vector2d xy0(0,0); smap.CellCenter(xy0,Vector2i::Zero()); //find cell center of the cell with index (0,0,0)
+
+   for(auto& prim: prims){
+     for(size_t i=0; i< prim.size(); i++){
+       int id = smap.Id(prim[i]);
+       if(i==0){
+         data[3*id + 1] = 255; //start point in green
+       }else if(i==prim.size()-1){
+         data[3*id]     = 255; //goal point in red
+       }else{
+         data[3*id + 2] = 255; //point along the way in blue
+       }
+     }
+   }
+
+   std::fstream fs(filename, std::fstream::out);
+   assert(fs.is_open());
+   fs << "P6" << std::endl << smap.gs[0] << " " << smap.gs[1] << std::endl << "255" << std::endl;
+
+   assert(ind == smap.nc*3);
+
+   fs.write(data, ind);
+   fs.close();
+}
+
+void getCarCorners(Matrix2x4d& verts2d_rotd_pix, const CarGeom& geom, double theta){
+  double l = geom.l();
+  double b = geom.b();
+  double ox = geom.ox();
+  double oy = geom.oy();
+
+  Vector2d org_m(-ox, -oy);
   Matrix2x4d verts_wrt_center;
   verts_wrt_center.col(0) << -l / 2, -b / 2; // rb(right back)
   verts_wrt_center.col(1) << l / 2, -b / 2;  // rf(right front)

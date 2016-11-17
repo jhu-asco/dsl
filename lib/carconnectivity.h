@@ -101,6 +101,14 @@ public:
             const Eigen::Vector3d& v, bool fwd) const;
 
 
+  /**
+   * Utility function to get all the primitives starting at pos
+   * @param prims A single point along a primitive holds the xy pos
+   * @return true if pos is valid
+   */
+  bool GetPrims(const Vector3d pos, vector<vector<Vector2d>>& prims );
+
+
   const CarGrid& grid; ///< the grid
 
   std::vector< Eigen::Vector3d > vs; ///< primitives defined using motions with constant body-fixed velocities (w,vx,vy)

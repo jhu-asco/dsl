@@ -176,6 +176,18 @@ void se2_log(Vector3d &v, const Matrix3d &m, double tol){
   v(2) = -th2*x + a*y;
 }
 
+Vector2d getWVx( double xf,double yf){
+  double w, t;
+  if(abs(yf)<1e-12){
+    w=0;
+    t=xf;
+  }else{
+    w = 2*yf/(xf*xf+yf*yf);
+    t = atan2(w*xf, 1-w*yf)/w;
+  }
+  return Vector2d(w*t,t);
+}
+
 void replaceExt(std::string& s, const std::string& newExt) {
   std::string::size_type i = s.rfind('.', s.length());
   if (i != std::string::npos) {

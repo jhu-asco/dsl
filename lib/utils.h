@@ -28,6 +28,14 @@ void se2_exp(Eigen::Matrix3d& m, const Eigen::Vector3d& v, double tol = 1e-16);
 
 void se2_log(Eigen::Vector3d& v, const Eigen::Matrix3d& m, double tol = 1e-16);
 
+/**
+ * se2 twist(only w and vx) that takes you exactly only to (xf,yf) and not angle
+ * @param xf
+ * @param yf
+ * @return e2 twist(only w and vx)
+ */
+Vector2d getWVx( double xf,double yf);
+
 void replaceExt(std::string& s, const std::string& newExt);
 
 /**

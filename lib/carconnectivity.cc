@@ -61,10 +61,10 @@ bool CarConnectivity::Flow(std::tuple< SE2CellPtr, SE2Path, double>& pathTuple,
     double d = fabs(v[1]); // total distance along curve
     int n_seg = ceil(d/ (2 * grid.cs[1])); // 2 * grid.cs[1] is to improve efficiency
     double s = d/n_seg;
+    Vector3d axy;
+    Matrix3d g, dg, g_inv;
     SE2CellPtr to(nullptr);
     for (int i_seg=1; i_seg<=n_seg; i_seg++) {
-      Vector3d axy;
-      Matrix3d g, dg;
       se2_exp(dg, (s*i_seg / d) * v);
       g = g0 * dg;
       se2_g2q(axy, g);
@@ -74,22 +74,37 @@ bool CarConnectivity::Flow(std::tuple< SE2CellPtr, SE2Path, double>& pathTuple,
     }
     Matrix3d gf = to->data;
 
+    //cost of the path
+    if(fwd){
+      se2_inv(g_inv,g0);
+      dg = g_inv*gf;
+    }else{
+      se2_inv(g_inv,gf);
+      dg = g_inv*g0;
+    }
+    Vector3d v_slip; se2_log(v_slip,dg);//twist that take you exactly to successor
+    double cost = 0.1*abs(v_slip(0)) + v_slip.tail<2>().norm();//assuming carcost has ac=0.1
+
+    //twist that takes you exactly only to (successor.x, successor.y) not angle
+    Vector3d v_noslip;v_noslip << getWVx(dg(0,2),dg(1,2)),0;
+
+    //If the graph expansion is in reverse, the waypoints are also added in reverse
     SE2Path path;
     path.clear();
-    if(fwd){
+    if(fwd){//when fwd g0 is the starting point
       for (int i_seg=1; i_seg<=n_seg; i_seg++) {
         Vector3d axy;
         Matrix3d g, dg;
-        se2_exp(dg, (s*i_seg / d) * v);
+        se2_exp(dg, (s*i_seg / d) * v_noslip);
         g = g0 * dg;
         se2_g2q(axy, g);
         path.push_back(g);
       }
-    }else{
+    }else{//when fwd gf is the starting point
       for (int i_seg=1; i_seg<=n_seg; i_seg++) {
         Vector3d axy;
         Matrix3d g, dg;
-        se2_exp(dg, (s*i_seg / d) * -v);
+        se2_exp(dg, (s*i_seg / d) * v_noslip);
         g = gf * dg;
         se2_g2q(axy, g);
         path.push_back(g);
@@ -99,7 +114,7 @@ bool CarConnectivity::Flow(std::tuple< SE2CellPtr, SE2Path, double>& pathTuple,
     //Set the path tupule
     std::get<0>(pathTuple) = to;
     std::get<1>(pathTuple) = path;
-    std::get<2>(pathTuple) = d; //replace this by bullet prim cost if it satisfies the relationship
+    std::get<2>(pathTuple) = cost;
 
     return true;
 }
@@ -141,6 +156,31 @@ bool CarConnectivity::
     paths.push_back(pathTuple);
   }
   return true;
+}
+
+bool CarConnectivity::GetPrims(const Vector3d pos, vector<vector<Vector2d>>& prims ){
+
+  SE2CellPtr cell_start = grid.Get(pos);
+  vector<std::tuple< SE2CellPtr, SE2Path, double> > paths;
+  if(cell_start){
+    (*this)(*cell_start,paths,true);
+    Matrix3d g0 = cell_start->data;
+    prims.reserve(paths.size());
+    for(auto& path:paths){
+      SE2CellPtr cell_to = std::get<0>(path);
+      if(!cell_to)
+        continue;
+      SE2Path& gs=  std::get<1>(path);
+      vector<Vector2d> prim(0); prim.reserve(gs.size()+1);
+      prim.push_back(Vector2d(g0(0,2),g0(1,2)));
+      for(auto& g: gs)
+        prim.push_back(Vector2d(g(0,2),g(1,2)));
+      prims.push_back(prim);
+    }
+    return true;
+  }else{
+    return false;
+  }
 }
 
 

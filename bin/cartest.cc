@@ -72,15 +72,11 @@ int main(int argc, char** argv)
   Vector3d gcs;
   params.GetVector3d("gcs", gcs);
 
-  Vector4d whxy;
-  bool useGeom = params.GetVector4d("geom", whxy);
+  Vector5d whxy;
+  bool useGeom = params.GetVector5d("geom", whxy);
   CarGeom geom;
-  if(useGeom){
-    geom.l  = whxy(0);
-    geom.b  = whxy(1);
-    geom.ox = whxy(2);
-    geom.oy = whxy(3);
-  }
+  if(useGeom)
+    geom.set(whxy(0),whxy(1),whxy(2),whxy(3),whxy(4));
   
   // load an occupancy map from ppm file
   dsl::Map<bool, 2> omap = load(mapName.c_str(), ocs.tail<2>());
@@ -191,9 +187,16 @@ int main(int argc, char** argv)
       vector<Vector2d> path2d; path2d.push_back(start2d); path2d.push_back(goal2d);
       save(dmap, "path1.ppm", &path2d);
     }
-    cout << "Map, start and goal (no path) saved to path1.ppm" << endl;
+    cout << "Map, start and goal (no path available) saved to path1.ppm" << endl;
   }
 
+  //Display the primitive at start
+  vector<vector<Vector2d>> prims(0);
+  bool gotprims = connectivity.GetPrims(start,prims);
+  if(gotprims){
+    saveMapWithPrims(dmap, "prim1.ppm",prims,3);
+    cout << "Map, with primitives from start saved to prim1.ppm" << endl;
+  }
 
   cmap.reset();
   return 0;

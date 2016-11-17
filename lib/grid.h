@@ -38,6 +38,7 @@ using namespace Eigen;
 *
 * Note that this data structure is only viable up to a few dimensions,
 * e.g. dim=5 or 6.
+* TODO: Make sure origin lies at center of a cell
  */
 template < class PointType, class CellContent>
  class GridCore {

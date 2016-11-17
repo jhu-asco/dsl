@@ -10,7 +10,7 @@
 using namespace dsl;
 
 CarPrimitiveCfg::CarPrimitiveCfg(bool fwdonly, double tphioverlmx, double lmin, double lmax,
-                                 uint16_t nl, double amax, uint16_t na, bool pert, bool tocenter):
+                                 int nl, double amax, int na, bool pert, bool tocenter):
         fwdonly(fwdonly), tphioverlmax(tphioverlmx), lmin(lmin),lmax(lmax),
         nl(nl), amax(amax), na(na), pert(pert), tocenter(tocenter){
 

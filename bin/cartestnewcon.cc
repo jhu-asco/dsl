@@ -14,7 +14,7 @@ using namespace Eigen;
 
 using CarPathTwist = dsl::GridPath<Vector3d, Matrix3d, dsl::SE2Prim>;
 
-vector<Vector3d> ToVector3dPath(const CarPathTwist &path, double cs) {
+vector<Vector3d> ToVector3dPath(const CarPathTwist &path, double gridcs) {
   vector<Vector3d> path3d;
   for (size_t i=0; i<path.connections.size(); i++){
     Vector3d v = path.connections[i];
@@ -22,7 +22,7 @@ vector<Vector3d> ToVector3dPath(const CarPathTwist &path, double cs) {
     Matrix3d g_from;
     se2_q2g(g_from, axy);
     double d = abs(v(1));
-    int n_seg = ceil(2*d/(cs));
+    int n_seg = ceil(d/ (2 * gridcs));
     double s = d/n_seg;
     for (int i_seg=0; i_seg<=n_seg; i_seg++){
       Matrix3d g, dg;
@@ -83,15 +83,11 @@ int main(int argc, char** argv)
   Vector3d gcs;
   params.GetVector3d("gcs", gcs);
 
-  Vector4d whxy;
-  bool useGeom = params.GetVector4d("geom", whxy);
+  Vector5d whxy;
+  bool useGeom = params.GetVector5d("geom", whxy);
   CarGeom geom;
-  if(useGeom){
-    geom.l  = whxy(0);
-    geom.b  = whxy(1);
-    geom.ox = whxy(2);
-    geom.oy = whxy(3);
-  }
+  if(useGeom)
+    geom.set(whxy(0),whxy(1),whxy(2),whxy(3),whxy(4));
   
   // load an occupancy map from ppm file
   dsl::Map<bool, 2> omap = load(mapName.c_str(), ocs.tail<2>());
@@ -185,26 +181,35 @@ int main(int argc, char** argv)
 
     // save it to image for viewing
     if(plot_car){
-      vector<Vector3d> path3d = ToVector3dPath(path,omap.cs[0]*20);
-      saveMapWithPath(dmap, "path1.ppm", path3d, geom, 3);
+      vector<Vector3d> path3d = ToVector3dPath(path,grid.cs[1]);
+      saveMapWithPath(dmap, "path2.ppm", path3d, geom, 3);
     }else{
-      vector<Vector2d> path2d = ToVector2dPath(path,omap.cs[0]*20);
-      save(dmap, "path1.ppm", &path2d);
+      vector<Vector2d> path2d = ToVector2dPath(path,grid.cs[1]);
+      save(dmap, "path2.ppm", &path2d);
     }
-    cout << "Map and path saved to path1.ppm" << endl;
+    cout << "Map and path saved to path2.ppm" << endl;
   }else{
 
     if(plot_car){
       vector<Vector3d> path3d; path3d.push_back(start); path3d.push_back(goal);
-      saveMapWithPath(dmap, "path1.ppm", path3d, geom, 3);
+      saveMapWithPath(dmap, "path2.ppm", path3d, geom, 3);
     }else{
 
       Vector2d start2d = start.tail<2>(); Vector2d goal2d = goal.tail<2>();
       vector<Vector2d> path2d; path2d.push_back(start2d); path2d.push_back(goal2d);
-      save(dmap, "path1.ppm", &path2d);
+      save(dmap, "path2.ppm", &path2d);
     }
-    cout << "Map, start and goal (no path) saved to path1.ppm" << endl;
+    cout << "Map, start and goal (no path available ) saved to path2.ppm" << endl;
   }
+
+  //Display the primitive at start
+  vector<vector<Vector2d>> prims(0);
+  bool gotprims = connectivity.GetPrims(start,prims);
+  if(gotprims){
+    saveMapWithPrims(dmap, "prim2.ppm",prims,3);
+    cout << "Map, with primitives from start saved to prim2.ppm" << endl;
+  }
+
   cmap.reset();
   return 0;
 }

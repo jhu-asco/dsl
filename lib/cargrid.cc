@@ -19,15 +19,34 @@ using Eigen::Vector2d;
 using Eigen::Matrix3d;
 
 using std::vector;
+/**************************************************************************************/
+/********************************CarGeom Methods***************************************/
+/**************************************************************************************/
 
-CarGeom::CarGeom (double l, double b, double ox, double oy) : l(l), b(b), ox(ox), oy(oy) {}
+CarGeom::CarGeom (double l, double b, double ox, double oy, double sb)
+: l_(l), b_(b), ox_(ox), oy_(oy), sb_(sb), le_(l+2*sb), be_(b+2*sb) {}
 
+void CarGeom::set(double l, double b, double ox, double oy, double sb){
+  l_ = l; b_ = b; ox_ = ox; oy_ =oy; sb_ = sb; le_ = l+2*sb; be_ = b+2*sb;
+}
 void CarGeom::Raster(const Eigen::Vector2d &cs, std::vector<Eigen::Vector2d> &points) const {
   points.clear();
-  for (double x = -l/2; x < l/2; x += cs[0])
-    for (double y = -b/2; y < b/2; y += cs[1])
-      points.push_back(Eigen::Vector2d(x + ox, y + oy));
+  for (double x = -le_/2; x < le_/2; x += cs[0])
+    for (double y = -be_/2; y < be_/2; y += cs[1])
+      points.push_back(Eigen::Vector2d(x + ox_, y + oy_));
 }
+
+double CarGeom::l() const {return l_;}
+double CarGeom::b() const {return b_;}
+double CarGeom::ox() const {return ox_;}
+double CarGeom::oy() const {return oy_;}
+double CarGeom::sb() const {return sb_;}
+double CarGeom::le() const {return le_;}
+double CarGeom::be() const {return be_;}
+
+/**************************************************************************************/
+/********************************CarGrid Methods***************************************/
+/**************************************************************************************/
 
 CarGrid::CarGrid(const Map<bool, 3> &cmap,
                  const Vector3d& cs) 
@@ -155,7 +174,7 @@ bool CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &omap, Map<bool, 3
                          const vector<bool>& data, vector<bool>& data_dil) {
    
    Matrix2x4d verts2d_rotd_pix;
-  getRotdVertsInPixWrtOrg(verts2d_rotd_pix, geom.l, geom.b, geom.ox, geom.oy, sx, sy, theta);
+  getRotdVertsInPixWrtOrg(verts2d_rotd_pix, geom.le(), geom.be(), geom.ox(), geom.oy(), sx, sy, theta);
   
   // round of the pixel values of the vertices above such that the rectange
   // formed by the rounded off

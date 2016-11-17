@@ -26,6 +26,8 @@ void save(const dsl::Map<bool, 2> &map, const char* filename, const std::vector<
 void saveMapWithPath(const dsl::Map<bool, 2>& cmap, std::string filename,
                      const std::vector<Vector3d>& path, const CarGeom& geom, int scale);
 
+void saveMapWithPrims(const dsl::Map<bool, 2>& omap, std::string filename,
+                      const std::vector<vector<Vector2d>>& prims,int scale);
 
 /**
  * Get the corners of car which is rotate by an angle theta. The geometry of car is defined by geom.
