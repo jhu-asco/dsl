@@ -16,6 +16,10 @@ target_link_libraries(test_cargrid dsl)
 add_executable(gridcoretest gridcoretest.cc)
 target_link_libraries(gridcoretest dsl)
 
+# Testing the function of gridutils class
+add_executable(gridutilstest gridutilstest.cc)
+target_link_libraries(gridutilstest dsl)
+
 #add_executable(test test.cc)
 
 #add_executable(test3d test3d.cc)
@@ -26,9 +30,9 @@ target_link_libraries(gridcoretest dsl)
 #target_link_libraries(carwithgeomtest dsl ${OpenCV_LIBRARIES})
 
 
-INSTALL(TARGETS test2d
-        RUNTIME
-        DESTINATION bin)
-
-INSTALL(FILES map.ppm 
-        DESTINATION bin)
+#INSTALL(TARGETS test2d
+#        RUNTIME
+#        DESTINATION bin)
+#
+#INSTALL(FILES map.ppm 
+#        DESTINATION bin)

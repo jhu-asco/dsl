@@ -44,7 +44,7 @@ Map<bool, 2> load(const char* filename, const Vector2d &cs) {
 void save(const dsl::Map<bool, 2> &map, const char* filename, const std::vector<Vector2d> *path) {
   const int &width = map.gs[0];
   const int &height = map.gs[1];
-  
+
   char data[width*height*3];
   std::fstream fs(filename, std::fstream::out);
   assert(fs.is_open());
@@ -74,6 +74,54 @@ void save(const dsl::Map<bool, 2> &map, const char* filename, const std::vector<
 
   fs.write(data, ind);
   fs.close();
+}
+
+bool saveSlices(const dsl::Map<bool, 3> &cmap, string folder) {
+
+  int slices = cmap.gs[0];
+  int width  = cmap.gs[1];
+  int height = cmap.gs[2];
+
+  char data[width*height*3];//rgb channels
+
+  if(folder.back() != '/')
+    folder = folder+'/';
+
+  string file = "map";
+  string ext = ".ppm";
+  string filename = folder+file+"0"+ext;
+
+  std::fstream fs(filename, std::fstream::out);
+  if(!fs.is_open()){
+    cout<<"Couldn't write occupancy slices. Folder doesn't exist"<<endl;
+    return false;
+  }
+  fs.close();
+
+  dsl::Map<bool, 3>::SlicePtr pomap;
+
+  for( int idx_a = 0; idx_a < slices; idx_a++){
+    filename = folder+file+to_string(idx_a)+ext;
+    fs.open(filename, std::fstream::out);
+    assert(fs.is_open());
+    if(!fs.is_open())
+      continue;
+
+    if(!pomap)
+      pomap = cmap.GetSlice(idx_a,0);
+    else
+      cmap.GetSlice(*pomap,idx_a,0); //no reallocation of memory
+
+    fs << "P6" << std::endl << width << " " << height << std::endl << "255" << std::endl;
+    int ind = 0;
+    for (int i = 0; i < width * height; i++, ind += 3) {
+      data[ind] = data[ind + 1] = data[ind + 2] = (char)(pomap->cells[i] * 100);
+    }
+    assert(ind == 3*width*height);
+    fs.write(data, ind);
+    fs.close();
+  }
+  return true;
 }
 
 void saveMapWithPath(const dsl::Map<bool, 2>& omap, std::string filename,

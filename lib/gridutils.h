@@ -23,6 +23,8 @@ Map<bool, 2> load(const char* filename, const Eigen::Vector2d &cs);
  */
 void save(const dsl::Map<bool, 2> &map, const char* filename, const std::vector<Eigen::Vector2d> *path = 0);
 
+bool saveSlices(const dsl::Map<bool, 3> &cmap, string folder);
+
 void saveMapWithPath(const dsl::Map<bool, 2>& cmap, std::string filename,
                      const std::vector<Vector3d>& path, const CarGeom& geom, int scale);
 

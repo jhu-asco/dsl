@@ -18,6 +18,7 @@ namespace dsl {
 
   using SE2Cell =  Cell< Eigen::Vector3d, Eigen::Matrix3d >;
   using SE2CellPtr = shared_ptr<SE2Cell>;
+  using Vector5d = Eigen::Matrix<double,5,1>;
 
 /**
  * Geometry of a car defined as a rectangle with some origin. The position of the origin is
@@ -33,6 +34,9 @@ public:
 
   void set(double l, double b, double ox, double oy, double sb = 0);
 
+  void set(Vector4d lboxoy);
+
+  void set(Vector5d lboxoysb);
   /**
    * Fill the rectangle representing the car with regularly spaced points
    * @param cs

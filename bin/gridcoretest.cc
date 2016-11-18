@@ -6,8 +6,6 @@ using namespace dsl;
 using namespace std;
 using namespace Eigen;
 
-using SlicePtr = GridCore<Vector3d,double>::GridCoreSlicePtr ;
-
 int main(int argc, char** argv){
 
   Vector3d xlb = Vector3d::Constant(-0.5);
@@ -19,10 +17,32 @@ int main(int argc, char** argv){
     grid.cells[id] = id;
   }
 
-  SlicePtr pslice = grid.Slice(1,0);
+  cout<<endl;
+  cout<<"contents of the cell of grid"<<endl;
+  for(int id = 0; id < grid.nc ; id++){
+    cout<<grid.cells[id]<<", ";
+  }
+  cout<<endl<<endl;
 
-  Eigen::Map<MatrixXd > slicemat(pslice->cells.data(), pslice->gs[0], pslice->gs[1]);
+  //Get slice along dimension: dim and index: idx along that dimension
+  int dim = 0;
+  int idx = 1;
 
-  cout<<"slicemat:\n"<<slicemat<<endl;
+  GridCore<Vector3d,double>::SlicePtr pslice = grid.GetSlice(1,dim);
+  cout<<"Slicing along dimension:"<<dim<<" at index:"<<idx<<" from grid"<<endl;
+  cout<<"contents of the cell of slice"<<endl;
+  for(int id = 0; id < pslice->nc ; id++){
+    cout<<pslice->cells[id]<<", ";
+  }
+  cout<<endl<<endl;
+
+  GridCore<Vector3d,double>::Slice::StackPtr pstack = pslice->GetStack(dim,0,10,3);
+  cout<<"Stacked up slices along dim:"<<dim<<" to create stack"<<endl;
+  cout<<"contents of the cell of stack"<<endl;
+  for(int id = 0; id < pstack->nc ; id++){
+    cout<<pstack->cells[id]<<", ";
+  }
+  cout<<endl<<endl;
+
   return 0;
 }

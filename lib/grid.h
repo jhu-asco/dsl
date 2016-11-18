@@ -38,7 +38,10 @@ using namespace Eigen;
 *
 * Note that this data structure is only viable up to a few dimensions,
 * e.g. dim=5 or 6.
-* TODO: Make sure origin lies at center of a cell
+* TODO: 1. Make sure origin lies at center of a cell
+*       2. Check for bound in GetSlice and GetStack methods
+*       3. Implement GetStack method that can perform occupancy dilation
+*
  */
 template < class PointType, class CellContent>
  class GridCore {
@@ -53,13 +56,13 @@ template < class PointType, class CellContent>
  using Vectornp1d =  Eigen::Matrix< double, PointType::SizeAtCompileTime+1, 1 >; //(n+1) dim eigen vector of doubles
  using Vectornp1i =  Eigen::Matrix< int, PointType::SizeAtCompileTime+1, 1 >;    //(n+1) dim eigen vector of ints
 
- using GridCorePtr = shared_ptr< GridCore<PointType,CellContent> >;
+ using Ptr = shared_ptr< GridCore<PointType,CellContent> >;
 
- using GridCoreSlice = GridCore<Vectornm1d,CellContent>;
- using GridCoreSlicePtr = shared_ptr<GridCoreSlice>;
+ using Slice = GridCore<Vectornm1d,CellContent>;
+ using SlicePtr = shared_ptr<Slice>;
 
- using GridCoreExtradim = GridCore<Vectornp1d,CellContent>;
- using GridCoreExtradimPtr = shared_ptr<GridCoreExtradim>;
+ using Stack = GridCore<Vectornp1d,CellContent>;
+ using StackPtr = shared_ptr<Stack>;
 
  /**
   * Configuration to control the grid sizes, cell sizes and grid bounds.
@@ -196,26 +199,86 @@ template < class PointType, class CellContent>
 
   virtual ~GridCore() {}
 
-//  /**
-//   * Adds an extra dimension to the grid and repeat all other dimensions
-//   * @param dim dim coordinate/dimension index
-//   * @param lb lower bound along that dimension
-//   * @param ub upper bound along that dimension
-//   * @param wd dimension is wrapped or not
-//   * @return
-//   */
-//  GridCoreExtradimPtr addDim(int dim, double lb, double ub, bool wrapped){
-//
-//  }
+  /**
+   * Stacks up the grid along a new dimension. Say the current grid
+   * has 3 dimensions(angle/a, x and y), a new dimension is inserted as:
+   *    a   x   y
+   *  ^   ^   ^   ^
+   *  0   1   2   3
+   * @param dim dim coordinate/dimension index
+   * @param lbi lower bound along that dimension
+   * @param ubi upper bound along that dimension
+   * @param gsi grid size along that dim
+   * @param wdi dimension is wrapped or not
+   * @return
+   */
+  StackPtr GetStack(int dim, double lbi, double ubi, int gsi, bool wdi=false){
+    Vectornp1d xlb_stack, xub_stack;
+    Vectornp1i gs_stack,wd_stack;
 
+    //Get the new dimension
+    xlb_stack = insertDim(xlb,dim, lbi);
+    xub_stack = insertDim(xub,dim, ubi);
+    gs_stack  = insertDim(gs, dim, gsi);
+    wd_stack  = insertDim(wd, dim, wdi?1:0);
+
+    StackPtr pstack(new Stack(xlb_stack,xub_stack, gs_stack, wd_stack));
+
+    for(int id=0; id < nc; id++){
+      Vectorni midx; Index(midx,id);
+      CellContent val = cells[id];
+      for( int idx=0; idx < pstack->gs[dim] ; idx++ ){
+        Vectornp1i midx_stack = insertDim(midx,dim,idx); //midx is multidim index
+        pstack->cells[pstack->Id(midx_stack)] = val;
+      }
+    }
+    return pstack;
+  }
+
+  /**
+   * Stacks up the grid along a new dimension. Say the current grid
+   * has 3 dimensions(angle/a, x and y), a new dimension is inserted as:
+   *    a   x   y
+   *  ^   ^   ^   ^
+   *  0   1   2   3
+   * @param dim dim coordinate/dimension index
+   * @param lbi lower bound along that dimension
+   * @param ubi upper bound along that dimension
+   * @param scsi suggested cell size along that dim
+   * @param wdi dimension is wrapped or not
+   * @return
+   */
+  StackPtr GetStack(int dim, double lbi, double ubi, double scsi, bool wdi=false){
+    Vectornp1d xlb_stack, xub_stack,scs_stack;
+    Vectornp1i wd_stack;
+
+
+    //Get the new dimension
+    xlb_stack = insertDim(xlb,dim, lbi);
+    xub_stack = insertDim(xub,dim, ubi);
+    scs_stack = insertDim(cs, dim, scsi);
+    wd_stack  = insertDim(wd, dim, wdi);
+
+    StackPtr pstack(new Stack(xlb_stack,xub_stack, scs_stack, wd_stack));
+
+    for(int id=0; id < nc; id++){
+      Vectorni midx; Index(midx,id);
+      CellContent val = cells[id];
+      for( int idx=0; idx < pstack->gs[dim] ; idx++ ){
+        Vectornp1i midx_stack = insertDim(midx,dim,idx); //midx is multidim index
+        pstack->cells[pstack->Id(midx_stack)] = val;
+      }
+    }
+    return pstack;
+  }
 
   /**
    * Create a slice of the current grid along dimension at particular index
    * @param idx index in a grid along the dim coordinate/dimension
    * @param dim coordinate/dimension index
-   * @return
+   * @return a shared_ptr to the grid slice created
    */
-  GridCoreSlicePtr Slice(int idx, int dim) const {
+  SlicePtr GetSlice(int idx, int dim) const {
     Vectornm1d xlb_slice, xub_slice;
     Vectornm1i gs_slice,wd_slice;
 
@@ -225,7 +288,7 @@ template < class PointType, class CellContent>
     gs_slice  = removeDim(gs,dim);
     wd_slice  = removeDim(wd,dim);
 
-    GridCoreSlicePtr pslice(new GridCoreSlice(xlb_slice,xub_slice, gs_slice, wd_slice));
+    SlicePtr pslice(new Slice(xlb_slice,xub_slice, gs_slice, wd_slice));
 
     for(int id_slice=0; id_slice < pslice->nc; id_slice++){
       Vectornm1i midx_slice; pslice->Index(midx_slice,id_slice);
@@ -239,11 +302,41 @@ template < class PointType, class CellContent>
     * Create a slice of the current grid along dimension at particular index
     * @param idx index in a grid along the dim coordinate/dimension
     * @param dim coordinate/dimension index
-    * @return
+    * @return a shared_ptr to the grid slice created
     */
-   GridCoreSlicePtr Slice(double val, int dim) const {
+   SlicePtr GetSlice(double val, int dim) const {
      int idx = Index(val,dim);
-     return Slice(idx,dim);
+     return GetSlice(idx,dim);
+   }
+
+  /**
+    * Create a slice of the current grid along dimension at particular index
+    * @param slice reference to the slice
+    * @param idx index in a grid along the dim coordinate/dimension
+    * @param dim coordinate/dimension index
+    */
+   void GetSlice(Slice& slice, int idx, int dim) const {
+     //Get the new dimension
+     slice.xlb = removeDim(xlb,dim);
+     slice.xub = removeDim(xub,dim);
+     slice.gs  = removeDim(gs,dim);
+     slice.wd  = removeDim(wd,dim);
+     slice.cs  = removeDim(cs,dim);
+     slice.ds  = removeDim(ds,dim);
+     slice.nc=1;
+     slice.cgs[0]=1;
+     for(int i = 0; i < n-1; i++){
+       slice.nc *=slice.gs[i];
+       if(i>0)
+         slice.cgs[i] = slice.cgs[i-1]*slice.gs[i-1];
+     }
+     slice.cells.resize(slice.nc);//if data is already allocated resize does nothing
+
+     for(int id_slice=0; id_slice < slice.nc; id_slice++){
+       Vectornm1i midx_slice; slice.Index(midx_slice,id_slice);
+       Vectorni midx = insertDim(midx_slice,dim,idx); //midx is multidim index
+       slice.cells[id_slice] = Get(Id(midx));
+     }
    }
 
   /**
@@ -252,9 +345,9 @@ template < class PointType, class CellContent>
    * @param scale
    * @return
    */
-  GridCorePtr ScaleUp(int scale) const {
+  Ptr ScaleUp(int scale) const {
     assert(scale>1);
-    GridCorePtr pscaled;
+    Ptr pscaled;
     if(scale<=1)
       return pscaled;
     Vectorni gs_scaled = gs*scale;
@@ -527,8 +620,8 @@ template < class PointType, class CellContent>
     * @param filename
     * @return
     */
-   static GridCorePtr Load(const string& filename) {
-     GridCorePtr pgrid;
+   static Ptr Load(const string& filename) {
+     Ptr pgrid;
      std::ifstream fs (filename, std::fstream::in | std::ios::binary);
      assert(fs.is_open());
      if(fs.is_open()){
