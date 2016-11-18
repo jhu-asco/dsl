@@ -89,7 +89,7 @@ public:
    * @param cmap 3-dimensional occupancy grid
    * @return True if cmap could be modified correctly
    */
-  static bool MakeMap(const CarGeom& geom, const Map<bool, 2> &omap, Map<bool, 3> &cmap);
+  static bool MakeMap(const CarGeom& geom, const Map<bool, 2> &omap, Map<bool, 3> &cmap, int nthreads=1);
 
   static void DilateMap(const CarGeom& geom, double theta,
                           double sx, double sy, int gx, int gy,

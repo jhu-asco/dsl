@@ -11,21 +11,21 @@ using Eigen::Matrix3d;
 using std::vector;
 
 
-CarConnectivity::CarConnectivity(const CarGrid& grid,
+CarConnectivity::CarConnectivity(const CarGrid& grid, const CarCost& cost,
                                  const vector<Eigen::Vector3d> &vs,
-                                 double dt) : grid(grid), vs(vs), dt(dt)
+                                 double dt) : grid(grid), vs(vs), dt(dt),cost(cost)
 {
 }
 
 
 
-CarConnectivity::CarConnectivity(const CarGrid& grid,
+CarConnectivity::CarConnectivity(const CarGrid& grid, const CarCost& cost,
                                  double dt,
                                  double vx,
                                  double kmax,
                                  int kseg,
                                  bool onlyfwd)
-    : grid(grid) {
+    : grid(grid),cost(cost) {
   SetPrimitives(dt, vx, kmax, kseg, onlyfwd);
 }
 
@@ -83,10 +83,8 @@ bool CarConnectivity::Flow(std::tuple< SE2CellPtr, SE2Path, double>& pathTuple,
       dg = g_inv*g0;
     }
     Vector3d v_slip; se2_log(v_slip,dg);//twist that take you exactly to successor
-    double cost = 0.1*abs(v_slip(0)) + v_slip.tail<2>().norm();//assuming carcost has ac=0.1
-
-    //twist that takes you exactly only to (successor.x, successor.y) not angle
-    Vector3d v_noslip;v_noslip << getWVx(dg(0,2),dg(1,2)),0;
+    Vector3d v_noslip;v_noslip << getWVx(dg(0,2),dg(1,2)),0;//twist that takes you exactly only to successor.xy not angle
+    double primcost = cost.ac*abs(v_slip(0)) + abs(v_slip(1));
 
     //If the graph expansion is in reverse, the waypoints are also added in reverse
     SE2Path path;
@@ -114,7 +112,7 @@ bool CarConnectivity::Flow(std::tuple< SE2CellPtr, SE2Path, double>& pathTuple,
     //Set the path tupule
     std::get<0>(pathTuple) = to;
     std::get<1>(pathTuple) = path;
-    std::get<2>(pathTuple) = cost;
+    std::get<2>(pathTuple) = primcost;
 
     return true;
 }

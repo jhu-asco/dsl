@@ -36,7 +36,7 @@ public:
    * @param vs body-fixed velocities (each v=(vw,vx,vy))
    * @param dt time duration
    */
-  CarConnectivity(const CarGrid& grid,
+  CarConnectivity(const CarGrid& grid, const CarCost& cost,
                   const std::vector<Eigen::Vector3d>& vs,
                   double dt = .25);
   
@@ -51,7 +51,7 @@ public:
    * making the motion primitives
    * @param onlyfwd If true, then only +ve forward velocity is used
    */
-  CarConnectivity(const CarGrid& grid,
+  CarConnectivity(const CarGrid& grid, const CarCost& cost,
                   double dt = .25,
                   double vx = 5,
                   double kmax = 0.577,
@@ -115,7 +115,7 @@ public:
 
   double dt = .5; ///< how long are the primitives
 
-  CarCost cost;
+  const CarCost& cost;
 };
 }
 

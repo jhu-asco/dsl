@@ -99,7 +99,8 @@ int main(int argc, char** argv)
     std::cout << "Making cmap... " << std::endl;
     timer_start(&timer);
     if (useGeom) {
-      CarGrid::MakeMap(geom, omap, *cmap);
+      int nthreads; params.GetInt("nthreads", nthreads);
+      CarGrid::MakeMap(geom, omap, *cmap,nthreads);
     } else {
       CarGrid::MakeMap(omap, *cmap);
     }
@@ -123,7 +124,7 @@ int main(int argc, char** argv)
   params.GetDouble("ac", cost.ac);
 
   // load car connectivity and set custom parameters
-  CarConnectivity connectivity(grid);
+  CarConnectivity connectivity(grid,cost);
   double dt = .25;
   double vx = 4;
   double kmax = 0.57;

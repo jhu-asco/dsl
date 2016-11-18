@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include "utilsimg.h"
+#include <thread>
 
 namespace dsl {
 
@@ -141,30 +142,63 @@ bool CarGrid::MakeMap(const Map<bool, 2> &omap, Map<bool, 3> &cmap) {
 //}
 
 
-bool CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &omap, Map<bool, 3> &cmap) {
+bool CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &omap, Map<bool, 3> &cmap, int nthreads) {
   assert(omap.gs[0] == cmap.gs[1]);
   assert(omap.gs[1] == cmap.gs[2]);
+  assert(nthreads>0);
+
+  nthreads = nthreads<1 ? 1:nthreads;
 
   if(omap.gs[0] != cmap.gs[1] || omap.gs[1] != cmap.gs[2])
     return false;
 
   int dim_a = 0; //The dimension corresponding to angle
 
-  for (int idx_a = 0; idx_a < cmap.gs[dim_a]; ++idx_a) {
-    // create a dilated map for a particular angle
-    double theta = cmap.CellCenterIth(idx_a,dim_a);
+  int n_a = cmap.gs[dim_a];
+  if(nthreads==1){
+    for (int idx_a = 0; idx_a < n_a; ++idx_a) {
+      // create a dilated map for a particular angle
+      double theta = cmap.CellCenterIth(idx_a,dim_a);
 
-    // dilated map
-    vector<bool> dmap(omap.nc);
-    DilateMap(geom, theta, cmap.cs[1], cmap.cs[2], cmap.gs[1], cmap.gs[2],omap.cells, dmap);
+      // dilated map
+      vector<bool> dmap(omap.nc);
+      DilateMap(geom, theta, cmap.cs[1], cmap.cs[2], cmap.gs[1], cmap.gs[2],omap.cells, dmap);
 
-    for (int idx_x = 0; idx_x < cmap.gs[1]; ++idx_x) {
-      for (int idx_y = 0; idx_y < cmap.gs[2]; ++idx_y) {
-        int id_omap = omap.Id( Vector2i(idx_x, idx_y) );
-        int id_cmap = cmap.Id( Vector3i(idx_a, idx_x, idx_y) );
-        cmap.cells[id_cmap] = dmap[id_omap];
+      for (int idx_x = 0; idx_x < cmap.gs[1]; ++idx_x) {
+        for (int idx_y = 0; idx_y < cmap.gs[2]; ++idx_y) {
+          int id_omap = omap.Id( Vector2i(idx_x, idx_y) );
+          int id_cmap = cmap.Id( Vector3i(idx_a, idx_x, idx_y) );
+          cmap.cells[id_cmap] = dmap[id_omap];
+        }
       }
     }
+  }else{
+    std::vector<std::thread> threads(nthreads);
+
+    for(size_t t = 0;t<nthreads;t++){
+      threads[t] = std::thread(std::bind(
+          [&](const int idx_a_start, const int idx_a_end, const int t)
+          {            // loop over all items
+        for(int idx_a = idx_a_start; idx_a< idx_a_end; idx_a++){
+          // create a dilated map for a particular angle
+          double theta = cmap.CellCenterIth(idx_a,dim_a);
+
+          // dilated map
+          vector<bool> dmap(omap.nc);
+          DilateMap(geom, theta, cmap.cs[1], cmap.cs[2], cmap.gs[1], cmap.gs[2],omap.cells, dmap);
+
+          for (int idx_x = 0; idx_x < cmap.gs[1]; ++idx_x) {
+            for (int idx_y = 0; idx_y < cmap.gs[2]; ++idx_y) {
+              int id_omap = omap.Id( Vector2i(idx_x, idx_y) );
+              int id_cmap = cmap.Id( Vector3i(idx_a, idx_x, idx_y) );
+              cmap.cells[id_cmap] = dmap[id_omap];
+            }
+          }
+        }
+
+          },t*n_a/nthreads,(t+1)==nthreads?n_a:(t+1)*n_a/nthreads,t));
+    }
+    std::for_each(threads.begin(),threads.end(),[](std::thread& x){x.join();});
   }
   return true;
 }
