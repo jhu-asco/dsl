@@ -31,7 +31,7 @@ CarGrid::CarGrid(const Map<bool, 3> &cmap, const Vector3d& cs)
         // center of cell
         Vector3i idx(idx_a,idx_x,idx_y);
         Vector3d cc; //CellCenter
-        bool gotcenter = CellCenter(cc,idx,true);
+        bool gotcenter = CellCenter(cc,idx);
         assert(gotcenter);
 
         bool occ = cmap.Get(cc, false);

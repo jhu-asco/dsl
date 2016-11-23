@@ -53,6 +53,7 @@ using namespace Eigen;
  * TODO: 1. Make sure origin lies at center of a cell
  *       2. Check for bound in GetSlice and GetStack methods
  *       3. Implement GetStack method that can perform occupancy dilation
+ *       4. Add clone methods to deep copy data
  *
  */
 template < class PointType, class CellContent>
@@ -229,8 +230,8 @@ public:
     fi(gridcore.fi), indices(gridcore.indices){
     cells.resize(nc);
 
-    //don't copy smart pointers
-    if(std::is_arithmetic<CellContent>::value) //TODO: should is_copy_constructible<CellContent>::value be used?
+    //don't copy smart pointers(just set it to nullptr)
+    if(std::is_arithmetic<CellContent>::value)
       cells = gridcore.cells;
   }
 
@@ -286,19 +287,10 @@ public:
 
     StackPtr pstack(new Stack(xlb_stack,xub_stack, gs_stack, wd_stack,fi));
 
-    if(!init)
+    if(!init || !std::is_arithmetic<CellContent>::value)
       return pstack;
 
-//    //Iterate over all cells
-//    for(int id=0; id < nc; id++){
-//      Vectorni gidx; Index(gidx,id); //get grid index
-//      for( int idx=0; idx < pstack->gs[i] ; idx++ ){ //repeat val it along the extra dimension
-//        Vectornp1i gidx_stack = insertDim(gidx,i,idx);
-//        pstack->cells[pstack->Id(gidx_stack)] = cells[id]; //get value of that cell
-//      }
-//    }
-
-    //faster version of block of commented code above
+    //Iterate over all cells
     auto fun = [&](int id, const Vectorni& gidx) {
       for( int idx=0; idx < pstack->gs[i] ; idx++ ){ //repeat val it along the extra dimension
         Vectornp1i gidx_stack = insertDim(gidx,i,idx);
@@ -338,7 +330,7 @@ public:
 
     StackPtr pstack(new Stack(xlb_stack,xub_stack, scs_stack, wd_stack,fi));
 
-    if(!init)
+    if(!init || !std::is_arithmetic<CellContent>::value)
       return pstack;
 
     for(int id=0; id < nc; id++){
@@ -373,7 +365,7 @@ public:
 
     SlicePtr pslice(new Slice(xlb_slice,xub_slice, gs_slice, wd_slice,fi));
 
-    if(!init)
+    if(!init || !std::is_arithmetic<CellContent>::value)
       return pslice;
 
     for(int id_slice=0; id_slice < pslice->nc; id_slice++){
@@ -423,7 +415,7 @@ public:
        if(slice.fi)
          slice.ResetIndices();
 
-       if(!init)
+       if(!init || !std::is_arithmetic<CellContent>::value)
          return;
 
        for(int id_slice=0; id_slice < slice.nc; id_slice++){
@@ -450,7 +442,7 @@ public:
     Vectorni gs_scaled = gs*scale;
     pscaled.reset(new GridCore<PointType, CellContent>(xlb,xub, gs_scaled, wd,fi));
 
-    if(!init)
+    if(!init || !std::is_arithmetic<CellContent>::value)
       return pscaled;
 
     for(int id_scaled = 0; id_scaled <pscaled->nc; id_scaled++){
@@ -463,6 +455,7 @@ public:
   /**
    * Check if point x is within grid bounds
    * @param x point
+   * @param eps min distance from boundary for validity(only for flat dimensions)
    * @return true if within bounds
    */
   bool Valid(const Vectornd& x, double eps = 1e-10) const {
@@ -491,74 +484,82 @@ public:
   }
 
   /**
-   * Finds the CellCenter corresponding to the input idx
-   * @param x The center point
-   * @param gidx Multidimensional index
-   * @param checkValid Check if the index is within bounds
-   * @return
+   * Check if id( array lookup id) is valid
+   * @param id fast lookup id on array
+   * @return true if within bounds
    */
-  bool CellCenter(Vectornd& x,const Vectorni& gidx, bool checkValid = true) const{
-    if(checkValid)
-      if(!Valid(gidx))
-        return false;
+  bool Valid(int id) const{
+    return (id>=0 && id<nc);
+  }
 
+  /**
+   * Finds the CellCenter corresponding to the input idx
+   * @param x The center point (meaningful even when gidx outside bounds)
+   * @param gidx Multidimensional index (can extend outside the grid)
+   * @return true if cell center inside grid bounds
+   */
+  bool CellCenter(Vectornd& x,const Vectorni& gidx) const{
     x = xlb.array() +  (gidx.template cast<double>() + Vectornd::Constant(0.5)).array()*cs.array() ;
+    return Valid(gidx);
+  }
+
+  /**
+   * Finds the CellCenter corresponding to the input idx
+   * @param x The updated center ( set to a vector of NANs when id not valid)
+   * @param id fast access id in the cell array
+   * @return true if id is valid else false
+   */
+  bool CellCenter(Vectornd& x, int id) const{
+    Vectorni gidx;
+    if(!Index(gidx,id)){
+      x = Vectornd::Constant(numeric_limits<double>::quiet_NaN());
+      return false;
+    }
+    x = xlb.array() +  (gidx.template cast<double>()+Vectornd::Constant(0.5)).array()*cs.array() ;
     return true;
   }
 
   /**
-   * Finds the CellCenter corresponding to the input idx
-   * @param x The updated center
-   * @param id id of point in the storage array
-   * @param checkValid Check if the index is within bounds
-   * @return
-   */
-  bool CellCenter(Vectornd& x, int id) const{
-    if(id>=nc || id<0)
-      return false;
-    Vectorni gidx;
-    if(Index(gidx,id)){
-      x = xlb.array() +  (gidx.template cast<double>()+Vectornd::Constant(0.5)).array()*cs.array() ;
-      return true;
-    }else{
-      return false;
-    }
-  }
-
-  /**
-   * Returns cc[i] where cc is the cell center of any cell with grid index = idx along dimension dim
-   * @param idx grid index along dimension i. To clarify 0<= idx < gs[i]
+   * Returns cc[i] where cc is the cell center of any cell with gidx[i] = idx
+   * @param idx gidx[i] = idx, i.e. grid index along dimension i.
    * @param i coordinated index/ dimension
-   * @return Returns cc[dim]
+   * @return Returns cc[i]. Meaningful result even when idx out of range
    */
   double CellCenterIth(int idx, int i) const{
+    assert(i>=0 && i<n);
     return xlb[i] + (idx +0.5)*cs[i];
   }
 
   /**
-   * Get an id of point x useful for direct lookup in the grid array
+   * Get id of point x useful for direct lookup in the cell array
    * @param x point
-   * @return a computed id
+   * @return the cell array id. -1 if point x is not in grid
    */
   int Id(const Vectornd& x) const {
-    Vectorni idx; Index(idx,x);
-    return idx.transpose()*cgs;
+    Vectorni gidx; Index(gidx,x);
+    if(Valid(gidx))
+      return gidx.transpose()*cgs;
+    else
+       return -1;
   }
 
   /**
-   * Get the id of a point corresponding to the multidimensional index
+   * Get the id of a point corresponding to the grid index
    * @param gidx grid index
-   * @return a computed id
+   * @return the cell array id. -1 if gidx is not within bounds
    */
   int Id(const Vectorni& gidx) const {
-    return gidx.transpose()*cgs;
+    if(Valid(gidx))
+      return gidx.transpose()*cgs;
+    else
+      return -1;
   }
 
   /**
-   * Get the grid index of the point x along i coordinate index
+   * Get the grid index of the point x along i coordinate index.
    * @param x point
    * @param i coordinated index/ dimension
-   * @return grid index along i coordinate/dimension
+   * @return gidx[i], i.e. grid index along i coordinate/dimension. Meaningful even when x is out of bounds.
    */
   int Index(const Vectornd& x, int i) const {
     double xi = x[i];
@@ -573,7 +574,7 @@ public:
    * Get the grid index of i coordinate/dimension
    * @param xi value of a point at i coordinate/dimension
    * @param i coordinated index/ dimension
-   * @return grid index along i coordinate/dimension
+   * @return gidx[i], i.e. grid index along i coordinate/dimension. Meaningful even when x is out of bounds.
    */
   int Index(double xi, int i) const {
     if(wd[i]){ //dimension is wrapped
@@ -585,7 +586,7 @@ public:
 
   /**
    * Get the grid index along all the dimensions
-   * @param gidx grid index
+   * @param gidx grid index. Meaningful even if x is not inside grid
    * @param x point
    */
   void Index(Vectorni& gidx, const Vectornd& x) const {
@@ -601,13 +602,15 @@ public:
 
   /**
    * Get the grid index along all the dimensions from the direct lookup id
-   * @param gidx grid index
+   * @param gidx updated grid index. Set to NANs if id out of range
    * @param id id for direct lookup in the grid array
    * @return false if index is out of range
    */
   bool Index(Vectorni& gidx, int id) const {
-    if(id>=nc || id<0)
+    if(id>=nc || id<0){
+      gidx = Vectorni::Constant(numeric_limits<double>::quiet_NaN());
       return false;
+    }
     if(fi){
       gidx = indices[id].template cast<int>();
     }else{
@@ -620,8 +623,76 @@ public:
   }
 
   /**
-   * Provides interface to iterate over all cells  and do some work that involves using
-   * id(array id) and gidx(grid index) of that cell. This is similar to a nested for loop
+   * Get the cell at position x
+   * @param x point
+   * @param checkValid whether to check if within valid bounds (more efficient
+   * if checkValid=0 but dangerous)
+   * @return pointer to a cell or 0 if cell does not exist
+   */
+  CellContent Get(const Vectornd& x, bool checkValid = true) const {
+    if (checkValid)
+      if (!Valid(x))
+        return 0;
+    return Get(Id(x));
+  }
+
+  /**
+   * Get the cell at a given cell id
+   * @param id a non-negative id
+   * @return pointer to a cell or 0 if cell does not exist
+   */
+  CellContent Get(int id) const {
+    assert(id >= 0 && id < nc);
+    if (id<0 || id >= nc)
+      return 0;
+    return cells[id];
+  }
+
+  /**
+   * Set the data corresponding to the position x.
+   * @param x point
+   * @param data
+   * @return was able to set data or not
+   */
+  bool Set(const Vectornd& x, const CellContent& data)  {
+    int id = Id(x);
+    if(id<0)
+      return false;
+    cells[id] = data;
+    return true;
+  }
+
+  /**
+   * Set the data corresponding to the grid index.
+   * @param gidx grid index of a point on the grid
+   * @param data
+   * @return was able to set data or not
+   */
+  bool Set(const Vectorni& gidx, const CellContent& data)  {
+    int id = Id(gidx);
+    if(id<0)
+      return false;
+    cells[id] = data;
+    return true;
+  }
+
+  /**
+   * Set the data at the given id
+   * @param id a non-negative id
+   * @param data the content of a cell
+   * @return true if it was able to set the data
+   */
+  bool Set(int id, const CellContent& data) {
+    assert(id >= 0 && id<nc);
+    if (id<0 || id >= nc)
+      return false;
+    cells[id] = data;
+    return true;
+  }
+
+  /**
+   * Provides an interface to loop over all cells while operating on id(array id) and gidx(grid index) of that cell.
+   * This is similar to a nested for loop
    * for(int j=0; j < grid.gs[1]; j++){
    *   for(int i=0; i < grid.gs[0]; i++){
    *     Vector2i gidx(i,j);
@@ -662,7 +733,6 @@ public:
     auto fun = [&](int id, const Vectorni& gidx){ indices[id] = gidx.template cast<uint16_t>();};
     LoopOver(fun);
   }
-
 
   /**
    * Converts a set of points in metric coordinates to grid coordinates
@@ -729,81 +799,6 @@ public:
     metric_coord = grid_coord.array()*cs.array() + point0;
   }
 
-  /**
-   * Get the cell at position x
-   * @param x point
-   * @param checkValid whether to check if within valid bounds (more efficient
-   * if checkValid=0 but dangerous)
-   * @return pointer to a cell or 0 if cell does not exist
-   */
-  CellContent Get(const Vectornd& x, bool checkValid = true) const {
-    if (checkValid)
-      if (!Valid(x))
-        return 0;
-    return Get(Id(x));
-  }
-
-  /**
-   * Get the cell at a given cell id
-   * @param id a non-negative id
-   * @return pointer to a cell or 0 if cell does not exist
-   */
-  CellContent Get(int id) const {
-    assert(id >= 0);
-    if (id >= nc)
-      return 0;
-    return cells[id];
-  }
-
-  /**
-   * Set the data corresponding to the position x.
-   * @param x point
-   * @param data
-   * @param checkValid whether to check if within valid bounds (more efficient
-   * if checkValid=0 but dangerous)
-   */
-  bool Set(const Vectornd& x, const CellContent& data, bool checkValid = true)  {
-    if (checkValid)
-      if (!Valid(x))
-        return false;
-
-    int id = Id(x);
-    assert(id >= 0 && id < nc);
-    cells[id] = data;
-    return true;
-  }
-
-  /**
-   * Set the data corresponding to the multidimensional index.
-   * @param idx multidimensional index of a point on the grid
-   * @param data
-   * @param checkValid whether to check if within valid bounds (more efficient
-   * if checkValid=0 but dangerous)
-   */
-  bool Set(const Vectorni& idx, const CellContent& data, bool checkValid = true)  {
-    if (checkValid)
-      if (!Valid(idx))
-        return false;
-
-    int id = IndexToId(idx);
-    assert(id >= 0 && id < nc);
-    cells[id] = data;
-    return true;
-  }
-
-  /**
-   * Set the data at the given id
-   * @param id a non-negative id
-   * @param data the content of a cell
-   * @return true if it was able to set the data
-   */
-  bool Set(int id, const CellContent& data) {
-    assert(id >= 0 && id<nc);
-    if (id<0 || id >= nc)
-      return false;
-    cells[id] = data;
-    return true;
-  }
 
   /**
    * Serialize data of the map class and save it in a binary file
@@ -822,7 +817,6 @@ public:
       cout<<"Couldn't open file:"<< filename<<" to write"<<endl;
     }
   }
-
 
   /**
    * Read data from a binary file, deserialize data and create a map object from it
