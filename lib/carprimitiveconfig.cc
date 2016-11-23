@@ -6,10 +6,10 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "carprimcfg.h"
+#include <carprimitiveconfig.h>
 using namespace dsl;
 
-CarPrimitiveCfg::CarPrimitiveCfg(bool fwdonly, double tphioverlmx, double lmin, double lmax,
+CarPrimitiveConfig::CarPrimitiveConfig(bool fwdonly, double tphioverlmx, double lmin, double lmax,
                                  int nl, double amax, int na, bool pert, bool tocenter):
         fwdonly(fwdonly), tphioverlmax(tphioverlmx), lmin(lmin),lmax(lmax),
         nl(nl), amax(amax), na(na), pert(pert), tocenter(tocenter){

@@ -1,4 +1,4 @@
-#include <carconntwist.h>
+#include "cartwistconnectivity.h"
 #include <string.h>
 #include "gridsearch.h"
 #include "cargrid.h"
@@ -12,9 +12,9 @@ using namespace dsl;
 using namespace std;
 using namespace Eigen;
 
-using CarPathTwist = dsl::GridPath<Vector3d, Matrix3d, dsl::SE2Prim>;
+using CarTwistPath = dsl::GridPath<Vector3d, Matrix3d, dsl::SE2Twist>;
 
-vector<Vector3d> ToVector3dPath(const CarPathTwist &path, double gridcs) {
+vector<Vector3d> ToVector3dPath(const CarTwistPath &path, double gridcs) {
   vector<Vector3d> path3d;
   for (size_t i=0; i<path.connections.size(); i++){
     Vector3d v = path.connections[i];
@@ -35,7 +35,7 @@ vector<Vector3d> ToVector3dPath(const CarPathTwist &path, double gridcs) {
   return path3d;
 }
 
-vector<Vector2d> ToVector2dPath(const CarPathTwist &path, double cs) {
+vector<Vector2d> ToVector2dPath(const CarTwistPath &path, double cs) {
   vector<Vector3d> path3d = ToVector3dPath(path,cs);
   vector<Vector2d> path2d;
   for(auto& p:path3d)
@@ -90,7 +90,8 @@ int main(int argc, char** argv)
     geom.set(whxy(0),whxy(1),whxy(2),whxy(3),whxy(4));
   
   // load an occupancy map from ppm file
-  dsl::Map<bool, 2> omap = load(mapName.c_str(), ocs.tail<2>());
+  dsl::Map<bool, 2>::Ptr pomap = load(mapName, ocs.tail<2>());
+  dsl::Map<bool, 2>& omap = *pomap;
 
   // a map that we'll use for display
   dsl::Map<bool, 2> dmap = omap;
@@ -102,8 +103,6 @@ int main(int argc, char** argv)
   // configuration-space map
   shared_ptr<dsl::Map<bool, 3>> cmap = 0;
 
-  //  CarGrid::MakeMap(omap, cmap);
-  // for non-point geometry comment this out
   struct timeval timer;
   if (!cmapValid) {
     cmap.reset(new dsl::Map<bool, 3>(xlb, xub, ocs));
@@ -111,9 +110,9 @@ int main(int argc, char** argv)
     timer_start(&timer);
     if (useGeom) {
       int nthreads; params.GetInt("nthreads", nthreads);
-      CarGrid::MakeMap(geom, omap, *cmap,nthreads);
+      MakeSE2Map(geom, omap, *cmap,nthreads);
     } else {
-      CarGrid::MakeMap(omap, *cmap);
+      MakeSE2Map(omap, *cmap);
     }
     long time = timer_us(&timer);
     printf("cmap construction time= %ld  us\n", time);
@@ -131,11 +130,18 @@ int main(int argc, char** argv)
   CarGrid grid(*cmap, gcs);
 
   // create cost and set custom angular cost mixing factor ac
-  CarCost cost;
-  params.GetDouble("ac", cost.ac);
+  double ac;
+  Vector3d wt;
+  shared_ptr<CarCost> cost;
+  if(params.GetDouble("ac", ac))
+    cost.reset(new CarCost(grid,ac));
+  else if( params.GetVector3d("wt", wt))
+    cost.reset(new CarCost(grid, wt));
+  else
+    cost.reset(new CarCost(grid,0.1));
 
   // load car connectivity and set custom parameters
-  CarPrimitiveCfg primcfg;
+  CarPrimitiveConfig primcfg;
   int nl, na;
   params.GetBool("prim_fwdonly",primcfg.fwdonly);
   params.GetDouble("prim_tphioverlmax",primcfg.tphioverlmax);
@@ -147,7 +153,7 @@ int main(int argc, char** argv)
   params.GetBool("prim_pert",primcfg.pert);
   params.GetBool("prim_tocenter",primcfg.tocenter);
 
-  CarConnTwist connectivity(grid, cost, primcfg);
+  CarTwistConnectivity connectivity(grid, *cost, primcfg);
 
   cout << "Creating a graph..." << endl;
   // create planner
@@ -158,8 +164,8 @@ int main(int argc, char** argv)
   params.GetBool("initExpand", initExpand);
 
 
-  GridSearch<Vector3d, Matrix3d, SE2Prim> search(grid, connectivity, cost, initExpand);
-  CarPathTwist path;
+  GridSearch<SE2Cell::PointType, SE2Cell::DataType, SE2Twist> search(grid, connectivity, *cost, initExpand);
+  CarTwistPath path;
 
   long time = timer_us(&timer);
   printf("graph construction time= %ld  us\n", time);

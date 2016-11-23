@@ -9,39 +9,67 @@
 #ifndef DSL_CARCOST_H
 #define DSL_CARCOST_H
 
+#include <memory>
 #include <Eigen/Dense>
 #include "gridcost.h"
-#include <memory>
+#include "cargrid.h"
+#include <memory.h>
 
 namespace dsl {
-using std::shared_ptr;
-
-  using PointType = Eigen::Vector3d;
-
-  // a cell that stores an SE(2) transformation  matrix
-  using SE2Cell =  Cell< Eigen::Vector3d, Eigen::Matrix3d >;
-  using SE2CellPtr = shared_ptr<SE2Cell>;
-
 /**
- * Car cost interface
+ * Car cost interface. Provides two cost interfaces: Heuristic and Real. Real returns the true cost of
+ * moving from a cell to another cell based on some distance metric between 2 SE2Cell, also while checking
+ * that the path along the twist is not blocked.
  *
+ * Cost metrics: two cost metrics are implemented and is chosen via the use of corresponding constructor
+ *   distance_metric =  ||pa-pb|| + ac*dist(aa, ab)), where pa,pb are the positions and aa,ab are the angles
+ *   twistnorm_metric = ||weighted_twist||, where weighted_twist = w.diagonal*twist and wt is scaling weight
  */
-  class CarCost : public GridCost< Eigen::Vector3d, Eigen::Matrix3d > {
+  class CarCost : public GridCost< SE2Cell::PointType, SE2Cell::DataType > {
 public:
+
+
   /**
-   * Initialize the cost
+   * Initialize the cost(distance_metric)
    * @param ac angular cost coefficient
    */
-  CarCost(double ac = 1, double eps = 1e-6);
+  CarCost(const CarGrid& grid, double ac, double eps = 1e-6);
 
-  double Heur(const SE2Cell& a, const SE2Cell& b) const;
+  /**
+   * Initialize the cost(twistnorm_metric)
+   * @param wt weight for weighted norm of the twist between two SE2 cells
+   */
+  CarCost(const CarGrid& grid, const Vector3d& wt = Vector3d(0.1,1,2), double eps = 1e-6);
+
+  /**
+   * True cost(given a metric) of moving from cell "a" to a cell "b" along a twist element that connects them.
+   * It also takes into account the occupancy structure of grid cells along the path and returns
+   * numeric_limits<double>::quiet_NaN() cost if the path is blocked. It ban be checked with isnan() function
+   *
+   * @param a Start Cell
+   * @param b End Cell
+   * @return true cost of moving from a to b. If no path, returns numeric_limits<double>::max();
+   */
   double Real(const SE2Cell& a, const SE2Cell& b) const;
 
-  double ac = 1; ///< angular cost coefficient, default is 1 (the total cost is
-                 /// proportional to |pa-pb| + ac*dist(aa, ab) ), where pa,pb are the
-                 /// positions and aa,ab are the angles
+  /**
+   * Estimated cost(given a metric) of moving from cell "a" to a cell "b" along a twist element that connects them.
+   * Unlike the cost returned by Real method, Heur doesn't check if path is blocked. The Heur cost is always an
+   * underestimator of the Real cost.
+   *
+   * @param a Start cell
+   * @param b End cell
+   * @return estimated cost of moving from a to b.
+   */
+  double Heur(const SE2Cell& a, const SE2Cell& b) const;
 
-  double eps = 1e-6; ///< heuristic cost is some quadratic norm on the coordinates multiplied by (1-eps)
+  const CarGrid& grid; ///< reference to the grid structure. Enables CarCost to give cost from cell a to b.
+
+  bool use_twistnorm_metric; ///< if true uses twistnorm_metric else distance_metric
+
+  Vector3d wt; ///< weight for weighted norm of the twist between two SE2 cells used by twistnorm_metric
+  double ac = 1; ///< angular cost coefficient used by distance_metric(see explanation above),
+  double eps = 1e-6; ///< for Heur cost a factor of (1-eps) is multiplied to final cost to ensure admissability
 };
 }
 

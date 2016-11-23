@@ -1,7 +1,7 @@
 #include "carconnectivity.h"
 #include <iostream>
 #include "utils.h"
-
+#include <cmath>
 
 namespace dsl {
 
@@ -12,8 +12,8 @@ using std::vector;
 
 
 CarConnectivity::CarConnectivity(const CarGrid& grid, const CarCost& cost,
-                                 const vector<Eigen::Vector3d> &vs,
-                                 double dt) : grid(grid), vs(vs), dt(dt),cost(cost)
+                                 const vector<Eigen::Vector3d> &vbs,
+                                 double dt) : grid(grid), vbs(vbs), dt(dt),cost(cost)
 {
 }
 
@@ -37,120 +37,64 @@ bool CarConnectivity::SetPrimitives(double dt, double vx, double kmax, int kseg,
 
   this->dt = dt;
 
-  vs.clear();
+  vbs.clear();
 
   for (int i = 0; i <= kseg; i++) {
     double k = i*kmax/kseg;
     double w = vx*k;
-    vs.push_back(Vector3d(w, vx, 0));
-    vs.push_back(Vector3d(-w, vx, 0));
+    vbs.push_back(Vector3d(w, vx, 0));
+    vbs.push_back(Vector3d(-w, vx, 0));
     if (!onlyfwd) {
-      vs.push_back(Vector3d(w, -vx, 0));
-      vs.push_back(Vector3d(-w, -vx, 0));
+      vbs.push_back(Vector3d(w, -vx, 0));
+      vbs.push_back(Vector3d(-w, -vx, 0));
     }
   }
 
   return true;
 }
 
-bool CarConnectivity::Flow(std::tuple< SE2CellPtr, SE2Path, double>& pathTuple,
-                           const Matrix3d& g0,
-                           const Vector3d& v, bool fwd) const {
-
-    //check if the cells encountered along the primitive and at the end, are free from obstacles or not
-    double d = fabs(v[1]); // total distance along curve
-    int n_seg = ceil(d/ (2 * grid.cs[1])); // 2 * grid.cs[1] is to improve efficiency
-    double s = d/n_seg;
-    Vector3d axy;
-    Matrix3d g, dg, g_inv;
-    SE2CellPtr to(nullptr);
-    for (int i_seg=1; i_seg<=n_seg; i_seg++) {
-      se2_exp(dg, (s*i_seg / d) * v);
-      g = g0 * dg;
-      se2_g2q(axy, g);
-      to = grid.Get(axy);
-      if (!to)
-        return false;
-    }
-    Matrix3d gf = to->data;
-
-    //cost of the path
-    if(fwd){
-      se2_inv(g_inv,g0);
-      dg = g_inv*gf;
-    }else{
-      se2_inv(g_inv,gf);
-      dg = g_inv*g0;
-    }
-    Vector3d v_slip; se2_log(v_slip,dg);//twist that take you exactly to successor
-    Vector3d v_noslip;v_noslip << getWVx(dg(0,2),dg(1,2)),0;//twist that takes you exactly only to successor.xy not angle
-    double primcost = cost.ac*abs(v_slip(0)) + abs(v_slip(1));
-
-    //If the graph expansion is in reverse, the waypoints are also added in reverse
-    SE2Path path;
-    path.clear();
-    if(fwd){//when fwd g0 is the starting point
-      for (int i_seg=1; i_seg<=n_seg; i_seg++) {
-        Vector3d axy;
-        Matrix3d g, dg;
-        se2_exp(dg, (s*i_seg / d) * v_noslip);
-        g = g0 * dg;
-        se2_g2q(axy, g);
-        path.push_back(g);
-      }
-    }else{//when fwd gf is the starting point
-      for (int i_seg=1; i_seg<=n_seg; i_seg++) {
-        Vector3d axy;
-        Matrix3d g, dg;
-        se2_exp(dg, (s*i_seg / d) * v_noslip);
-        g = gf * dg;
-        se2_g2q(axy, g);
-        path.push_back(g);
-      }
-    }
-
-    //Set the path tupule
-    std::get<0>(pathTuple) = to;
-    std::get<1>(pathTuple) = path;
-    std::get<2>(pathTuple) = primcost;
-
-    return true;
-}
-
 bool CarConnectivity::
     operator()(const SE2Cell& from,
                std::vector< std::tuple<SE2CellPtr, SE2Path, double> >& paths,
                bool fwd) const {
-  Matrix3d g0;
-  se2_q2g(g0, from.c);
-
   paths.clear();
-  //  vector< Vector3d >::const_iterator it;
-  for (auto&& s : vs) {
-    // reverse time if fwd=false
-    std::tuple<SE2CellPtr, SE2Path, double> pathTuple;
-    if (!Flow(pathTuple, g0, (fwd ? dt : -dt) * s,fwd))
+  for (auto& vb : vbs) {
+    Vector3d vdt_suggested = vb*(fwd ? dt: -dt); //suggested twist(because it will be snapped to cell center)
+    Matrix3d dg; se2_exp(dg, vdt_suggested); //relative transform
+    Matrix3d g; g = from.data*dg; //end pose resulting from the twist
+    Vector3d axy; se2_g2q(axy, g);
+    SE2CellPtr to; to = grid.Get(axy); //snap the end pose to grid
+    if (!to) // "to" cell is not a part of the grid(because it has an obstacle)
       continue;
 
-    assert(std::get<0>(pathTuple));
-    
-    
-    // the path will now end inside the last cell but not exactly at the center,
-    // which is a good enough
-    // approximation if the cells are small
-
-    // For exact trajectory generation to the center, we need to use more
-    // complex inverse kinematics
-    // which can be accomplished by uncommenting the following
-    //    GenTraj(path.data, g0, path.cells.back().data, w,vx, vx, w,vx, dt/5);
-    
-    if (!std::get<1>(pathTuple).size())
+    //Get cost and check if path is clear
+    double primcost = cost.Real(from,*to);
+    if(std::isnan(primcost)) //path is not clear
       continue;
 
-    // overwrite cost 
-    //    path.cost = cost; //.Real(path.cells.front(), path.cells.back());
+    //sample states along the path
+    Matrix3d gi; se2_inv(gi,from.data); dg = gi*to->data; //relative of from.data to to->data
+    Vector3d vdt_slip; se2_log(vdt_slip,dg);//twist that take you exactly to successor
+    Vector3d vdt_noslip;vdt_noslip << getWVx(dg(0,2),dg(1,2)),0;//twist that takes you to successor(exactly only in position, not orientation))
+    Vector3d vdt = vdt_slip;//chose between slip and no slip version
+    double d = vdt.tail<2>().norm(); // total distance along curve
+    int n_seg = ceil(d/(2*grid.cs[1])); // 2 * grid.cs[1] is to improve efficiency
+    double d_seg = d/n_seg;
+    SE2Path path; path.resize(n_seg); // path doesn't include start
+    if(fwd){
+      for (int i_seg=1; i_seg<=n_seg; i_seg++) {
+        se2_exp(dg, (d_seg*i_seg / d) * vdt);
+        path[i_seg-1] = from.data * dg;
+      }
+    }else{
+      for (int i_seg=1; i_seg<=n_seg; i_seg++) {
+        se2_exp(dg, -(d_seg*i_seg / d) * vdt);
+        path[i_seg-1] = to->data * dg;
+      }
+    }
 
-    //    path.fwd = fwd;
+    //add primitive(along with cost and to-cell) to the paths
+    std::tuple< SE2CellPtr, SE2Path, double> pathTuple(to,path,primcost);
     paths.push_back(pathTuple);
   }
   return true;
@@ -181,6 +125,14 @@ bool CarConnectivity::GetPrims(const Vector3d pos, vector<vector<Vector2d>>& pri
   }
 }
 
+// the path will now end inside the last cell but not exactly at the center,
+// which is a good enough
+// approximation if the cells are small
+
+// For exact trajectory generation to the center, we need to use more
+// complex inverse kinematics
+// which can be accomplished by uncommenting the following
+//    GenTraj(path.data, g0, path.cells.back().data, w,vx, vx, w,vx, dt/5);
 
 /*
 bool CarConnectivity::se2_times(Vector2d& t1,

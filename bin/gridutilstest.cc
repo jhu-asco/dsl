@@ -53,7 +53,8 @@ int main(int argc, char** argv)
     geom.set(whxy(0),whxy(1),whxy(2),whxy(3),whxy(4));
   
   // load an occupancy map from ppm file
-  dsl::Map<bool, 2> omap = load(mapName.c_str(), ocs.tail<2>());
+  dsl::Map<bool, 2>::Ptr pomap = load(mapName, ocs.tail<2>());
+  dsl::Map<bool, 2>& omap = *pomap;
 
   // a map that we'll use for display
   dsl::Map<bool, 2> dmap = omap;
@@ -65,8 +66,6 @@ int main(int argc, char** argv)
   // configuration-space map
   shared_ptr<dsl::Map<bool, 3> > cmap;
 
-  //  CarGrid::MakeMap(omap, cmap);
-  // for non-point geometry comment this out
   struct timeval timer;
   if (!cmapValid) {
     cmap.reset(new dsl::Map<bool, 3>(xlb, xub, ocs));
@@ -74,9 +73,9 @@ int main(int argc, char** argv)
     timer_start(&timer);
     if (useGeom) {
       int nthreads; params.GetInt("nthreads", nthreads);
-      CarGrid::MakeMap(geom, omap, *cmap,nthreads);
+      MakeSE2Map(geom, omap, *cmap,nthreads);
     } else {
-      CarGrid::MakeMap(omap, *cmap);
+      MakeSE2Map(omap, *cmap);
     }
     long time = timer_us(&timer);
     printf("cmap construction time= %ld  us\n", time);

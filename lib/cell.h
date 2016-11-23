@@ -16,8 +16,10 @@ namespace dsl {
  * The cell can also contain a generic data of type T, which by default is just
  * a point in the cell.
  */
-template < class PointType, class DataType >
+template < class PT, class DT >
 struct Cell {
+using PointType = PT;
+using DataType = DT;
 
 public:
  Cell(int id, const PointType& c) : id(id), c(c) {}

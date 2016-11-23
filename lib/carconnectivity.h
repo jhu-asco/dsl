@@ -33,11 +33,11 @@ public:
    * Initialize cargrid connectivity with primitives corresponding to
    * motions with constant body fixed velocities for a fixed duration dt
    * @param grid The car grid
-   * @param vs body-fixed velocities (each v=(vw,vx,vy))
+   * @param vbs body-fixed velocities (each v=(vw,vx,vy))
    * @param dt time duration
    */
   CarConnectivity(const CarGrid& grid, const CarCost& cost,
-                  const std::vector<Eigen::Vector3d>& vs,
+                  const std::vector<Eigen::Vector3d>& vbs,
                   double dt = .25);
   
   
@@ -81,25 +81,12 @@ public:
                      int kseg = 4,
                      bool onlyfwd = false);
   
+
   bool operator()(const SE2Cell& from,
                   std::vector< std::tuple<SE2CellPtr, SE2Path, double> >& paths,
                   bool fwd = true) const override;
 
   bool Free(const Eigen::Matrix3d &g) const override { return true; }
-
-  /**
-   * Generate a path (a sequence of points) from initialize state in SE(2)
-   * following
-   * body-fixed velocity v=(vx,vy,w) for a unit time
-   * @param path resulting path
-   * @param g0 starting pose, matrix in SE(2)
-   * @param v body fixed velocity (vx,vy,w)
-   * @return true on success, false if obststructed by obstacle
-   */
-  bool Flow(std::tuple< SE2CellPtr, SE2Path, double>& pathTuple,
-            const Eigen::Matrix3d& g0,
-            const Eigen::Vector3d& v, bool fwd) const;
-
 
   /**
    * Utility function to get all the primitives starting at pos
@@ -111,7 +98,7 @@ public:
 
   const CarGrid& grid; ///< the grid
 
-  std::vector< Eigen::Vector3d > vs; ///< primitives defined using motions with constant body-fixed velocities (w,vx,vy)
+  std::vector< Eigen::Vector3d > vbs; ///< primitives defined using motions with constant body-fixed velocities (w,vx,vy)
 
   double dt = .5; ///< how long are the primitives
 

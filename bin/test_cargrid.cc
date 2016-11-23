@@ -39,7 +39,8 @@ int main(int argc, char** argv)
   params.GetVector3d("gcs", gcs);  
 
   // load an occupancy map from ppm file
-  dsl::Map<bool, 2> omap = load(mapName.c_str(), ocs.tail<2>());
+  dsl::Map<bool, 2>::Ptr pomap = load(mapName, ocs.tail<2>());
+  dsl::Map<bool, 2>& omap = *pomap;
 
   // a map that we'll use for display
   dsl::Map<bool, 2> dmap = omap;
@@ -58,7 +59,7 @@ int main(int argc, char** argv)
   double ox = -0.75;
   double oy = 0;
   CarGeom geom(l, b, ox, oy);
-  CarGrid::MakeMap(geom, omap, cmap);  
+  MakeSE2Map(geom, omap, cmap);
   
   CarGrid grid(cmap, gcs);
 

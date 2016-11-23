@@ -1,4 +1,4 @@
-#include <carconntwist.h>
+#include <cartwistconnectivity.h>
 #include <iostream>
 #include "utils.h"
 #include <algorithm>
@@ -18,18 +18,18 @@ using std::vector;
 
 typedef Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> MatrixXbool;
 
-CarConnTwist::CarConnTwist(const CarGrid& grid,const CarCost& cost, CarPrimitiveCfg& cfg)
+CarTwistConnectivity::CarTwistConnectivity(const CarGrid& grid,const CarCost& cost, CarPrimitiveConfig& cfg)
 :grid(grid),cost(cost){
   SetPrimitives(1, cfg);
 }
 
-CarConnTwist::CarConnTwist(const CarGrid& grid,const CarCost& cost,
+CarTwistConnectivity::CarTwistConnectivity(const CarGrid& grid,const CarCost& cost,
                                  const vector<Eigen::Vector3d> &vs,
                                  double dt) : grid(grid), vs(vs), dt(dt),cost(cost)
 {
 }
 
-CarConnTwist::CarConnTwist(const CarGrid& grid,const CarCost& cost,
+CarTwistConnectivity::CarTwistConnectivity(const CarGrid& grid,const CarCost& cost,
                                  double dt,
                                  double vx,
                                  double kmax,
@@ -39,7 +39,7 @@ CarConnTwist::CarConnTwist(const CarGrid& grid,const CarCost& cost,
   SetPrimitives(dt, vx, kmax, kseg, onlyfwd);
 }
 
-bool CarConnTwist::SetPrimitives(double dt, CarPrimitiveCfg& cfg){
+bool CarTwistConnectivity::SetPrimitives(double dt, CarPrimitiveConfig& cfg){
 
   cfg.nl = cfg.nl<1 ? 1: cfg.nl;  //! Make sure the number of different traj length is atleast 2
   cfg.na = cfg.na<3 ? 3: cfg.na;  //! Make sure the number of differentsteering angle is atleast 3
@@ -75,9 +75,9 @@ bool CarConnTwist::SetPrimitives(double dt, CarPrimitiveCfg& cfg){
   Affine3d igorg_to_mgcorg = Scaling(Vector3d(1/sx, 1/sy, 1)) *Translation3d(Vector3d(grid_nhc*sx, grid_nhc*sx, 0));
 
   //Allocate space for the
-  vss.resize(grid.gs(0));
-  for(size_t i=0;i<vss.size();i++)
-    vss[i].reserve(cfg.na*cfg.nl);
+  vbs_per_angle.resize(grid.gs(0));
+  for(size_t i=0;i<vbs_per_angle.size();i++)
+    vbs_per_angle[i].reserve(cfg.na*cfg.nl);
 
   if(cfg.tocenter){
     for(int idx_a=0; idx_a < grid.gs(0);idx_a++){
@@ -121,15 +121,15 @@ bool CarConnTwist::SetPrimitives(double dt, CarPrimitiveCfg& cfg){
           Vector3d vbn( -WVx(0), -WVx(1),0);
 
           if(abs(WVx(0))<1e-10){
-            vss[idx_a].push_back(vfp);
+            vbs_per_angle[idx_a].push_back(vfp);
             if(!cfg.fwdonly)
-              vss[idx_a].push_back(vbp);
+              vbs_per_angle[idx_a].push_back(vbp);
           }else{
-            vss[idx_a].push_back(vfp);
-            vss[idx_a].push_back(vfn);
+            vbs_per_angle[idx_a].push_back(vfp);
+            vbs_per_angle[idx_a].push_back(vfn);
             if(!cfg.fwdonly){
-              vss[idx_a].push_back(vbp);
-              vss[idx_a].push_back(vbn);
+              vbs_per_angle[idx_a].push_back(vbp);
+              vbs_per_angle[idx_a].push_back(vbn);
             }
           }
         }
@@ -158,15 +158,15 @@ bool CarConnTwist::SetPrimitives(double dt, CarPrimitiveCfg& cfg){
         //Put the same set of primitive for all angles
         for(int idx_a=0; idx_a < grid.gs(0);idx_a++){
           if(abs(w)<1e-10){
-            vss[idx_a].push_back(vfp);
+            vbs_per_angle[idx_a].push_back(vfp);
             if(!cfg.fwdonly)
-              vss[idx_a].push_back(vbp);
+              vbs_per_angle[idx_a].push_back(vbp);
           }else{
-            vss[idx_a].push_back(vfp);
-            vss[idx_a].push_back(vfn);
+            vbs_per_angle[idx_a].push_back(vfp);
+            vbs_per_angle[idx_a].push_back(vfn);
             if(!cfg.fwdonly){
-              vss[idx_a].push_back(vbp);
-              vss[idx_a].push_back(vbn);
+              vbs_per_angle[idx_a].push_back(vbp);
+              vbs_per_angle[idx_a].push_back(vbn);
             }
           }
         }
@@ -178,7 +178,7 @@ bool CarConnTwist::SetPrimitives(double dt, CarPrimitiveCfg& cfg){
   return true;
 }
 
-bool CarConnTwist::SetPrimitives(double dt, double vx, double kmax, int kseg, bool onlyfwd) {
+bool CarTwistConnectivity::SetPrimitives(double dt, double vx, double kmax, int kseg, bool onlyfwd) {
   if (dt <= 0)
     return false;
 
@@ -202,82 +202,56 @@ bool CarConnTwist::SetPrimitives(double dt, double vx, double kmax, int kseg, bo
   return true;
 }
 
-bool CarConnTwist::Flow(std::tuple< SE2CellPtr, SE2Prim, double>& pathTuple,
-                           const Matrix3d& g_from,
-                           const Vector3d& v, bool fwd) const {
-
-  //check if the cells encountered along the primitive and at the end, are free from obstacles or not
-    double d = fabs(v[1]); // total distance along curve
-    int n_seg = ceil(d/ (2 * grid.cs[1])); // 2 * grid.cs[1] is to improve efficiency
-    double s = d/n_seg;
-    Vector3d axy;
-    Matrix3d g, dg, g_inv;
-    SE2CellPtr to(nullptr);
-    for (int i_seg=1; i_seg<=n_seg; i_seg++) {
-      se2_exp(dg, (s*i_seg / d) * v);
-      g = g_from * dg;
-      se2_g2q(axy, g);
-      to = grid.Get(axy);
-      if (!to)
-        return false;
-    }
-    Matrix3d g_to = to->data;
-
-    //cost of the path
-    if(fwd){
-      se2_inv(g_inv,g_from);
-      dg = g_inv*g_to;
-    }else{
-      se2_inv(g_inv,g_to);
-      dg = g_inv*g_from;
-    }
-    Vector3d v_slip; se2_log(v_slip,dg);//twist that take you exactly to successor
-    Vector3d v_noslip;v_noslip << getWVx(dg(0,2),dg(1,2)),0;//twist that takes you exactly only to successor.xy not angle
-    double primcost = cost.ac*abs(v_slip(0)) + abs(v_slip(1));
-
-    //Set the path tupule
-    std::get<0>(pathTuple) = to;
-    std::get<1>(pathTuple) = v_noslip;
-    std::get<2>(pathTuple) = primcost; //replace this by bullet prim cost if it satisfies the relationship
-
-    return true;
-}
-
-bool CarConnTwist::
+bool CarTwistConnectivity::
 operator()(const SE2Cell& from,
-           std::vector< std::tuple<SE2CellPtr, SE2Prim, double> >& paths,
+           std::vector< std::tuple<SE2CellPtr, SE2Twist, double> >& paths,
            bool fwd) const {
-  Matrix3d g0;
-  se2_q2g(g0, from.c);
-
   const vector<Vector3d>* p_vstemp;
   int idx_a = grid.Index(from.c,0);
-  if(!vss.empty())
-    p_vstemp = &(vss[idx_a]);
+  if(!vbs_per_angle.empty())
+    p_vstemp = &(vbs_per_angle[idx_a]);
   else
     p_vstemp = &vs;
 
   paths.clear();
-  //  vector< Vector3d >::const_iterator it;
-  for (auto&& s : *p_vstemp) {
-    // reverse time if fwd=false
-    std::tuple<SE2CellPtr, SE2Prim, double> pathTuple;
-    if (!Flow(pathTuple, g0, (fwd ? dt : -dt) * s,fwd))
+
+  for (auto& s : *p_vstemp) {
+    Vector3d v = s*(fwd ? dt: -dt);
+    Matrix3d dg; se2_exp(dg, v);
+    Matrix3d g_to; g_to = from.data*dg;
+    Vector3d axy_to; se2_g2q(axy_to, g_to);
+    SE2CellPtr to; to = grid.Get(axy_to);
+    if (!to) // "to" cell is not a part of the grid(because it has an obstacle)
+      continue;
+    g_to = to->data;
+
+    double primcost = cost.Real(from,*to);
+    if(std::isnan(primcost)) //path is not clear
       continue;
 
-    assert(std::get<0>(pathTuple));
+    //no slip primitive that takes you from a cell to successors cell(only position not orientation)
+    Matrix3d g_inv;
+    if(fwd){
+      se2_inv(g_inv,from.data);
+      dg = g_inv*g_to;
+    }else{
+      se2_inv(g_inv,g_to);
+      dg = g_inv*from.data;
+    }
+    Vector3d v_noslip;
+    v_noslip << getWVx(dg(0,2),dg(1,2)),0; //no slip velocity to successors cell(only position not orientation)
 
-
+    std::tuple< SE2CellPtr, SE2Twist, double> pathTuple(to,v_noslip,primcost);
     paths.push_back(pathTuple);
   }
   return true;
 }
 
 
-bool CarConnTwist::GetPrims(const Vector3d pos, vector<vector<Vector2d>>& prims ){
+bool CarTwistConnectivity::GetPrims(const Vector3d pos, vector<vector<Vector2d>>& prims ){
   //Display the primitive at start
   SE2CellPtr cell_start = grid.Get(pos);
-  vector<std::tuple< SE2CellPtr, SE2Prim, double> > paths;
+  vector<std::tuple< SE2CellPtr, SE2Twist, double> > paths;
   if(cell_start){
     (*this)(*cell_start,paths,true);
     Matrix3d g0 = cell_start->data;
@@ -287,7 +261,7 @@ bool CarConnTwist::GetPrims(const Vector3d pos, vector<vector<Vector2d>>& prims 
       if(!cell_to)
         continue;
 
-      SE2Prim& v=  std::get<1>(path);
+      SE2Twist& v=  std::get<1>(path);
       double d = fabs(v[1]); // total distance along curve
       int n_seg = ceil(d/ (2 * grid.cs[1])); // 2 * grid.cs[1] is to improve efficiency
       double s = d/n_seg;

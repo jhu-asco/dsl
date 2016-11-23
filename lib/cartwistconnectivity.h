@@ -6,30 +6,29 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_CARCONNTWISTPRIM_H
-#define DSL_CARCONNTWISTPRIM_H
+#ifndef DSL_CARTWISTCONNECTIVITY_H
+#define DSL_CARTWISTCONNECTIVITY_H
 
+#include "carprimitiveconfig.h"
 #include "gridconnectivity.h"
 #include "cargrid.h"
 #include <vector>
 #include "carcost.h"
-#include "carprimcfg.h"
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
 namespace dsl {
 
-using SE2Prim = Eigen::Vector3d;
+using SE2Twist = Eigen::Vector3d;
 using Vector1d = Eigen::Matrix<double, 1, 1>;
 
 /**
- * Simple car connectivity using primitives. It enables the generation of arcs
- * from a given SE(2) state. These are then used to connect two cells in SE(2)
- * Each connection corresponds to an SE2Prim, i.e. a vector of SE(2) poses
+ * Simple car connectivity using primitives. It enables generation of successors/predecessors Cells
+ * given a Cell, along with the connection in between them. The connection type is a se2 twist element
  *
- * Author: Marin Kobilarov
+ * Author: Marin Kobilarov and Subhransu Mishra
  */
-class CarConnTwist: public GridConnectivity< Eigen::Vector3d, Eigen::Matrix3d, SE2Prim > {
+class CarTwistConnectivity: public GridConnectivity< SE2Cell::PointType, SE2Cell::DataType, SE2Twist > {
 public:
 
   /**
@@ -37,7 +36,7 @@ public:
    * @param grid The car grid
    * @param cfg The configuration for generating primitives
    */
-  CarConnTwist(const CarGrid& grid,const CarCost& cost, CarPrimitiveCfg& cfg);
+  CarTwistConnectivity(const CarGrid& grid,const CarCost& cost, CarPrimitiveConfig& cfg);
 
   /**
    * Initialize cargrid connectivity with primitives corresponding to
@@ -46,7 +45,7 @@ public:
    * @param vs body-fixed velocities (each v=(vw,vx,vy))
    * @param dt time duration
    */
-  CarConnTwist(const CarGrid& grid,const CarCost& cost,
+  CarTwistConnectivity(const CarGrid& grid,const CarCost& cost,
                   const std::vector<Eigen::Vector3d>& vs,
                   double dt = .25);
   
@@ -61,7 +60,7 @@ public:
    * making the motion primitives
    * @param onlyfwd If true, then only +ve forward velocity is used
    */
-  CarConnTwist(const CarGrid& grid,const CarCost& cost,
+  CarTwistConnectivity(const CarGrid& grid,const CarCost& cost,
                   double dt = .25,
                   double vx = 5,
                   double kmax = 0.577,
@@ -74,7 +73,7 @@ public:
    * @param cfg the configuration for generation of primitives
    * @return
    */
-  bool SetPrimitives(double dt, CarPrimitiveCfg& cfg);
+  bool SetPrimitives(double dt, CarPrimitiveConfig& cfg);
 
   /**
    * Use a set of primitive motions, i.e. arcs with body fixed forward
@@ -100,23 +99,10 @@ public:
                      bool onlyfwd = false);
   
   bool operator()(const SE2Cell& from,
-                    std::vector< std::tuple<SE2CellPtr, SE2Prim, double> >& paths,
+                    std::vector< std::tuple<SE2CellPtr, SE2Twist, double> >& paths,
                     bool fwd = true) const override;
 
     bool Free(const Eigen::Matrix3d &g) const override { return true; }
-
-    /**
-     * Generate a path (a sequence of points) from initialize state in SE(2)
-     * following
-     * body-fixed velocity v=(vx,vy,w) for a unit time
-     * @param path resulting path
-     * @param g0 starting pose, matrix in SE(2)
-     * @param v body fixed velocity (vx,vy,w)
-     * @return true on success, false if obststructed by obstacle
-     */
-    bool Flow(std::tuple< SE2CellPtr, SE2Prim, double>& pathTuple,
-              const Eigen::Matrix3d& g0,
-              const Eigen::Vector3d& v,bool fwd) const;
 
     /**
      * Utility function to get all the primitives starting at pos
@@ -128,7 +114,7 @@ public:
   const CarGrid& grid; ///< the grid
 
   std::vector< Eigen::Vector3d > vs; ///< primitives defined using motions with constant body-fixed velocities (w,vx,vy)
-  std::vector< std::vector<Eigen::Vector3d > > vss; ///< A set of primitives for each angle
+  std::vector< std::vector<Eigen::Vector3d > > vbs_per_angle; ///< A set of primitives for each angle
 
   double dt = .5; ///< how long are the primitives
 
@@ -136,4 +122,4 @@ public:
 };
 }
 
-#endif //DSL_CARCONNTWISTPRIM_H
+#endif //DSL_CARTWISTCONNECTIVITY_H

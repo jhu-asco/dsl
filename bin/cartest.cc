@@ -3,6 +3,7 @@
 #include "cargrid.h"
 #include "carcost.h"
 #include "carconnectivity.h"
+#include "cartwistconnectivity.h"
 #include "utils.h"
 #include "gridutils.h"
 #include "params.h"
@@ -12,8 +13,37 @@ using namespace dsl;
 using namespace std;
 using namespace Eigen;
 
-using CarPath = GridPath<Vector3d, Matrix3d, SE2Path>;
+using CarPath = GridPath<SE2Cell::PointType, SE2Cell::DataType, SE2Path>;
+using CarTwistPath = dsl::GridPath<SE2Cell::PointType, SE2Cell::DataType, SE2Twist>;
 
+vector<Vector3d> ToVector3dPath(const CarTwistPath &path, double gridcs) {
+  vector<Vector3d> path3d;
+  for (size_t i=0; i<path.connections.size(); i++){
+    Vector3d v = path.connections[i];
+    Vector3d axy = path.cells[i].c;
+    Matrix3d g_from;
+    se2_q2g(g_from, axy);
+    double d = abs(v(1));
+    int n_seg = ceil(d/ (2 * gridcs));
+    double s = d/n_seg;
+    for (int i_seg=0; i_seg<=n_seg; i_seg++){
+      Matrix3d g, dg;
+      se2_exp(dg, (s*i_seg / d) * v);
+      g = g_from * dg;
+      se2_g2q(axy, g);
+      path3d.push_back(axy);
+    }
+  }
+  return path3d;
+}
+
+vector<Vector2d> ToVector2dPath(const CarTwistPath &path, double cs) {
+  vector<Vector3d> path3d = ToVector3dPath(path,cs);
+  vector<Vector2d> path2d;
+  for(auto& p:path3d)
+    path2d.push_back(Vector2d(p(1),p(2)));
+  return path2d;
+}
 vector<Vector2d> ToVector2dPath(const CarPath &path) {
   vector<Vector2d> path2d;
   for (auto&& connection : path.connections)
@@ -38,7 +68,7 @@ int main(int argc, char** argv)
   if (argc!=2) {
     cout << "Usage: $./cartest params.cfg" << endl;
     cout << "\t\t where params.cfg is a parameter file" << endl;
-    cout << "\t\t output will be written to graphics files path1.ppm and path2.pppm" << endl;
+    cout << "\t\t output will be written to graphics files path1.ppm and path2.ppm" << endl;
     return 0;
   }
   assert(argc == 2);
@@ -79,7 +109,8 @@ int main(int argc, char** argv)
     geom.set(whxy(0),whxy(1),whxy(2),whxy(3),whxy(4));
   
   // load an occupancy map from ppm file
-  dsl::Map<bool, 2> omap = load(mapName.c_str(), ocs.tail<2>());
+  dsl::Map<bool, 2>::Ptr pomap = load(mapName, ocs.tail<2>());
+  dsl::Map<bool, 2>& omap = *pomap;
 
   // a map that we'll use for display
   dsl::Map<bool, 2> dmap = omap;
@@ -91,8 +122,6 @@ int main(int argc, char** argv)
   // configuration-space map
   shared_ptr<dsl::Map<bool, 3> > cmap;
 
-  //  CarGrid::MakeMap(omap, cmap);
-  // for non-point geometry comment this out
   struct timeval timer;
   if (!cmapValid) {
     cmap.reset(new dsl::Map<bool, 3>(xlb, xub, ocs));
@@ -100,9 +129,9 @@ int main(int argc, char** argv)
     timer_start(&timer);
     if (useGeom) {
       int nthreads; params.GetInt("nthreads", nthreads);
-      CarGrid::MakeMap(geom, omap, *cmap,nthreads);
+      MakeSE2Map(geom, omap, *cmap,nthreads);
     } else {
-      CarGrid::MakeMap(omap, *cmap);
+      MakeSE2Map(omap, *cmap);
     }
     long time = timer_us(&timer);
     printf("cmap construction time= %ld  us\n", time);
@@ -117,14 +146,22 @@ int main(int argc, char** argv)
     std::cout << "Loaded map with xlb=" << cmap->xlb.transpose() << " xub=" << cmap->xub.transpose() << " gs=" << cmap->gs.transpose() << std::endl;
   }
 
+  //The main grid structure
   CarGrid grid(*cmap, gcs);
 
   // create cost and set custom angular cost mixing factor ac
-  CarCost cost;
-  params.GetDouble("ac", cost.ac);
+  double ac;
+  Vector3d wt;
+  shared_ptr<CarCost> cost;
+  if(params.GetDouble("ac", ac))
+    cost.reset(new CarCost(grid,ac));
+  else if( params.GetVector3d("wt", wt))
+    cost.reset(new CarCost(grid, wt));
+  else
+    cost.reset(new CarCost(grid,0.1));
 
   // load car connectivity and set custom parameters
-  CarConnectivity connectivity(grid,cost);
+  CarConnectivity connectivity(grid,*cost);
   double dt = .25;
   double vx = 4;
   double kmax = 0.57;
@@ -145,7 +182,7 @@ int main(int argc, char** argv)
   params.GetBool("initExpand", initExpand);
 
 
-  GridSearch<Vector3d, Matrix3d, SE2Path> search(grid, connectivity, cost, initExpand);
+  GridSearch<Vector3d, Matrix3d, SE2Path> search(grid, connectivity, *cost, initExpand);
   CarPath path;
 
   long time = timer_us(&timer);

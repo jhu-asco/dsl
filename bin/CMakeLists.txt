@@ -12,9 +12,13 @@ target_link_libraries(cartesttwist dsl)
 add_executable(test_cargrid test_cargrid.cc)
 target_link_libraries(test_cargrid dsl)
 
-# Testing the function of gridcore class
+# Testing some function of gridcore class
 add_executable(gridcoretest gridcoretest.cc)
 target_link_libraries(gridcoretest dsl)
+
+# Testing id to index time for different methods
+add_executable(idtoindextest idtoindextest.cc)
+target_link_libraries(idtoindextest dsl)
 
 # Testing the function of gridutils class
 add_executable(gridutilstest gridutilstest.cc)
