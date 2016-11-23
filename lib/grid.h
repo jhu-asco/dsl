@@ -36,6 +36,12 @@ using namespace Eigen;
  * CellContent=bool/double can be used to make a grid of occupancy or
  * traversibility of a cell.
  *
+ * Explanation of certain important variables:
+ *   id:   id for direct lookup in an array(or std::vector)
+ *   i:    dimension number(for grid over xyz coordinates i=0 refers to the x dimension)
+ *   gidx: grid index to locate a cell in a grid. For a 3d grid, gidx=(0,0,0) is the first cell along all dimension.
+ *   idx:  grid index along a particular dimension
+ *
  * When fastindex is set to true then GridCore class stores the grid
  * location for every cell. This is to provide fast conversion of array id
  * to grid index. For 1000x1000x100 grid, Index() is 2 orders of magnitude
@@ -283,14 +289,24 @@ public:
     if(!init)
       return pstack;
 
-    for(int id=0; id < nc; id++){
-      Vectorni gidx; Index(gidx,id); //grid index
-      CellContent val = cells[id];
-      for( int idx=0; idx < pstack->gs[i] ; idx++ ){
+//    //Iterate over all cells
+//    for(int id=0; id < nc; id++){
+//      Vectorni gidx; Index(gidx,id); //get grid index
+//      for( int idx=0; idx < pstack->gs[i] ; idx++ ){ //repeat val it along the extra dimension
+//        Vectornp1i gidx_stack = insertDim(gidx,i,idx);
+//        pstack->cells[pstack->Id(gidx_stack)] = cells[id]; //get value of that cell
+//      }
+//    }
+
+    //faster version of block of commented code above
+    auto fun = [&](int id, const Vectorni& gidx) {
+      for( int idx=0; idx < pstack->gs[i] ; idx++ ){ //repeat val it along the extra dimension
         Vectornp1i gidx_stack = insertDim(gidx,i,idx);
-        pstack->cells[pstack->Id(gidx_stack)] = val;
+        pstack->cells[pstack->Id(gidx_stack)] = cells[id]; //get value of that cell
       }
-    }
+    };
+    LoopOver(fun);
+
     return pstack;
   }
 
@@ -604,29 +620,49 @@ public:
   }
 
   /**
+   * Provides interface to iterate over all cells  and do some work that involves using
+   * id(array id) and gidx(grid index) of that cell. This is similar to a nested for loop
+   * for(int j=0; j < grid.gs[1]; j++){
+   *   for(int i=0; i < grid.gs[0]; i++){
+   *     Vector2i gidx(i,j);
+   *     int id = grid.Id(gidx);
+   *     Vector2i gidx2  = 2* gidx; //do something with gidx
+   *     bool val = !grid.cells[id]; //do something with id
+   *   }
+   * }
+   * but note that a nested for loop can't be used for cases where dimensionality is not known
+   *
+   * @param fun any function that operates on id and gidx
+   */
+  void LoopOver(std::function<void(int id, const Vectorni& gidx)> fun) {
+    Vectornp1i gidxe = Vectornp1i::Zero();//e stands for extra element
+    Vectornp1i  gse; gse << gs,0; //0 to indicate iteration over all cells over
+    Vectorni gidx;
+    int dim = 0;
+    int id = 0;
+    while (gidxe[n]==0) {
+      gidx = gidxe.head(n);
+      fun(id,gidx); //This function is called in loop
+      id++; gidxe[0]++;
+      while(gidxe[dim]==gse[dim]){
+        gidxe[dim]=0;
+        gidxe[++dim]++;
+        if(gidxe[dim]!=gse[dim]) //here it is compared to last element of gse
+          dim=0;
+      }
+    }
+  }
+
+  /**
    * Saves the grid index for every cell to provide fast conversion from
    * array id to grid index
    */
   void ResetIndices(){
     indices.resize(nc);
-    //Iterating over all cells starting from zero index
-    //e stands for extra element
-    Vectornu gsu = gs.template cast<uint16_t>();
-    Vectornp1u idxe = Vectornp1u::Zero();
-    Vectornp1u  gse; gse << gsu,1; //1 to indicate iteration over
-    int i = 0;
-    int id = 0;
-    while (idxe[n]==0) {
-      indices[id++] = idxe.head(n);
-      idxe[0]++;
-      while(idxe[i]==gse[i]){
-        idxe[i]=0;
-        idxe[++i]++;
-        if(idxe[i]!=gse[i])
-          i=0;
-      }
-    }
+    auto fun = [&](int id, const Vectorni& gidx){ indices[id] = gidx.template cast<uint16_t>();};
+    LoopOver(fun);
   }
+
 
   /**
    * Converts a set of points in metric coordinates to grid coordinates

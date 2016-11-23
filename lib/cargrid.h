@@ -31,8 +31,13 @@ using SE2CellGrid = Grid<SE2Cell::PointType, SE2Cell::DataType>;
 class CarGrid : public Grid< SE2Cell::PointType, SE2Cell::DataType > {
 public:
 
+  /**
+   * Creates the lattice grid and allocates memory for cells that are free.
+   * @param cmap configuration-space map(occupancy grid in 3-dim)
+   * @param cs the cell size to use for the grid. Generally CarGrid.cs > cmap.cs
+   */
   CarGrid(const Map<bool, 3> &cmap, const Eigen::Vector3d& cs);
-  const Map<bool, 3>& cmap; ///< configuration-space map
+
 };
 }
 

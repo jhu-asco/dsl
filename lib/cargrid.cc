@@ -22,8 +22,7 @@ using std::vector;
 
 //SE2CellGrid::Vectornb(true,false,false) says which dimensions are wrapped
 CarGrid::CarGrid(const Map<bool, 3> &cmap, const Vector3d& cs)
-    : SE2CellGrid(cmap.xlb, cmap.xub, cs, SE2CellGrid::Vectornb(true,false,false)),
-      cmap(cmap) {  
+    : SE2CellGrid(cmap.xlb, cmap.xub, cs, SE2CellGrid::Vectornb(true,false,false)){
 
   //Allocate memory for grid cells if it is not occupied
   for (int idx_a = 0; idx_a < gs[0]; ++idx_a) {

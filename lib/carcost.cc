@@ -13,7 +13,16 @@ CarCost::CarCost(const CarGrid& grid, double ac, double eps)
 CarCost::CarCost(const CarGrid& grid, const Vector3d& wt, double eps )
 :grid(grid), use_twistnorm_metric(true), wt(wt), ac(0.1),eps(eps){
   assert(eps > 0 && eps < 1);
-  assert(wt(0)>=0 && wt(1)>=0 && wt(2)>=0 );
+  if(!(eps > 0 && eps < 1)){
+    cout<<"wrong eps in carcost"<<endl;
+    eps = 1e-6;
+  }
+
+  assert( (wt(0)>0) && (wt(1)>0) && (wt(2)>0) );
+  if(!((wt(0)>0) && (wt(1)>0) && (wt(2)>0))){
+    cout<<"wrong wt in carcost"<<endl;
+    this->wt << 0.1, 1, 2;
+  }
 }
 
 double CarCost::Real(const SE2Cell& a, const SE2Cell& b) const{

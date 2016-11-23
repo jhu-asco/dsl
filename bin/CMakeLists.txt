@@ -16,9 +16,13 @@ target_link_libraries(test_cargrid dsl)
 add_executable(gridcoretest gridcoretest.cc)
 target_link_libraries(gridcoretest dsl)
 
-# Testing id to index time for different methods
-add_executable(idtoindextest idtoindextest.cc)
-target_link_libraries(idtoindextest dsl)
+# Testing id to index conversion time for different methods
+add_executable(idtoindexspeedtest idtoindexspeedtest.cc)
+target_link_libraries(idtoindexspeedtest dsl)
+
+# Testing speed for different methods to loop over all elements 
+add_executable(loopindexspeedtest loopindexspeedtest.cc)
+target_link_libraries(loopindexspeedtest dsl)
 
 # Testing the function of gridutils class
 add_executable(gridutilstest gridutilstest.cc)
