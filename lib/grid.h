@@ -435,7 +435,6 @@ public:
    * @return
    */
   Ptr ScaleUp(int scale, bool fi = false, bool init = true) const {
-    assert(scale>1);
     Ptr pscaled;
     if(scale<=1)
       return pscaled;
@@ -526,7 +525,6 @@ public:
    * @return Returns cc[i]. Meaningful result even when idx out of range
    */
   double CellCenterIth(int idx, int i) const{
-    assert(i>=0 && i<n);
     return xlb[i] + (idx +0.5)*cs[i];
   }
 
@@ -642,7 +640,6 @@ public:
    * @return pointer to a cell or 0 if cell does not exist
    */
   CellContent Get(int id) const {
-    assert(id >= 0 && id < nc);
     if (id<0 || id >= nc)
       return 0;
     return cells[id];
@@ -683,7 +680,6 @@ public:
    * @return true if it was able to set the data
    */
   bool Set(int id, const CellContent& data) {
-    assert(id >= 0 && id<nc);
     if (id<0 || id >= nc)
       return false;
     cells[id] = data;
@@ -807,7 +803,6 @@ public:
    */
   static void Save( GridCore<Vectornd,CellContent>& grid, const string& filename) {
     std::ofstream fs(filename, std::fstream::out | std::ios::binary);
-    assert(fs.is_open());
     if(fs.is_open()){
       //Serialize and write to file
       cereal::BinaryOutputArchive cerealout(fs);
@@ -826,7 +821,6 @@ public:
   static Ptr Load(const string& filename) {
     Ptr pgrid;
     std::ifstream fs (filename, std::fstream::in | std::ios::binary);
-    assert(fs.is_open());
     if(fs.is_open()){
       pgrid.reset(new GridCore<Vectornd,CellContent>());
       cereal::BinaryInputArchive cerealin(fs);

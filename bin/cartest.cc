@@ -1,9 +1,8 @@
+#include <carconnectivity.h>
 #include <string.h>
 #include "gridsearch.h"
 #include "cargrid.h"
 #include "carcost.h"
-#include "carconnectivity.h"
-#include "cartwistconnectivity.h"
 #include "utils.h"
 #include "gridutils.h"
 #include "params.h"
@@ -161,7 +160,7 @@ int main(int argc, char** argv)
     cost.reset(new CarCost(grid,0.1));
 
   // load car connectivity and set custom parameters
-  CarConnectivity connectivity(grid,*cost);
+  CarPathConnectivity connectivity(grid,*cost);
   double dt = .25;
   double vx = 4;
   double kmax = 0.57;

@@ -2,7 +2,6 @@
 #include "gridsearch.h"
 #include "cargrid.h"
 #include "carcost.h"
-#include "carconnectivity.h"
 #include "utils.h"
 #include "gridutils.h"
 #include "params.h"
@@ -11,8 +10,6 @@
 using namespace dsl;
 using namespace std;
 using namespace Eigen;
-
-using CarPath = GridPath<Vector3d, Matrix3d, SE2Path>;
 
 int main(int argc, char** argv)
 {

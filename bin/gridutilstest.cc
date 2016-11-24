@@ -2,7 +2,6 @@
 #include "gridsearch.h"
 #include "cargrid.h"
 #include "carcost.h"
-#include "carconnectivity.h"
 #include "utils.h"
 #include "gridutils.h"
 #include "params.h"
