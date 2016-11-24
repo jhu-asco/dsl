@@ -92,7 +92,7 @@ int main(int argc, char** argv)
   // get map
   string cmapName;
   bool cmapValid = params.GetString("cmap", cmapName);
-  
+
   // occupancy cell size
   Vector3d ocs;
   params.GetVector3d("ocs", ocs);
@@ -106,7 +106,7 @@ int main(int argc, char** argv)
   CarGeom geom;
   if(useGeom)
     geom.set(whxy(0),whxy(1),whxy(2),whxy(3),whxy(4));
-  
+
   // load an occupancy map from ppm file
   dsl::Map<bool, 2>::Ptr pomap = load(mapName, ocs.tail<2>());
   dsl::Map<bool, 2>& omap = *pomap;
@@ -159,82 +159,170 @@ int main(int argc, char** argv)
   else
     cost.reset(new CarCost(grid,0.1));
 
-  // load car connectivity and set custom parameters
-  CarPathConnectivity connectivity(grid,*cost);
-  double dt = .25;
-  double vx = 4;
-  double kmax = 0.57;
-  int kseg = 4;
-  bool onlyfwd = false;
-  params.GetDouble("dt", dt);
-  params.GetDouble("vx", vx);
-  params.GetDouble("kmax", kmax);
-  params.GetInt("kseg", kseg);
-  params.GetBool("onlyfwd", onlyfwd);
-  connectivity.SetPrimitives(dt, vx, kmax, kseg, onlyfwd);
+  /************************************************************************/
+  /*************************USING SE2Path primitives***********************/
+  /************************************************************************/
+  {
+    // load car connectivity and set custom parameters
+    double dt = .25;
+    double vx = 4;
+    double kmax = 0.57;
+    int kseg = 4;
+    bool onlyfwd = false;
+    bool allow_slip = true;
+    params.GetDouble("dt", dt);
+    params.GetDouble("vx", vx);
+    params.GetDouble("kmax", kmax);
+    params.GetInt("kseg", kseg);
+    params.GetBool("onlyfwd", onlyfwd);
+    params.GetBool("allow_slip", allow_slip);
+    CarPathConnectivity connectivity(grid,*cost,allow_slip);
+    connectivity.SetPrimitives(dt, vx, kmax, kseg, onlyfwd);
 
-  cout << "Creating a graph..." << endl;
-  // create planner
-  timer_start(&timer);
-
-  bool initExpand = false;
-  params.GetBool("initExpand", initExpand);
-
-
-  GridSearch<Vector3d, Matrix3d, SE2Path> search(grid, connectivity, *cost, initExpand);
-  CarPath path;
-
-  long time = timer_us(&timer);
-  printf("graph construction time= %ld  us\n", time);
-
-  bool start_set = search.SetStart(start);
-  bool goal_set = search.SetGoal(goal);
-
-  if(start_set && goal_set){
-    cout << "Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges." << endl;
-
-    cout << "Planning a path..." << endl;
-    // plan
+    cout << "Creating a graph..." << endl;
+    // create planner
     timer_start(&timer);
-    search.Plan(path);
-    time = timer_us(&timer);
-    printf("plan path time= %ld  us\n", time);
-    printf("path: edges=%lu len=%f\n", path.cells.size(), path.cost);
 
-    cout << "Graph has " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
+    bool initExpand = false;
+    params.GetBool("initExpand", initExpand);
 
 
-    // save it to image for viewing
-    if(plot_car){
-      vector<Vector3d> path3d = ToVector3dPath(path);
-      saveMapWithPath(dmap, "path1.ppm", path3d, geom, 3);
+    GridSearch<Vector3d, Matrix3d, SE2Path> search(grid, connectivity, *cost, initExpand);
+    CarPath path;
+
+    long time = timer_us(&timer);
+    printf("graph construction time= %ld  us\n", time);
+
+    bool start_set = search.SetStart(start);
+    bool goal_set = search.SetGoal(goal);
+
+    if(start_set && goal_set){
+      cout << "Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges." << endl;
+
+      cout << "Planning a path..." << endl;
+      // plan
+      timer_start(&timer);
+      search.Plan(path);
+      time = timer_us(&timer);
+      printf("plan path time= %ld  us\n", time);
+      printf("path: edges=%lu len=%f\n", path.cells.size(), path.cost);
+
+      cout << "Graph has " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
+
+
+      // save it to image for viewing
+      if(plot_car){
+        vector<Vector3d> path3d = ToVector3dPath(path);
+        saveMapWithPath(dmap, "path1.ppm", path3d, geom, 3);
+      }else{
+        vector<Vector2d> path2d = ToVector2dPath(path);
+        save(dmap, "path1.ppm", &path2d);
+      }
+      cout << "Map and path saved to path1.ppm" << endl;
     }else{
-      vector<Vector2d> path2d = ToVector2dPath(path);
-      save(dmap, "path1.ppm", &path2d);
-    }
-    cout << "Map and path saved to path1.ppm" << endl;
-  }else{
 
-    if(plot_car){
-      vector<Vector3d> path3d; path3d.push_back(start); path3d.push_back(goal);
-      saveMapWithPath(dmap, "path1.ppm", path3d, geom, 3);
-    }else{
+      if(plot_car){
+        vector<Vector3d> path3d; path3d.push_back(start); path3d.push_back(goal);
+        saveMapWithPath(dmap, "path1.ppm", path3d, geom, 3);
+      }else{
 
-      Vector2d start2d = start.tail<2>(); Vector2d goal2d = goal.tail<2>();
-      vector<Vector2d> path2d; path2d.push_back(start2d); path2d.push_back(goal2d);
-      save(dmap, "path1.ppm", &path2d);
+        Vector2d start2d = start.tail<2>(); Vector2d goal2d = goal.tail<2>();
+        vector<Vector2d> path2d; path2d.push_back(start2d); path2d.push_back(goal2d);
+        save(dmap, "path1.ppm", &path2d);
+      }
+      cout << "Map, start and goal (no path available) saved to path1.ppm" << endl;
     }
-    cout << "Map, start and goal (no path available) saved to path1.ppm" << endl;
+
+    //Display the primitive at start
+    vector<vector<Vector2d>> prims(0);
+    bool gotprims = connectivity.GetPrims(start,prims);
+    if(gotprims){
+      saveMapWithPrims(dmap, "prim1.ppm",prims,3);
+      cout << "Map, with primitives from start saved to prim1.ppm" << endl;
+    }
   }
 
-  //Display the primitive at start
-  vector<vector<Vector2d>> prims(0);
-  bool gotprims = connectivity.GetPrims(start,prims);
-  if(gotprims){
-    saveMapWithPrims(dmap, "prim1.ppm",prims,3);
-    cout << "Map, with primitives from start saved to prim1.ppm" << endl;
-  }
+  /************************************************************************/
+  /*************************USING SE2Twist primitives**********************/
+  /************************************************************************/
 
-  cmap.reset();
+  {
+    // load car connectivity and set custom parameters
+    CarPrimitiveConfig primcfg;
+    CarTwistConnectivity connectivity(grid, *cost);
+    int nl, na;
+    params.GetBool("prim_fwdonly",primcfg.fwdonly);
+    params.GetDouble("prim_tphioverlmax",primcfg.tphioverlmax);
+    params.GetDouble("prim_lmin",primcfg.lmin);
+    params.GetDouble("prim_lmax",primcfg.lmax);
+    params.GetInt("prim_nl",nl); primcfg.nl = nl;
+    params.GetDouble("prim_amax",primcfg.amax);
+    params.GetInt("prim_na",na);primcfg.na = na;
+    params.GetBool("prim_pert",primcfg.pert);
+    connectivity.SetPrimitives(1,primcfg);
+
+    cout << "Creating a graph..." << endl;
+    // create planner
+
+    timer_start(&timer);
+
+    bool initExpand = false;
+    params.GetBool("initExpand", initExpand);
+
+
+    GridSearch<SE2Cell::PointType, SE2Cell::DataType, SE2Twist> search(grid, connectivity, *cost, initExpand);
+    CarTwistPath path;
+
+    long time = timer_us(&timer);
+    printf("graph construction time= %ld  us\n", time);
+
+    bool start_set = search.SetStart(start);
+    bool goal_set = search.SetGoal(goal);
+
+    if(start_set && goal_set){
+      cout << "Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges." << endl;
+
+      cout << "Planning a path..." << endl;
+      // plan
+      timer_start(&timer);
+      search.Plan(path);
+      time = timer_us(&timer);
+      printf("plan path time= %ld  us\n", time);
+      printf("path: edges=%lu len=%f\n", path.cells.size(), path.cost);
+
+      cout << "Graph has " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
+
+      // save it to image for viewing
+      if(plot_car){
+        vector<Vector3d> path3d = ToVector3dPath(path,grid.cs[1]);
+        saveMapWithPath(dmap, "path2.ppm", path3d, geom, 3);
+      }else{
+        vector<Vector2d> path2d = ToVector2dPath(path,grid.cs[1]);
+        save(dmap, "path2.ppm", &path2d);
+      }
+      cout << "Map and path saved to path2.ppm" << endl;
+    }else{
+
+      if(plot_car){
+        vector<Vector3d> path3d; path3d.push_back(start); path3d.push_back(goal);
+        saveMapWithPath(dmap, "path2.ppm", path3d, geom, 3);
+      }else{
+
+        Vector2d start2d = start.tail<2>(); Vector2d goal2d = goal.tail<2>();
+        vector<Vector2d> path2d; path2d.push_back(start2d); path2d.push_back(goal2d);
+        save(dmap, "path2.ppm", &path2d);
+      }
+      cout << "Map, start and goal (no path available ) saved to path2.ppm" << endl;
+    }
+
+    //Display the primitive at start
+    vector<vector<Vector2d>> prims(0);
+    bool gotprims = connectivity.GetPrims(start,prims);
+    if(gotprims){
+      saveMapWithPrims(dmap, "prim2.ppm",prims,3);
+      cout << "Map, with primitives from start saved to prim2.ppm" << endl;
+    }
+
+  }
   return 0;
 }

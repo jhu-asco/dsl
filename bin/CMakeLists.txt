@@ -6,9 +6,6 @@ target_link_libraries(test2d dsl)
 add_executable(cartest cartest.cc)
 target_link_libraries(cartest dsl)
 
-add_executable(cartesttwist cartesttwist.cc)
-target_link_libraries(cartesttwist dsl)
-
 add_executable(test_cargrid test_cargrid.cc)
 target_link_libraries(test_cargrid dsl)
 
