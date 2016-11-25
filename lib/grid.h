@@ -42,11 +42,6 @@ using namespace Eigen;
  *   gidx: grid index to locate a cell in a grid. For a 3d grid, gidx=(0,0,0) is the first cell along all dimension.
  *   idx:  grid index along a particular dimension
  *
- * When fastindex is set to true then GridCore class stores the grid
- * location for every cell. This is to provide fast conversion of array id
- * to grid index. For 1000x1000x100 grid, Index() is 2 orders of magnitude
- * faster at the cost of using additional memory
- *
  * Note that this data structure is only viable up to a few dimensions,
  * e.g. dim=5 or 6.
  *
@@ -64,19 +59,16 @@ public:
   //n-dimensional vectors
   using Vectornd   =  Eigen::Matrix< double,  PointType::SizeAtCompileTime,   1 >;
   using Vectorni   =  Eigen::Matrix< int,     PointType::SizeAtCompileTime,   1 >;
-  using Vectornu   =  Eigen::Matrix< uint16_t,PointType::SizeAtCompileTime,   1 >;
   using Vectornb   =  Eigen::Matrix< bool,    PointType::SizeAtCompileTime,   1 >;
 
   //n-1 dimensional vectors
   using Vectornm1d =  Eigen::Matrix< double,  PointType::SizeAtCompileTime-1, 1 >;
   using Vectornm1i =  Eigen::Matrix< int,     PointType::SizeAtCompileTime-1, 1 >;
-  using Vectornm1u =  Eigen::Matrix< uint16_t,PointType::SizeAtCompileTime-1, 1 >;
   using Vectornm1b =  Eigen::Matrix< bool,    PointType::SizeAtCompileTime-1, 1 >;
 
   //n+1 dimensional vectors
   using Vectornp1d =  Eigen::Matrix< double,  PointType::SizeAtCompileTime+1, 1 >;
   using Vectornp1i =  Eigen::Matrix< int,     PointType::SizeAtCompileTime+1, 1 >;
-  using Vectornp1u =  Eigen::Matrix< uint16_t,PointType::SizeAtCompileTime+1, 1 >;
   using Vectornp1b =  Eigen::Matrix< bool,    PointType::SizeAtCompileTime+1, 1 >;
 
   using Ptr = shared_ptr< GridCore<PointType,CellContent> >;
@@ -104,8 +96,6 @@ public:
   Vectorni gs;  ///< number of cells per dimension
   Vectorni cgs; ///< cumulative(product) of gs. For n=3, cgs = [1, gs[0], gs[0]*gs[1]]
   Vectornb wd;  ///< which dimensions are wrapped
-  bool fi; ///< enable fast conversion of array id to grid index(2 orders of magnitude times faster but takes memory)
-  vector<Vectornu> indices; ///< grid index of all the cells
   vector<CellContent> cells; ///< grid cells
 
   /**
@@ -117,8 +107,8 @@ public:
    * For wrapped dimension i, the ds[i],i.e. dimension size, is given by xub[i]-xlb[i] (e.g. for angles it ds[i]=2*M_PI)
    * @param fi enable fast conversion of array id to grid index(2 orders of magnitude times faster but takes memory)
    */
-  GridCore(const Vectornd& xlb, const Vectornd& xub, const Vectorni& gs, const Vectornb wd = Vectornb::Zero(), bool fi = false)
-  : n(xlb.size()), xlb(xlb), xub(xub), gs(gs), wd(wd),fi(fi),indices(0), cells(0){
+  GridCore(const Vectornd& xlb, const Vectornd& xub, const Vectorni& gs, const Vectornb wd = Vectornb::Zero())
+  : n(xlb.size()), xlb(xlb), xub(xub), gs(gs), wd(wd), cells(0){
     ds = xub - xlb;
     nc = 1;
     cgs[0] = 1;
@@ -131,8 +121,6 @@ public:
         cgs[i] = cgs[i-1]*gs[i-1];
     }
     cells.resize(nc);
-    if(fi)
-      ResetIndices();
   }
 
   /**
@@ -143,10 +131,9 @@ public:
    * integer number of grid cells between xlb and xub
    * @param wd indicates if a dimension if wrapped or not. wd[i]=false(flat dim) wd[i]=1(wrapped dim).
    * For wrapped dimension i, the ds[i],i.e. dimension size, is given by xub[i]-xlb[i] (e.g. for angles it ds[i]=2*M_PI)
-   * @param fi enable fast conversion of array id to grid index(2 orders of magnitude times faster but takes memory)
    */
-  GridCore(const Vectornd& xlb, const Vectornd& xub, const Vectornd& scs, const Vectornb wd = Vectornb::Zero(),bool fi = false)
-  : n(xlb.size()), xlb(xlb), xub(xub), wd(wd),fi(fi),indices(0), cells(0){
+  GridCore(const Vectornd& xlb, const Vectornd& xub, const Vectornd& scs, const Vectornb wd = Vectornb::Zero())
+  : n(xlb.size()), xlb(xlb), xub(xub), wd(wd), cells(0){
     ds = xub - xlb;
     nc = 1;
     cgs[0] = 1;
@@ -160,8 +147,6 @@ public:
         cgs[i] = cgs[i-1]*gs[i-1];
     }
     cells.resize(nc);
-    if(fi)
-      ResetIndices();
   }
 
   /**
@@ -176,7 +161,7 @@ public:
    * @param fi enable fast conversion of array id to grid index(2 orders of magnitude times faster but takes memory)
    */
   GridCore(const Vectornd& sxlb, const Vectornd& sxub, const Vectornd& scs, const Vectornb wd,const GridConfig& cfg,bool fi = false)
-  : n(sxlb.size()), wd(wd),fi(fi),indices(0), cells(0){
+  : n(sxlb.size()), wd(wd), cells(0){
     nc = 1;
     cgs[0] = 1;
     for (int i = 0; i < n; ++i) {
@@ -216,8 +201,6 @@ public:
         cgs[i] = cgs[i-1]*gs[i-1];
     }
     cells.resize(nc);
-    if(fi)
-      ResetIndices();
   }
 
   /**
@@ -226,8 +209,7 @@ public:
    */
   GridCore(const GridCore &gridcore)
   : n(gridcore.n), nc(gridcore.nc), xlb(gridcore.xlb), xub(gridcore.xub), ds(gridcore.ds),
-    cs(gridcore.cs), gs(gridcore.gs), cgs(gridcore.cgs), wd(gridcore.wd),
-    fi(gridcore.fi), indices(gridcore.indices){
+    cs(gridcore.cs), gs(gridcore.gs), cgs(gridcore.cgs), wd(gridcore.wd){
     cells.resize(nc);
 
     //don't copy smart pointers(just set it to nullptr)
@@ -251,8 +233,6 @@ public:
     cs  = gridcore.cs;
     cgs = gridcore.cgs;
     wd  = gridcore.wd;
-    fi = gridcore.fi;
-    indices = gridcore.indices;
     cells.resize(nc);
     if(std::is_arithmetic<CellContent>::value) //TODO: should is_copy_constructible<CellContent>::value be used?
       cells = gridcore.cells;
@@ -270,11 +250,10 @@ public:
    * @param ubi upper bound along that dimension
    * @param gsi grid size along that dim
    * @param wdi dimension is wrapped or not
-   * @param fi enable fast conversion of array id to grid index(2 orders of magnitude times faster but takes memory)
    * @param init initialize the Stack from grid
    * @return
    */
-  StackPtr GetStack(int i, double lbi, double ubi, int gsi, bool wdi = false, bool fi = false, bool init = true){
+  StackPtr GetStack(int i, double lbi, double ubi, int gsi, bool wdi = false, bool init = true){
     Vectornp1d xlb_stack, xub_stack;
     Vectornp1i gs_stack;
     Vectornp1b wd_stack;
@@ -285,7 +264,7 @@ public:
     gs_stack  = insertDim(gs, i, gsi);
     wd_stack  = insertDim(wd, i, wdi);
 
-    StackPtr pstack(new Stack(xlb_stack,xub_stack, gs_stack, wd_stack,fi));
+    StackPtr pstack(new Stack(xlb_stack,xub_stack, gs_stack, wd_stack));
 
     if(!init || !std::is_arithmetic<CellContent>::value)
       return pstack;
@@ -313,11 +292,10 @@ public:
    * @param ubi upper bound along that dimension
    * @param scsi suggested cell size along that dim
    * @param wdi dimension is wrapped or not
-   * @param fi enable fast conversion of array id to grid index(2 orders of magnitude times faster but takes memory)
    * @param init initialize the Stack from grid
    * @return
    */
-  StackPtr GetStack(int i, double lbi, double ubi, double scsi, bool wdi = false, bool fi = false, bool init = true){
+  StackPtr GetStack(int i, double lbi, double ubi, double scsi, bool wdi = false, bool init = true){
     Vectornp1d xlb_stack, xub_stack,scs_stack;
     Vectornp1b wd_stack;
 
@@ -328,7 +306,7 @@ public:
     scs_stack = insertDim(cs, i, scsi);
     wd_stack  = insertDim(wd, i, wdi);
 
-    StackPtr pstack(new Stack(xlb_stack,xub_stack, scs_stack, wd_stack,fi));
+    StackPtr pstack(new Stack(xlb_stack,xub_stack, scs_stack, wd_stack));
 
     if(!init || !std::is_arithmetic<CellContent>::value)
       return pstack;
@@ -348,11 +326,10 @@ public:
    * Create a slice of the current grid along dimension at particular index
    * @param idx The dimension along which the slice is created
    * @param i coordinated index/ dimension
-   * @param fi enable fast conversion of array id to grid index(2 orders of magnitude times faster but takes memory)
    * @param init initialize the slice from grid
    * @return a shared_ptr to the grid slice created
    */
-  SlicePtr GetSlice(int idx, int i, bool fi = false, bool init = true) const {
+  SlicePtr GetSlice(int idx, int i, bool init = true) const {
     Vectornm1d xlb_slice, xub_slice;
     Vectornm1i gs_slice;
     Vectornm1b wd_slice;
@@ -363,7 +340,7 @@ public:
     gs_slice  = removeDim(gs,i);
     wd_slice  = removeDim(wd,i);
 
-    SlicePtr pslice(new Slice(xlb_slice,xub_slice, gs_slice, wd_slice,fi));
+    SlicePtr pslice(new Slice(xlb_slice,xub_slice, gs_slice, wd_slice));
 
     if(!init || !std::is_arithmetic<CellContent>::value)
       return pslice;
@@ -380,13 +357,12 @@ public:
    * Create a slice of the current grid along dimension at particular index
    * @param val val = point[i] where i is the dimension along which the slice is created
    * @param i coordinated index/ dimension
-   * @param fi enable fast conversion of array id to grid index(2 orders of magnitude times faster but takes memory)
    * @param init initialize the slice from grid
    * @return a shared_ptr to the grid slice created
    */
-  SlicePtr GetSlice(double val, int i, bool fi = false, bool init = true) const {
+  SlicePtr GetSlice(double val, int i, bool init = true) const {
     int idx = Index(val,i);
-    return GetSlice(idx,i,fi,init);
+    return GetSlice(idx,i,init);
   }
 
     /**
@@ -412,9 +388,6 @@ public:
        }
        slice.cells.resize(slice.nc);//if data is already allocated resize does nothing
 
-       if(slice.fi)
-         slice.ResetIndices();
-
        if(!init || !std::is_arithmetic<CellContent>::value)
          return;
 
@@ -430,16 +403,15 @@ public:
    * Create new GridCore object whose cell resolution is scale times higher.
    * Useful for increasing resolution of a map for display
    * @param scale
-   * @param fi enable fast conversion of array id to grid index(2 orders of magnitude times faster but takes memory)
    * @param init initialize the scaled map from grid
    * @return
    */
-  Ptr ScaleUp(int scale, bool fi = false, bool init = true) const {
+  Ptr ScaleUp(int scale, bool init = true) const {
     Ptr pscaled;
     if(scale<=1)
       return pscaled;
     Vectorni gs_scaled = gs*scale;
-    pscaled.reset(new GridCore<PointType, CellContent>(xlb,xub, gs_scaled, wd,fi));
+    pscaled.reset(new GridCore<PointType, CellContent>(xlb,xub, gs_scaled, wd));
 
     if(!init || !std::is_arithmetic<CellContent>::value)
       return pscaled;
@@ -609,13 +581,38 @@ public:
       gidx = Vectorni::Constant(numeric_limits<double>::quiet_NaN());
       return false;
     }
-    if(fi){
-      gidx = indices[id].template cast<int>();
-    }else{
-      for(int i=n-1; i>=0; i--){
-        gidx[i] = int(id/cgs[i]);
-        id -= gidx[i]*cgs[i];
-      }
+
+    switch(n){
+      case 1:
+        gidx[0] = id;
+        break;
+      case 2:
+        gidx[1] = int(id/cgs[1]);
+        gidx[0] = int(id - gidx[1]*cgs[1]);
+        break;
+      case 3:
+        gidx[2] = int(id/cgs[2]);
+        gidx[1] = int(id/cgs[1] - gidx[2]*cgs[2]/cgs[1]);
+        gidx[0] = int(id - gidx[2]*cgs[2] - gidx[1]*cgs[1]);
+        break;
+      case 4:
+        gidx[3] = int( id/cgs[3]);
+        gidx[2] = int((id - gidx[3]*cgs[3])/cgs[2]);
+        gidx[1] = int((id - gidx[3]*cgs[3] - gidx[2]*cgs[2])/cgs[1]);
+        gidx[0] = int( id - gidx[3]*cgs[3] - gidx[2]*cgs[2] - gidx[1]*cgs[1]);
+        break;
+      case 5:
+        gidx[4] = int( id/cgs[4]);
+        gidx[3] = int((id - gidx[4]*cgs[4])/cgs[3]);
+        gidx[2] = int((id - gidx[4]*cgs[4] - gidx[3]*cgs[3])/cgs[2]);
+        gidx[1] = int((id - gidx[4]*cgs[4] - gidx[3]*cgs[3] - gidx[2]*cgs[2])/cgs[1]);
+        gidx[0] = int( id - gidx[4]*cgs[4] - gidx[3]*cgs[3] - gidx[2]*cgs[2] - gidx[1]*cgs[1]);
+        break;
+      default:
+        for(int i=n-1; i>=0; i--){
+          gidx[i] = int(id/cgs[i]);
+          id -= gidx[i]*cgs[i];
+        }
     }
     return true;
   }
@@ -687,47 +684,86 @@ public:
   }
 
   /**
-   * Provides an interface to loop over all cells while operating on id(array id) and gidx(grid index) of that cell.
-   * This is similar to a nested for loop
-   * for(int j=0; j < grid.gs[1]; j++){
-   *   for(int i=0; i < grid.gs[0]; i++){
-   *     Vector2i gidx(i,j);
-   *     int id = grid.Id(gidx);
-   *     Vector2i gidx2  = 2* gidx; //do something with gidx
-   *     bool val = !grid.cells[id]; //do something with id
-   *   }
-   * }
-   * but note that a nested for loop can't be used for cases where dimensionality is not known
+   * Provides an interface to loop over all cells fast while operating on id(array id) and gidx(grid index) of that cell.
+   * for a grid of any dimension. It's is fast for grid of dimensionality 1,2,3,4,5.
    *
    * @param fun any function that operates on id and gidx
    */
   void LoopOver(std::function<void(int id, const Vectorni& gidx)> fun) {
-    Vectornp1i gidxe = Vectornp1i::Zero();//e stands for extra element
-    Vectornp1i  gse; gse << gs,0; //0 to indicate iteration over all cells over
+    int id=0;
     Vectorni gidx;
-    int dim = 0;
-    int id = 0;
-    while (gidxe[n]==0) {
-      gidx = gidxe.head(n);
-      fun(id,gidx); //This function is called in loop
-      id++; gidxe[0]++;
-      while(gidxe[dim]==gse[dim]){
-        gidxe[dim]=0;
-        gidxe[++dim]++;
-        if(gidxe[dim]!=gse[dim]) //here it is compared to last element of gse
-          dim=0;
-      }
+    switch(n){
+      case 1:
+          for(int i0=0; i0<gs[0]; i0++){
+            gidx[0] = i0;
+            fun(id,gidx);
+            id++;
+          }
+        break;
+      case 2:
+        for(int i1=0; i1<gs[1]; i1++){
+          for(int i0=0; i0<gs[0]; i0++){
+            gidx[0] = i0; gidx[1] = i1;
+            fun(id,gidx);
+            id++;
+          }
+        }
+        break;
+      case 3:
+        for(int i2=0; i2<gs[2]; i2++){
+          for(int i1=0; i1<gs[1]; i1++){
+            for(int i0=0; i0<gs[0]; i0++){
+              gidx[0] = i0; gidx[1] = i1; gidx[2] = i2;
+              fun(id,gidx);
+              id++;
+            }
+          }
+        }
+        break;
+      case 4:
+        for(int i3=0; i3<gs[3]; i3++){
+          for(int i2=0; i2<gs[2]; i2++){
+            for(int i1=0; i1<gs[1]; i1++){
+              for(int i0=0; i0<gs[0]; i0++){
+                gidx[0] = i0; gidx[1] = i1; gidx[2] = i2; gidx[3] = i3;
+                fun(id,gidx);
+                id++;
+              }
+            }
+          }
+        }
+        break;
+      case 5:
+        for(int i4=0; i4<gs[4]; i4++){
+          for(int i3=0; i3<gs[3]; i3++){
+            for(int i2=0; i2<gs[2]; i2++){
+              for(int i1=0; i1<gs[1]; i1++){
+                for(int i0=0; i0<gs[0]; i0++){
+                  gidx[0] = i0; gidx[1] = i1; gidx[2] = i2; gidx[3] = i3;  gidx[4] = i4;
+                  fun(id,gidx);
+                  id++;
+                }
+              }
+            }
+          }
+        }
+        break;
+      default:
+        Vectornp1i gidxe = Vectornp1i::Zero();//e stands for extra element
+        Vectornp1i  gse; gse << gs,0; //0 to indicate iteration over all cells over
+        int dim = 0;
+        while (gidxe[n]==0) {
+          gidx = gidxe.head(n);
+          fun(id,gidx); //This function is called in loop
+          id++; gidxe[0]++;
+          while(gidxe[dim]==gse[dim]){
+            gidxe[dim]=0;
+            gidxe[++dim]++;
+            if(gidxe[dim]!=gse[dim]) //here it is compared to last element of gse
+              dim=0;
+          }
+        }
     }
-  }
-
-  /**
-   * Saves the grid index for every cell to provide fast conversion from
-   * array id to grid index
-   */
-  void ResetIndices(){
-    indices.resize(nc);
-    auto fun = [&](int id, const Vectorni& gidx){ indices[id] = gidx.template cast<uint16_t>();};
-    LoopOver(fun);
   }
 
   /**

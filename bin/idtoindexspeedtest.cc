@@ -52,7 +52,6 @@ int main(int argc, char** argv){
   int id(0);
   while (idxe[n]==0) {
     Vector3i idx = idxe.head<3>();
-    cout<<"id:"<<id<<"  idx:"<<idx.transpose()<<endl;
     id++; idxe[0]++;
     while(idxe[dim]==max[dim]) {
       idxe[dim]=0;
