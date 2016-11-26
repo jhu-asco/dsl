@@ -27,6 +27,17 @@ using std::shared_ptr;
 using std::vector;
 using namespace Eigen;
 
+
+//To check if a template parameter is shared_ptr
+//  usage: if(has_template_type<T, std::shared_ptr>::value)
+//           cout<<"is shared_ptr"<<endl;
+template < typename T,template <typename...> class Templated >
+struct has_template_type : std::false_type {};
+
+template < template <typename...> class T, typename... Ts>
+struct has_template_type<T<Ts...>, T> : std::true_type {};
+
+
 /**
  * An n-dimenensional grid consisting of abstract "cells", or elements
  * identified by a set of coordinates of type PointType, each cell
@@ -212,8 +223,8 @@ public:
     cs(gridcore.cs), gs(gridcore.gs), cgs(gridcore.cgs), wd(gridcore.wd){
     cells.resize(nc);
 
-    //don't copy smart pointers(just set it to nullptr)
-    if(std::is_arithmetic<CellContent>::value)
+    //copy data if not shared_ptr
+    if(!has_template_type<CellContent, std::shared_ptr>::value)
       cells = gridcore.cells;
   }
 
@@ -234,7 +245,9 @@ public:
     cgs = gridcore.cgs;
     wd  = gridcore.wd;
     cells.resize(nc);
-    if(std::is_arithmetic<CellContent>::value) //TODO: should is_copy_constructible<CellContent>::value be used?
+
+    //copy data if not shared_ptr
+    if(!has_template_type<CellContent, std::shared_ptr>::value)
       cells = gridcore.cells;
     return *this;
   }
@@ -266,7 +279,7 @@ public:
 
     StackPtr pstack(new Stack(xlb_stack,xub_stack, gs_stack, wd_stack));
 
-    if(!init || !std::is_arithmetic<CellContent>::value)
+    if(!init || has_template_type<CellContent, std::shared_ptr>::value)
       return pstack;
 
     //Iterate over all cells
@@ -308,7 +321,8 @@ public:
 
     StackPtr pstack(new Stack(xlb_stack,xub_stack, scs_stack, wd_stack));
 
-    if(!init || !std::is_arithmetic<CellContent>::value)
+    //copy data if not shared_ptr
+    if(!init || has_template_type<CellContent, std::shared_ptr>::value)
       return pstack;
 
     for(int id=0; id < nc; id++){
@@ -342,7 +356,7 @@ public:
 
     SlicePtr pslice(new Slice(xlb_slice,xub_slice, gs_slice, wd_slice));
 
-    if(!init || !std::is_arithmetic<CellContent>::value)
+    if(!init || has_template_type<CellContent, std::shared_ptr>::value)
       return pslice;
 
     for(int id_slice=0; id_slice < pslice->nc; id_slice++){
@@ -388,7 +402,7 @@ public:
        }
        slice.cells.resize(slice.nc);//if data is already allocated resize does nothing
 
-       if(!init || !std::is_arithmetic<CellContent>::value)
+       if(!init || has_template_type<CellContent, std::shared_ptr>::value)
          return;
 
        for(int id_slice=0; id_slice < slice.nc; id_slice++){
@@ -413,7 +427,7 @@ public:
     Vectorni gs_scaled = gs*scale;
     pscaled.reset(new GridCore<PointType, CellContent>(xlb,xub, gs_scaled, wd));
 
-    if(!init || !std::is_arithmetic<CellContent>::value)
+    if(!init || has_template_type<CellContent, std::shared_ptr>::value)
       return pscaled;
 
     for(int id_scaled = 0; id_scaled <pscaled->nc; id_scaled++){

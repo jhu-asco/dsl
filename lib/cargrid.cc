@@ -24,24 +24,17 @@ using std::vector;
 CarGrid::CarGrid(const Map<bool, 3> &cmap, const Vector3d& cs)
     : SE2CellGrid(cmap.xlb, cmap.xub, cs, SE2CellGrid::Vectornb(true,false,false)){
 
-  //Allocate memory for grid cells if it is not occupied
-  for (int idx_a = 0; idx_a < gs[0]; ++idx_a) {
-    for (int idx_x = 0; idx_x < gs[1]; ++idx_x) {
-      for (int idx_y = 0; idx_y < gs[2]; ++idx_y) {
-        // center of cell
-        Vector3i idx(idx_a,idx_x,idx_y);
-        Vector3d cc; //CellCenter
-        bool gotcenter = CellCenter(cc,idx);
-        assert(gotcenter);
-
-        bool occ = cmap.Get(cc, false);
-        if (!occ) {
-          int id = Id(idx);
-          cells[id].reset(new SE2Cell(id, cc));
-          se2_q2g(cells[id]->data, cells[id]->c);
-        }
-      }
+  //Iterate over all cells
+  auto fun = [&](int id, const Vector3i& gidx){
+    Vector3d cc; //CellCenter
+    bool gotcenter = CellCenter(cc,gidx);assert(gotcenter);
+    bool occ = cmap.Get(cc, false);
+    if (!occ) {  //Allocate memory for grid cells if it is not occupied
+      cells[id].reset(new SE2Cell(id, cc));
+      se2_q2g(cells[id]->data, cells[id]->c);
     }
-  }
+  };
+  LoopOver(fun);
+
 }
-}
+} //namespace dsl
