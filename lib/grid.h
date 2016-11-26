@@ -636,24 +636,41 @@ public:
    * @param x point
    * @param checkValid whether to check if within valid bounds (more efficient
    * if checkValid=0 but dangerous)
-   * @return pointer to a cell or 0 if cell does not exist
+   * @return Copy of contents of cell, could be shared_ptr or bool etc.
+   * If cell doesn't exist default object is returned, which in case of a pointer is a nullptr.
    */
   CellContent Get(const Vectornd& x, bool checkValid = true) const {
     if (checkValid)
       if (!Valid(x))
-        return 0;
-    return Get(Id(x));
+        return CellContent();//nullptr for shared_ptr
+
+        return Get(Id(x));
   }
 
   /**
    * Get the cell at a given cell id
    * @param id a non-negative id
-   * @return pointer to a cell or 0 if cell does not exist
+   * @return Copy of contents of cell, could be shared_ptr or bool etc.
+   * If cell doesn't exist default object is returned, which in case of a pointer is a nullptr.
    */
   CellContent Get(int id) const {
     if (id<0 || id >= nc)
-      return 0;
+      return CellContent();//nullptr for shared_ptr
+
     return cells[id];
+  }
+
+  /**
+   * Get the cell at a given grid index
+   * @param gidx grid index
+   * @return Copy of contents of cell, could be shared_ptr or bool etc.
+   * If cell doesn't exist default object is returned, which in case of a pointer is a nullptr.
+   */
+  CellContent Get(const Vectorni& gidx) const {
+    if (Valid(gidx))
+      return CellContent();//nullptr for shared_ptr
+
+    return cells[Id(gidx)];
   }
 
   /**
