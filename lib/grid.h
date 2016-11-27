@@ -437,6 +437,39 @@ public:
     return pscaled;
   }
 
+
+//  /**
+//   * Takes a set of vertices which are corners of a kernel map. The kernel.cs == grid.cs by design
+//   * @param grid the main grid
+//   * @param vertices set of vertices
+//   * @param valin value inside the area marked by the vertices
+//   * @param valout value outside the area marked by the vertices
+//   */
+//  GridCore::Ptr GetKernel(const vector<Vectornd>& vertices,CellContent valin, CellContent valout) const{
+//
+//    //convert vertices to grid coordinates
+//    vector<Vectornd> verts_grid; ToGridCoordinates(verts_grid,vertices);
+//
+//    //Get center of points and convert to grid coords
+//    Vectornd center = std::accumulate(vertices.begin(),vertices.end(),Vectornd::Zero().eval())/vertices.size();
+//    Vectornd center_grid; ToGridCoordinates(center_grid,center);
+//
+//    //Snap the vertices to cell centers while making sure it is expanded outwards
+//    vector<Vectorni> verts_snapped;
+//    for(size_t i=0; i<vertices.size(); i++){
+//      Vectornd verts_grid_centered = verts_grid[i] - center_grid;
+//      for(int dim=0; dim < n; dim++){
+//        verts_snapped[i][dim] = verts_grid_centered[dim]>0 ?
+//                                ceil(verts_grid[i][dim] ):floor(verts_grid[i][dim] );
+//      }
+//    }
+//
+//
+//
+//    GridCore::Ptr kernel;
+//    return kernel;
+//  }
+
   /**
    * Check if point x is within grid bounds
    * @param x point

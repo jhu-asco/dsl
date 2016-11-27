@@ -11,6 +11,8 @@ add_library(dsl SHARED fibheap.c
                        carconnectivity.cc
                        carcost.cc
                        cargeom.cc
+                       terrainse2grid.cc
+                       terrainse2gridcost.cc
                        params.cc
 )
 
@@ -44,6 +46,8 @@ INSTALL(FILES fibheap.h
               carcost.h
               cargrid.h
               carcost.h
+              terrainse2grid.h
+              terrainse2gridcost.h
               grid2d.h
               grid2dconnectivity.h
               grid3d.h
