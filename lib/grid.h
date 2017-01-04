@@ -30,7 +30,7 @@ using namespace Eigen;
 
 //To check if a template parameter is shared_ptr
 //  usage: if(has_template_type<T, std::shared_ptr>::value)
-//           cout<<"is shared_ptr"<<endl;
+//           std::cout<<"is shared_ptr"<<std::endl;
 template < typename T,template <typename...> class Templated >
 struct has_template_type : std::false_type {};
 
@@ -82,20 +82,13 @@ public:
   using Vectornp1i =  Eigen::Matrix< int,     PointType::SizeAtCompileTime+1, 1 >;
   using Vectornp1b =  Eigen::Matrix< bool,    PointType::SizeAtCompileTime+1, 1 >;
 
-  using Ptr = shared_ptr< GridCore<PointType,CellContent> >;
+  using Ptr = std::shared_ptr<GridCore>;
 
   using Slice = GridCore<Vectornm1d,CellContent>;
   using SlicePtr = shared_ptr<Slice>;
 
   using Stack = GridCore<Vectornp1d,CellContent>;
   using StackPtr = shared_ptr<Stack>;
-
-  /**
-   * Configuration to control the grid sizes, cell sizes and grid bounds.
-   */
-  enum GridConfig{
-    ORG_AT_CELL_CENTER, ///< makes sure the origin lies in the center of a gridcell
-  };
 
 
   int n;        ///< grid dimension
@@ -107,7 +100,7 @@ public:
   Vectorni gs;  ///< number of cells per dimension
   Vectorni cgs; ///< cumulative(product) of gs. For n=3, cgs = [1, gs[0], gs[0]*gs[1]]
   Vectornb wd;  ///< which dimensions are wrapped
-  vector<CellContent> cells; ///< grid cells
+  std::vector<CellContent> cells; ///< grid cells
 
   /**
    * Initialize the grid using state lower bound, state upper bound, the number of grid cells
@@ -134,31 +127,31 @@ public:
     cells.resize(nc);
   }
 
-  /**
-   * Initialize the map using state lower bound, state upper bound, and a suggested cell size
-   * @param xlb state lower bound
-   * @param xub state upper bound
-   * @param scs suggested cell size along each dimension. The true cs is the one which results in
-   * integer number of grid cells between xlb and xub
-   * @param wd indicates if a dimension if wrapped or not. wd[i]=false(flat dim) wd[i]=1(wrapped dim).
-   * For wrapped dimension i, the ds[i],i.e. dimension size, is given by xub[i]-xlb[i] (e.g. for angles it ds[i]=2*M_PI)
-   */
-  GridCore(const Vectornd& xlb, const Vectornd& xub, const Vectornd& scs, const Vectornb wd = Vectornb::Zero())
-  : n(xlb.size()), xlb(xlb), xub(xub), wd(wd), cells(0){
-    ds = xub - xlb;
-    nc = 1;
-    cgs[0] = 1;
-    for (int i = 0; i < n; ++i) {
-      assert(xlb[i] < xub[i]);
-      assert(scs[i] > 0);
-      gs[i] = floor(ds[i] / scs[i]);
-      cs[i] = ds[i] / gs[i];
-      nc *= gs[i]; // total number of cells
-      if(i>0)
-        cgs[i] = cgs[i-1]*gs[i-1];
-    }
-    cells.resize(nc);
-  }
+//  /**
+//   * Initialize the map using state lower bound, state upper bound, and a suggested cell size
+//   * @param xlb state lower bound
+//   * @param xub state upper bound
+//   * @param scs suggested cell size along each dimension. The true cs is the one which results in
+//   * integer number of grid cells between xlb and xub
+//   * @param wd indicates if a dimension if wrapped or not. wd[i]=false(flat dim) wd[i]=1(wrapped dim).
+//   * For wrapped dimension i, the ds[i],i.e. dimension size, is given by xub[i]-xlb[i] (e.g. for angles it ds[i]=2*M_PI)
+//   */
+//  GridCore(const Vectornd& xlb, const Vectornd& xub, const Vectornd& scs, const Vectornb wd = Vectornb::Zero())
+//  : n(xlb.size()), xlb(xlb), xub(xub), wd(wd), cells(0){
+//    ds = xub - xlb;
+//    nc = 1;
+//    cgs[0] = 1;
+//    for (int i = 0; i < n; ++i) {
+//      assert(xlb[i] < xub[i]);
+//      assert(scs[i] > 0);
+//      gs[i] = floor(ds[i] / scs[i]);
+//      cs[i] = ds[i] / gs[i];
+//      nc *= gs[i]; // total number of cells
+//      if(i>0)
+//        cgs[i] = cgs[i-1]*gs[i-1];
+//    }
+//    cells.resize(nc);
+//  }
 
   /**
    * Initialize the map using a suggested state lower bound, suggested state upper bound, and a suggested cell size.
@@ -169,9 +162,14 @@ public:
    * integer number of grid cells between xlb and xub
    * @param wd indicates if a dimension if wrapped or not. wd[i]=false(flat dim) wd[i]=1(wrapped dim).
    * For wrapped dimension i, the ds[i],i.e. dimension size, is given by xub[i]-xlb[i] (e.g. for angles it ds[i]=2*M_PI)
-   * @param fi enable fast conversion of array id to grid index(2 orders of magnitude times faster but takes memory)
+   * @param ss Special Settings for each dimension. If set to true for a wrapped dimension then it the number of cell are
+   * multiples of 4 and the xlb and xub are shifted by half cell size. This is useful for making sure, in case of angles,
+   * that when moving forward angles don't change if starting from cells with yaw = -pi,-pi/2, 0, pi/2. If set to true for
+   * flat dimensions it makes sure that 0 lies at a cell center of a cell in the grid( or extrapolated grid if center is not
+   * contained in the grid)
    */
-  GridCore(const Vectornd& sxlb, const Vectornd& sxub, const Vectornd& scs, const Vectornb wd,const GridConfig& cfg,bool fi = false)
+  GridCore(const Vectornd& sxlb, const Vectornd& sxub, const Vectornd& scs,
+           const Vectornb wd = Vectornb::Zero(), const Vectornb ss = Vectornb::Zero())
   : n(sxlb.size()), wd(wd), cells(0){
     nc = 1;
     cgs[0] = 1;
@@ -179,8 +177,7 @@ public:
       assert(sxlb[i] < sxub[i]);
       assert(scs[i] > 0);
 
-      switch(cfg){
-        case ORG_AT_CELL_CENTER:
+      if(ss[i]){
           if(!wd[i]){ //if dimension is flat(cs=scs)
             cs[i] = scs[i];
             int n_org2ub = floor(sxub[i]/cs[i] - 0.5);
@@ -191,20 +188,17 @@ public:
             ds[i] = xub[i] - xlb[i];
           }else{ //dimension is wrapped
             ds[i] = sxub[i] - sxlb[i]; //For angles this is = 2*M_PI
-            int gs[i] = 2*ceil(ds[i]/(2*scs[i])); //Even number of cells
+            gs[i] = 4*ceil(ds[i]/(4*scs[i])); //Multiple of 4 number of cells
             cs[i] = ds[i]/gs[i];
             xlb[i] = -ds[i]/2 + cs[i]/2; //shifted by half cell so that pi/(pi/2)/0 lies at center of a cell
             xub[i] =  ds[i]/2 + cs[i]/2; //shifted by half cell so that pi/(pi/2)/0 lies at center of a cell
           }
-          break;
-        default: // Defaults to what's done in other constructors
-          assert("Not implemented yet" && 0);
-          xub[i] = sxub[i];
+      }else{
+          xlb[i] = sxlb[i];
           xub[i] = sxub[i];
           ds[i] = xub[i] - xlb[i];
           gs[i] = floor(ds[i] / scs[i]);
           cs[i] = ds[i] / gs[i];
-          break;
       }
 
       nc *= gs[i]; // total number of cells
@@ -266,7 +260,7 @@ public:
    * @param init initialize the Stack from grid
    * @return
    */
-  StackPtr GetStack(int i, double lbi, double ubi, int gsi, bool wdi = false, bool init = true){
+  StackPtr GetStack(int i, double lbi, double ubi, int gsi, bool wdi = false, bool init = true) const {
     Vectornp1d xlb_stack, xub_stack;
     Vectornp1i gs_stack;
     Vectornp1b wd_stack;
@@ -308,7 +302,7 @@ public:
    * @param init initialize the Stack from grid
    * @return
    */
-  StackPtr GetStack(int i, double lbi, double ubi, double scsi, bool wdi = false, bool init = true){
+  StackPtr GetStack(int i, double lbi, double ubi, double scsi, bool wdi = false, bool init = true) const {
     Vectornp1d xlb_stack, xub_stack,scs_stack;
     Vectornp1b wd_stack;
 
@@ -419,11 +413,18 @@ public:
    * @param scale
    * @param init initialize the scaled map from grid
    * @return
+   * TODO: Add option of linear/quadratic/cubic interpolation when scaling
    */
   Ptr ScaleUp(int scale, bool init = true) const {
     Ptr pscaled;
-    if(scale<=1)
+    if(scale<1)
       return pscaled;
+
+    if(scale==1){
+      pscaled.reset(new GridCore<PointType, CellContent>(*this));
+      return pscaled;
+    }
+
     Vectorni gs_scaled = gs*scale;
     pscaled.reset(new GridCore<PointType, CellContent>(xlb,xub, gs_scaled, wd));
 
@@ -700,7 +701,7 @@ public:
    * If cell doesn't exist default object is returned, which in case of a pointer is a nullptr.
    */
   CellContent Get(const Vectorni& gidx) const {
-    if (Valid(gidx))
+    if (!Valid(gidx))
       return CellContent();//nullptr for shared_ptr
 
     return cells[Id(gidx)];
@@ -753,7 +754,7 @@ public:
    *
    * @param fun any function that operates on id and gidx
    */
-  void LoopOver(std::function<void(int id, const Vectorni& gidx)> fun) {
+  void LoopOver(std::function<void(int id, const Vectorni& gidx)> fun) const {
     int id=0;
     Vectorni gidx;
     switch(n){
@@ -843,7 +844,7 @@ public:
   }
 
   /**
-   * Converts a set of points in metric coordinate to grid coordinates in placeS
+   * Converts a set of points in metric coordinate to grid coordinates in place
    * @param coord In metric coordinates. After update they are in grid coordinates
    */
   void ToGridCoordinates(vector<Vectornd>& coord) const{
@@ -909,7 +910,7 @@ public:
       cerealout(grid);
       fs.close();
     }else{
-      cout<<"Couldn't open file:"<< filename<<" to write"<<endl;
+      std::cout<<"Couldn't open file:"<< filename<<" to write"<<std::endl;
     }
   }
 
@@ -925,8 +926,9 @@ public:
       pgrid.reset(new GridCore<Vectornd,CellContent>());
       cereal::BinaryInputArchive cerealin(fs);
       cerealin(*pgrid);
+      fs.close();
     }else{
-      cout<<"Couldn't open file:"<< filename<<" to read"<<endl;
+      std::cout<<"Couldn't open file:"<< filename<<" to read"<<std::endl;
     }
     return pgrid;
   }

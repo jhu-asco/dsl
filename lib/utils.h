@@ -8,6 +8,28 @@
 
 namespace dsl {
 
+/**
+ * Container that can store RGB image with a maximum bit depth of 0xffff
+ */
+struct ImageRGB{
+  enum BitDepth: uint16_t{ BD8  = 0xff, BD16 = 0xffff };
+
+  int w, h;
+
+  uint16_t bitdepth; //supported values: 1, 0xff, 0xffff
+  vector<uint16_t> rdata;
+  vector<uint16_t> gdata;
+  vector<uint16_t> bdata;
+
+  void changeBitDepth(BitDepth bitdepth_new);
+};
+
+void removeComment(ifstream &f);
+
+bool loadPPM(ImageRGB& img, const string& filename);
+
+bool savePPM(ImageRGB& img,  const string& filename);
+
 void save_map(const char* map, int width, int height, const char* filename);
 
 char* load_map(int &width, int &height, const char* filename);

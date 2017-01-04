@@ -23,9 +23,8 @@ struct TerrainData{
   TerrainData(double height=std::numeric_limits<double>::quiet_NaN(),
               double traversibility=std::numeric_limits<double>::quiet_NaN());
 
-  double height; ///< Height of the cell relative to the origin. Change is height is potential energy change
-  double traversibility;///<Traversibility is -ve if occ else +ve. distance*Traversibility is friction losses
-  ///<The minimum value of traversibility = 1
+  double height; ///< Height of the cell relative to the origin.
+  double traversibility;///<Traversibility is nan if cell is occupied. Distance*Traversibility is friction loss.
   //double pitch; ///< pitch
   //double roll;  ///< roll
 };
@@ -44,6 +43,13 @@ using TerrainSE2GridBase = Grid< TerrainCell::PointType, TerrainCell::DataType >
  */
 class TerrainSE2Grid : public TerrainSE2GridBase {
 public:
+
+  /**
+   * Construct terrainse2grid
+   * @param cmap Configuration space(angle, x and y) occupancy map
+   * @param tmap Terrain data map
+   * @param cs cell size of the grid created
+   */
   TerrainSE2Grid(const Map<bool, 3> &cmap, const Map<TerrainData,2>& tmap, const Eigen::Vector3d& cs);
 };
 }

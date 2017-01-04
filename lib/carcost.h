@@ -48,7 +48,7 @@ public:
    *
    * @param a Start Cell
    * @param b End Cell
-   * @return true cost of moving from a to b. If no path, returns numeric_limits<double>::max();
+   * @return true cost of moving from a to b. If no path, returns numeric_limits<double>::quiet_NaN();
    */
   double Real(const SE2Cell& a, const SE2Cell& b) const;
 
@@ -63,13 +63,13 @@ public:
    */
   double Heur(const SE2Cell& a, const SE2Cell& b) const;
 
-  const CarGrid& grid; ///< reference to the grid structure. Enables CarCost to give cost from cell a to b.
+  const CarGrid& grid_; ///< reference to the grid structure. Enables CarCost to give cost from cell a to b.
 
-  bool use_twistnorm_metric; ///< if true uses twistnorm_metric else distance_metric
+  bool use_twistnorm_metric_; ///< if true uses twistnorm_metric else distance_metric
 
-  Vector3d wt; ///< weight for weighted norm of the twist between two SE2 cells used by twistnorm_metric
-  double ac = 1; ///< angular cost coefficient used by distance_metric(see explanation above),
-  double eps = 1e-6; ///< for Heur cost a factor of (1-eps) is multiplied to final cost to ensure admissability
+  Vector3d wt_; ///< weight for weighted norm of the twist between two SE2 cells used by twistnorm_metric
+  double ac_ = 1; ///< angular cost coefficient used by distance_metric(see explanation above),
+  double eps_ = 1e-6; ///< for Heur cost a factor of (1-eps) is multiplied to final cost to ensure admissability
 };
 }
 

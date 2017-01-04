@@ -36,36 +36,31 @@ int main(int argc, char** argv)
   params.GetVector3d("gcs", gcs);  
 
   // load an occupancy map from ppm file
-  dsl::Map<bool, 2>::Ptr pomap = load(mapName, ocs.tail<2>());
-  dsl::Map<bool, 2>& omap = *pomap;
+  dsl::Map<bool, 2>::Ptr omap = loadPPM(mapName, ocs.tail<2>());
 
   // a map that we'll use for display
-  dsl::Map<bool, 2> dmap = omap;
+  dsl::Map<bool, 2> dmap = *omap;
 
   // dimensions are determined from occupancy map
-  Vector3d xlb(-M_PI + gcs[0]/2, omap.xlb[0], omap.xlb[1]);
-  Vector3d xub(M_PI + gcs[0]/2, omap.xub[0], omap.xub[1]);
+  Vector3d xlb(-M_PI + gcs[0]/2, omap->xlb[0], omap->xlb[1]);
+  Vector3d xub(M_PI + gcs[0]/2, omap->xub[0], omap->xub[1]);
 
   // configuration-space map
-  dsl::Map<bool, 3> cmap(xlb, xub, ocs);
-  
-  //CarGrid::MakeMap(omap, cmap);
-  /* for non-point geometry comment this out */
   double l=3;
   double b=1.5;
   double ox = -0.75;
   double oy = 0;
   CarGeom geom(l, b, ox, oy);
-  MakeSE2Map(geom, omap, cmap);
+  dsl::Map<bool, 3>::Ptr cmap = makeCmap(*omap,ocs(0),geom);
   
-  CarGrid grid(cmap, gcs);
+  CarGrid grid(*cmap, gcs);
 
   dsl::Map<bool, 3>::SlicePtr smap;
-  smap = cmap.GetSlice(-M_PI+0.05, 0);
+  smap = cmap->GetSlice(-M_PI+0.05, 0);
   
   // save it to image for viewing
-  save(dmap, "path1.ppm");
-  save(*smap, "slice0.ppm");
+  savePPM(dmap, "path1.ppm");
+  savePPM(*smap, "slice0.ppm");
 
   return 0;
 }

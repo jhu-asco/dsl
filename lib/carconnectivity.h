@@ -11,8 +11,9 @@
 
 #include "gridconnectivity.h"
 #include "cargrid.h"
+#include "terrainse2grid.h"
 #include <vector>
-#include "carcost.h"
+#include "gridcost.h"
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
@@ -40,8 +41,8 @@ struct CarPrimitiveConfig {
  *
  * Author: Marin Kobilarov and Subhransu Mishra
  */
-template<typename ConnectionType>
-class CarConnectivity: public GridConnectivity< SE2Cell::PointType, SE2Cell::DataType, ConnectionType > {
+template<typename PointType, typename DataType, typename ConnectionType>
+class SE2GridConnectivity: public GridConnectivity< PointType, DataType, ConnectionType > {
 public:
 
   /**
@@ -49,7 +50,7 @@ public:
    * @param grid The car grid
    * @param cfg The configuration for generating primitives
    */
-  CarConnectivity(const CarGrid& grid,const CarCost& cost, CarPrimitiveConfig& cfg, bool allow_slip = true)
+  SE2GridConnectivity(const Grid<PointType,DataType>& grid,const GridCost<PointType, DataType>& cost, CarPrimitiveConfig& cfg, bool allow_slip = true)
 :grid(grid),cost(cost), allow_slip(allow_slip){
     SetPrimitives(1, cfg);
   }
@@ -61,7 +62,7 @@ public:
    * @param vbs body-fixed velocities (each v=(vw,vx,vy))
    * @param dt time duration
    */
-  CarConnectivity(const CarGrid& grid,const CarCost& cost,
+  SE2GridConnectivity(const Grid<PointType,DataType>& grid,const GridCost<PointType, DataType>& cost,
                   const std::vector<Eigen::Vector3d>& vbs,
                   double dt = .25, bool allow_slip = true) : grid(grid),cost(cost), vbs(vbs), dt(dt), allow_slip(allow_slip)
   {
@@ -77,7 +78,7 @@ public:
    * making the motion primitives
    * @param onlyfwd If true, then only +ve forward velocity is used
    */
-  CarConnectivity(const CarGrid& grid,const CarCost& cost,
+  SE2GridConnectivity(const Grid<PointType,DataType>& grid,const GridCost<PointType, DataType>& cost,
                   double dt = .25,
                   double vx = 5,
                   double kmax = 0.577,
@@ -195,11 +196,11 @@ public:
     return true;
   }
 
-  bool operator()(const SE2Cell& from,
-                  std::vector< std::tuple<SE2CellPtr, ConnectionType, double> >& paths,
+  bool operator()(const Cell<PointType,DataType>& from,
+                  std::vector< std::tuple<std::shared_ptr<Cell<PointType,DataType> >, ConnectionType, double> >& paths,
                   bool fwd = true) const override;
 
-  bool Free(const Eigen::Matrix3d &g) const override {
+  bool Free(const DataType &g) const override {
     return true;
   }
 
@@ -210,22 +211,24 @@ public:
    */
   bool GetPrims(const Vector3d pos, vector<vector<Vector2d>>& prims ){
     //Display the primitive at start
-    SE2CellPtr cell_start = grid.Get(pos);
+    std::shared_ptr<Cell<PointType,DataType> > cell_start = grid.Get(pos);
     if(!cell_start){
       prims.clear();
       return false;
     }
-    vector<std::tuple< SE2CellPtr, ConnectionType, double> > paths;
+    vector<std::tuple< std::shared_ptr<Cell<PointType,DataType> >, ConnectionType, double> > paths;
     if(cell_start){
       (*this)(*cell_start,paths,true);
-      Matrix3d g0 = cell_start->data;
+
+      Matrix3d g0; se2_q2g(g0, cell_start->c);
       prims.reserve(paths.size());
       for(auto& path:paths){
-        SE2CellPtr cell_to = std::get<0>(path);
+        std::shared_ptr<Cell<PointType,DataType> > cell_to = std::get<0>(path);
         if(!cell_to)
           continue;
+        Matrix3d gto; se2_q2g(gto, cell_to->c);
 
-        Matrix3d gi,dg; se2_inv(gi,g0); dg = gi*cell_to->data; //relative of from.data to to->data
+        Matrix3d gi,dg; se2_inv(gi,g0); dg = gi*gto; //relative of from.data to to->data
         Vector3d v; se2_log(v,dg);//twist that take you exactly to successor
         double d = fabs(v[1]); // total distance along curve
         int n_seg = ceil(d/ (2 * grid.cs[1])); // 2 * grid.cs[1] is to improve efficiency
@@ -247,15 +250,16 @@ public:
     }
   }
 
-  const CarGrid& grid; ///< the grid
-  const CarCost& cost; ///< cost interface that gives you cost of taking primitive and if path is blocked
+  const Grid<PointType,DataType>& grid; ///< the grid
+  const GridCost<PointType, DataType>& cost; ///< cost interface that gives you cost of taking primitive and if path is blocked
   std::vector< Eigen::Vector3d > vbs; ///< primitives defined using motions with constant body-fixed velocities (w,vx,vy)
   double dt = .5; ///< how long are the primitives
   bool allow_slip; ///< to use primitive with slip or the no_slip counterpart? slip is accurate but not suitable for car
 };
 
-using CarTwistConnectivity = CarConnectivity<SE2Twist>;
-using CarPathConnectivity  = CarConnectivity<SE2Path>;
+using CarTwistConnectivity     = SE2GridConnectivity<SE2Cell::PointType, SE2Cell::DataType, SE2Twist>;
+using CarPathConnectivity      = SE2GridConnectivity<SE2Cell::PointType, SE2Cell::DataType, SE2Path>;
+using TerrainTwistConnectivity = SE2GridConnectivity<TerrainCell::PointType, TerrainCell::DataType, SE2Twist>;
 }
 
 #endif //DSL_CARCONNECTIVITY_H

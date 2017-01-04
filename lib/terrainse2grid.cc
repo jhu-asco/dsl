@@ -28,7 +28,9 @@ TerrainData::TerrainData(double height, double traversibility)
 
 TerrainSE2Grid::TerrainSE2Grid(const Map<bool, 3> &cmap, const Map<TerrainData,2>& tmap,
                                const Eigen::Vector3d& cs)
-: TerrainSE2GridBase(cmap.xlb, cmap.xub, cs,TerrainSE2GridBase::Vectornb(true,false,false)) {
+: TerrainSE2GridBase(cmap.xlb, cmap.xub, cs,
+                     TerrainSE2GridBase::Vectornb(true, false, false),
+                     TerrainSE2GridBase::Vectornb(true, true, true)) {
 
   //Iterate over all cells
   auto fun = [&](int id, const Vector3i& gidx){
@@ -44,4 +46,4 @@ TerrainSE2Grid::TerrainSE2Grid(const Map<bool, 3> &cmap, const Map<TerrainData,2
   LoopOver(fun);
 
 }
-}
+} //namespace dsl

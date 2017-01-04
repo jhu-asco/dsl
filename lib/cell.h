@@ -9,6 +9,8 @@
 #ifndef DSL_CELL_H
 #define DSL_CELL_H
 
+#include <memory>
+
 namespace dsl {
 
 /**

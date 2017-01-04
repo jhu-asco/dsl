@@ -19,11 +19,24 @@ CarGeom::CarGeom (const Vector5d& lboxoysb){
 }
 
 void CarGeom::set(double l, double b, double ox, double oy, double sb){
-  l_ = l; b_ = b; ox_ = ox; oy_ =oy; sb_ = sb; le_ = l+2*sb; be_ = b+2*sb;
+  l_ = l;
+  b_ = b;
+  ox_ = ox;
+  oy_ =oy;
+  sb_ = sb;
+
+  le_ = l_ + 2*sb;
+  be_ = b_ + 2*sb;
 }
 void CarGeom::set(const Vector5d& lboxoysb){
-  l_ = lboxoysb[0]; b_ = lboxoysb[1]; ox_ = lboxoysb[1]; oy_ = lboxoysb[1]; sb_ = lboxoysb[4];
-  le_ = l_+2*sb_; be_ = b_+2*sb_;
+  l_ = lboxoysb[0];
+  b_ = lboxoysb[1];
+  ox_ = lboxoysb[2];
+  oy_ = lboxoysb[3];
+  sb_ = lboxoysb[4];
+
+  le_ = l_ + 2*sb_;
+  be_ = b_ + 2*sb_;
 }
 
 void CarGeom::Raster(const Eigen::Vector2d &cs, std::vector<Eigen::Vector2d> &points) const {

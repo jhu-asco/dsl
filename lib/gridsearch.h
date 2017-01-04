@@ -60,11 +60,12 @@ using std::vector;
  * there is cost of transitioning between two cells.
  *
  */
-template < class PT, class DT, class ConnectionType = std::vector< Cell<PT, DT>* > >
-  class GridSearch : public Search< Cell<PT, DT>, ConnectionType > {
+template < class PT, class DT, class CT = std::vector< Cell<PT, DT>* > >
+  class GridSearch : public Search< Cell<PT, DT>, CT > {
 public:
   using PointType = PT;
   using DataType = DT;
+  using ConnectionType = CT;
 
   using GridVertexData = Cell<PointType, DataType>;
   using GridEdgeData = ConnectionType;

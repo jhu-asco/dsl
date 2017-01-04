@@ -6,6 +6,9 @@ target_link_libraries(test2d dsl)
 add_executable(cartest cartest.cc)
 target_link_libraries(cartest dsl)
 
+add_executable(terraincartest terraincartest.cc)
+target_link_libraries(terraincartest dsl)
+
 add_executable(test_cargrid test_cargrid.cc)
 target_link_libraries(test_cargrid dsl)
 
@@ -24,6 +27,14 @@ target_link_libraries(loopindexspeedtest dsl)
 # Testing the function of gridutils class
 add_executable(gridutilstest gridutilstest.cc)
 target_link_libraries(gridutilstest dsl)
+
+# Testing reading writing of .ppm files
+add_executable(reading_writing_ppm reading_writing_ppm.cc)
+target_link_libraries(reading_writing_ppm dsl)
+
+# Testing yaml file parsing
+#add_executable(yamlreadtest yamlreadtest.cc)
+#target_link_libraries(yamlreadtest dsl)
 
 #add_executable(test test.cc)
 
