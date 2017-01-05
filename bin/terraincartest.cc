@@ -115,7 +115,7 @@ int main(int argc, char** argv)
     printf("  cmap construction time= %ld  us\n", time);
 
     cmapfile = tmapfile;
-    replaceExt(cmapfile, string("cmap"));
+    ReplaceExtension(cmapfile, string("cmap"));
     dsl::Map<bool,3>::Save(*cmap, cmapfile);
     cout << "  Saved cmap in "<<cmapfile <<" with"<<endl;
     cout << "    xlb=" << cmap->xlb().transpose().format(eigformat)<<endl;

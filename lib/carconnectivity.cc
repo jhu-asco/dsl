@@ -8,13 +8,13 @@ bool CarTwistConnectivity::operator()(const SE2Cell& from,
                                            bool fwd) const{
   std::set<int> cells_visited; //stored index of all the cells visited
   paths.clear();
-  for (auto& vb : vbs) {
-    Vector3d vdt_suggested = vb*(fwd ? dt: -dt); //suggested twist(because it will be snapped to cell center)
+  for (auto& vb : vbs_) {
+    Vector3d vdt_suggested = vb*(fwd ? dt_: -dt_); //suggested twist(because it will be snapped to cell center)
     Matrix3d dg; se2_exp(dg, vdt_suggested);//relative transform
     Matrix3d g_from; se2_q2g(g_from,from.c);
     Matrix3d g_to; g_to = g_from*dg;//end pose resulting from the twist
     Vector3d axy; se2_g2q(axy, g_to);
-    SE2CellPtr to; to = grid.Get(axy);
+    SE2CellPtr to; to = grid_.Get(axy);
     if (!to) // "to" cell is not a part of the grid(because it has an obstacle)
       continue;
     se2_q2g(g_to,to->c);
@@ -26,7 +26,7 @@ bool CarTwistConnectivity::operator()(const SE2Cell& from,
       continue;
 
     //Get cost and check if path is clear
-    double primcost = cost.Real(from,*to);
+    double primcost = cost_.Real(from,*to);
     if(std::isnan(primcost)) //path is not clear
       continue;
 
@@ -42,8 +42,8 @@ bool CarTwistConnectivity::operator()(const SE2Cell& from,
     //twist that take you exactly to successor
     //no slip velocity to successors cell(only position not orientation)
     Vector3d vdt_slip; se2_log(vdt_slip,dg);
-    Vector3d vdt_noslip; vdt_noslip << getWVx(dg(0,2),dg(1,2)),0;
-    Vector3d vdt_final = allow_slip ? vdt_slip : vdt_noslip;
+    Vector3d vdt_noslip; vdt_noslip << se2_get_wvx(dg(0,2),dg(1,2)),0;
+    Vector3d vdt_final = allow_slip_ ? vdt_slip : vdt_noslip;
 
     std::tuple< SE2CellPtr, SE2Twist, double> pathTuple(to,vdt_final,primcost);
     paths.push_back(pathTuple);
@@ -57,13 +57,13 @@ bool TerrainTwistConnectivity::operator()(const TerrainCell& from,
                                            bool fwd) const{
   std::set<int> cells_visited; //stored index of all the cells visited
   paths.clear();
-  for (auto& vb : vbs) {
-    Vector3d vdt_suggested = vb*(fwd ? dt: -dt); //suggested twist(because it will be snapped to cell center)
+  for (auto& vb : vbs_) {
+    Vector3d vdt_suggested = vb*(fwd ? dt_: -dt_); //suggested twist(because it will be snapped to cell center)
     Matrix3d dg; se2_exp(dg, vdt_suggested);//relative transform
     Matrix3d g_from; se2_q2g(g_from,from.c);
     Matrix3d g_to; g_to = g_from*dg;//end pose resulting from the twist
     Vector3d axy; se2_g2q(axy, g_to);
-    TerrainCellPtr to; to = grid.Get(axy);
+    TerrainCellPtr to; to = grid_.Get(axy);
     if (!to) // "to" cell is not a part of the grid(because it has an obstacle)
       continue;
     se2_q2g(g_to,to->c);
@@ -75,7 +75,7 @@ bool TerrainTwistConnectivity::operator()(const TerrainCell& from,
       continue;
 
     //Get cost and check if path is clear
-    double primcost = cost.Real(from,*to);
+    double primcost = cost_.Real(from,*to);
     if(std::isnan(primcost)) //path is not clear
       continue;
 
@@ -91,8 +91,8 @@ bool TerrainTwistConnectivity::operator()(const TerrainCell& from,
     //twist that take you exactly to successor
     //no slip velocity to successors cell(only position not orientation)
     Vector3d vdt_slip; se2_log(vdt_slip,dg);
-    Vector3d vdt_noslip; vdt_noslip << getWVx(dg(0,2),dg(1,2)),0;
-    Vector3d vdt_final = allow_slip ? vdt_slip : vdt_noslip;
+    Vector3d vdt_noslip; vdt_noslip << se2_get_wvx(dg(0,2),dg(1,2)),0;
+    Vector3d vdt_final = allow_slip_ ? vdt_slip : vdt_noslip;
 
     std::tuple< TerrainCellPtr, SE2Twist, double> pathTuple(to,vdt_final,primcost);
     paths.push_back(pathTuple);
@@ -108,12 +108,12 @@ bool CarPathConnectivity::
 
   std::set<int> cells_visited; //stored index of all the cells visited
   paths.clear();
-  for (auto& vb : vbs) {
-    Vector3d vdt_suggested = vb*(fwd ? dt: -dt); //suggested twist(because it will be snapped to cell center)
+  for (auto& vb : vbs_) {
+    Vector3d vdt_suggested = vb*(fwd ? dt_: -dt_); //suggested twist(because it will be snapped to cell center)
     Matrix3d dg; se2_exp(dg, vdt_suggested); //relative transform
     Matrix3d g; g = from.data*dg; //end pose resulting from the twist
     Vector3d axy; se2_g2q(axy, g);
-    SE2CellPtr to; to = grid.Get(axy); //snap the end pose to grid
+    SE2CellPtr to; to = grid_.Get(axy); //snap the end pose to grid
     if (!to) // "to" cell is not a part of the grid(because it has an obstacle)
       continue;
 
@@ -124,17 +124,17 @@ bool CarPathConnectivity::
       continue;
 
     //Get cost and check if path is clear
-    double primcost = cost.Real(from,*to);
+    double primcost = cost_.Real(from,*to);
     if(std::isnan(primcost)) //path is not clear
       continue;
 
     //sample states along the path
     Matrix3d gi; se2_inv(gi,from.data); dg = gi*to->data; //relative of from.data to to->data
     Vector3d vdt_slip; se2_log(vdt_slip,dg);//twist that take you exactly to successor
-    Vector3d vdt_noslip;vdt_noslip << getWVx(dg(0,2),dg(1,2)),0;//twist that takes you to successor(exactly only in position, not orientation))
-    Vector3d vdt_final = allow_slip ? vdt_slip : vdt_noslip;
+    Vector3d vdt_noslip;vdt_noslip << se2_get_wvx(dg(0,2),dg(1,2)),0;//twist that takes you to successor(exactly only in position, not orientation))
+    Vector3d vdt_final = allow_slip_ ? vdt_slip : vdt_noslip;
     double d = vdt_final.tail<2>().norm(); // total distance along curve
-    int n_seg = ceil(d/(2*grid.cs()[1])); // 2 * grid.cs()[1] is to improve efficiency
+    int n_seg = ceil(d/(2*grid_.cs()[1])); // 2 * grid.cs()[1] is to improve efficiency
     double d_seg = d/n_seg;
     SE2Path path; path.resize(n_seg); // path doesn't include start
     if(fwd){

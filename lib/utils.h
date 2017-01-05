@@ -8,28 +8,6 @@
 
 namespace dsl {
 
-/**
- * Container that can store RGB image with a maximum bit depth of 0xffff
- */
-struct ImageRGB{
-  enum BitDepth: uint16_t{ BD8  = 0xff, BD16 = 0xffff };
-
-  int w, h;
-
-  uint16_t bitdepth; //supported values: 1, 0xff, 0xffff
-  vector<uint16_t> rdata;
-  vector<uint16_t> gdata;
-  vector<uint16_t> bdata;
-
-  void changeBitDepth(BitDepth bitdepth_new);
-};
-
-void removeComment(ifstream &f);
-
-bool LoadPpm(ImageRGB& img, const string& filename);
-
-bool SavePpm(ImageRGB& img,  const string& filename);
-
 void save_map(const char* map, int width, int height, const char* filename);
 
 char* load_map(int &width, int &height, const char* filename);
@@ -40,34 +18,59 @@ long timer_us(struct timeval* time);
 
 double fangle(double a);
 
+/**
+ * Convert SE2 Matrix to its coordinate representation
+ * @param m
+ * @param q
+ */
 void se2_q2g(Eigen::Matrix3d& m, const Eigen::Vector3d& q);
 
+/**
+ * Obtain SE2 Matrix from its coordinate representation
+ * @param q
+ * @param m
+ */
 void se2_g2q(Eigen::Vector3d& q, const Eigen::Matrix3d& m);
 
+/**
+ * Invert a SE2 Matrix. Not same as matrix inverse.
+ * @param mi
+ * @param m
+ */
 void se2_inv(Eigen::Matrix3d& mi, const Eigen::Matrix3d& m);
 
+/**
+ * Exponentiate the se2 element(twist) to obtain SE2 Matrix
+ * @param m
+ * @param v
+ * @param tol
+ */
 void se2_exp(Eigen::Matrix3d& m, const Eigen::Vector3d& v, double tol = 1e-16);
 
+/**
+ * Take the log of the SE2 Matrix to obtain se2 element(twist)
+ * @param v
+ * @param m
+ * @param tol
+ */
 void se2_log(Eigen::Vector3d& v, const Eigen::Matrix3d& m, double tol = 1e-16);
 
 /**
  * se2 twist(only w and vx) that takes you exactly only to (xf,yf) and not angle
  * @param xf
  * @param yf
- * @return e2 twist(only w and vx)
+ * @return twist(only w and vx). vy=0
  */
-Vector2d getWVx( double xf,double yf);
-
-void replaceExt(std::string& s, const std::string& newExt);
+Eigen::Vector2d se2_get_wvx( double xf,double yf);
 
 /**
  * Removes the specified dimension. [10,56,75] = removedDim( [10,14,56,75], 1 );
- * @param in input vector
+ * @param in input std::vector
  * @param dim dimension to remove
- * @return output vector
+ * @return output std::vector
  */
 template<typename T,int n>
-Eigen::Matrix<T,n-1,1> removeDim(const Eigen::Matrix<T,n,1>& in, int dim){
+Eigen::Matrix<T,n-1,1> RemoveDimension(const Eigen::Matrix<T,n,1>& in, int dim){
   assert(dim>=0 && dim <n);
   dim = dim<0 ? 0 : dim;
   dim = dim>=n ? n-1 : dim;
@@ -80,17 +83,17 @@ Eigen::Matrix<T,n-1,1> removeDim(const Eigen::Matrix<T,n,1>& in, int dim){
 
 /**
  *Inserts an extra dim and sets the value at that dim.
- *e.g. [100, 10, 14, 56, 75] = insertDim( [10,14,56,75], 100, 0);
- *e.g. [ 10,100, 14, 56, 75] = insertDim( [10,14,56,75], 100, 1);
- *e.g. [ 10, 14, 56,100, 75] = insertDim( [10,14,56,75], 100, 3);
- *e.g. [ 10, 14, 56, 75,100] = insertDim( [10,14,56,75], 100, 4);
- * @param in input vector
+ *e.g. [100, 10, 14, 56, 75] = InsertDimension( [10,14,56,75], 100, 0);
+ *e.g. [ 10,100, 14, 56, 75] = InsertDimension( [10,14,56,75], 100, 1);
+ *e.g. [ 10, 14, 56,100, 75] = InsertDimension( [10,14,56,75], 100, 3);
+ *e.g. [ 10, 14, 56, 75,100] = InsertDimension( [10,14,56,75], 100, 4);
+ * @param in input std::vector
  * @param dim dimension where to insert
  * @param val value to insert
- * @return output vector
+ * @return output std::vector
  */
 template<typename T,int n>
-Eigen::Matrix<T,n+1,1> insertDim(const Eigen::Matrix<T,n,1>& in, int dim, T val){
+Eigen::Matrix<T,n+1,1> InsertDimension(const Eigen::Matrix<T,n,1>& in, int dim, T val){
   assert(dim>=0 && dim <=n);
   dim = dim<0 ? 0 : dim;
   dim = dim>n ? n : dim;
@@ -113,6 +116,14 @@ template < typename T >
 int sgn(T val) {
   return (T(0) < val) - (val < T(0));
 }
+
+/**
+ * Change the extension of a std::string.
+ * @param s
+ * @param newExt
+ */
+void ReplaceExtension(std::string& s, const std::string& new_extension);
+
 }
 
 #endif

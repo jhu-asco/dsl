@@ -254,10 +254,10 @@ public:
     Vectornp1b wd_stack;
 
     //Get the new dimension
-    xlb_stack = insertDim(xlb_,i, lbi);
-    xub_stack = insertDim(xub_,i, ubi);
-    gs_stack  = insertDim(gs_, i, gsi);
-    wd_stack  = insertDim(wd_, i, wdi);
+    xlb_stack = InsertDimension(xlb_,i, lbi);
+    xub_stack = InsertDimension(xub_,i, ubi);
+    gs_stack  = InsertDimension(gs_, i, gsi);
+    wd_stack  = InsertDimension(wd_, i, wdi);
 
     StackPtr pstack(new Stack(xlb_stack,xub_stack, gs_stack, wd_stack));
 
@@ -267,7 +267,7 @@ public:
     //Iterate over all cells
     auto fun = [&](int id, const Vectorni& gidx) {
       for( int idx=0; idx < pstack->gs_[i] ; idx++ ){ //repeat val it along the extra dimension
-        Vectornp1i gidx_stack = insertDim(gidx,i,idx);
+        Vectornp1i gidx_stack = InsertDimension(gidx,i,idx);
         pstack->cells_[pstack->Id(gidx_stack)] = cells_[id]; //get value of that cell
       }
     };
@@ -296,10 +296,10 @@ public:
 
 
     //Get the new dimension
-    xlb_stack = insertDim(xlb_,i, lbi);
-    xub_stack = insertDim(xub_,i, ubi);
-    scs_stack = insertDim(cs_, i, scsi);
-    wd_stack  = insertDim(wd_, i, wdi);
+    xlb_stack = InsertDimension(xlb_,i, lbi);
+    xub_stack = InsertDimension(xub_,i, ubi);
+    scs_stack = InsertDimension(cs_, i, scsi);
+    wd_stack  = InsertDimension(wd_, i, wdi);
 
     StackPtr pstack(new Stack(xlb_stack,xub_stack, scs_stack, wd_stack));
 
@@ -311,7 +311,7 @@ public:
       Vectorni gidx; Index(gidx,id);
       CellContent val = cells_[id];
       for( int idx=0; idx < pstack->gs()[i] ; idx++ ){
-        Vectornp1i gidx_stack = insertDim(gidx,i,idx);
+        Vectornp1i gidx_stack = InsertDimension(gidx,i,idx);
         pstack->cells_[pstack->Id(gidx_stack)] = val;
       }
     }
@@ -331,10 +331,10 @@ public:
     Vectornm1b wd_slice;
 
     //Get the new dimension
-    xlb_slice = removeDim(xlb_,i);
-    xub_slice = removeDim(xub_,i);
-    gs_slice  = removeDim(gs_,i);
-    wd_slice  = removeDim(wd_,i);
+    xlb_slice = RemoveDimension(xlb_,i);
+    xub_slice = RemoveDimension(xub_,i);
+    gs_slice  = RemoveDimension(gs_,i);
+    wd_slice  = RemoveDimension(wd_,i);
 
     SlicePtr pslice(new Slice(xlb_slice,xub_slice, gs_slice, wd_slice));
 
@@ -343,7 +343,7 @@ public:
 
     for(int id_slice=0; id_slice < pslice->nc_; id_slice++){
       Vectornm1i gidx_slice; pslice->Index(gidx_slice,id_slice);
-      Vectorni gidx = insertDim(gidx_slice,i,idx);
+      Vectorni gidx = InsertDimension(gidx_slice,i,idx);
       pslice->cells_[id_slice] = Get(Id(gidx));
     }
     return pslice;
@@ -369,12 +369,12 @@ public:
       */
      void GetSlice(Slice& slice, int idx, int dim, bool init = true) const {
        //Get the new dimension
-       slice.xlb_ = removeDim(xlb_,dim);
-       slice.xub_ = removeDim(xub_,dim);
-       slice.gs_  = removeDim(gs_,dim);
-       slice.wd_  = removeDim(wd_,dim);
-       slice.cs_  = removeDim(cs_,dim);
-       slice.ds_  = removeDim(ds_,dim);
+       slice.xlb_ = RemoveDimension(xlb_,dim);
+       slice.xub_ = RemoveDimension(xub_,dim);
+       slice.gs_  = RemoveDimension(gs_,dim);
+       slice.wd_  = RemoveDimension(wd_,dim);
+       slice.cs_  = RemoveDimension(cs_,dim);
+       slice.ds_  = RemoveDimension(ds_,dim);
        slice.nc_=1;
        slice.cgs_[0]=1;
        for(int i = 0; i < n_-1; i++){
@@ -389,7 +389,7 @@ public:
 
        for(int id_slice=0; id_slice < slice.nc(); id_slice++){
          Vectornm1i midx_slice; slice.Index(midx_slice,id_slice);
-         Vectorni midx = insertDim(midx_slice,dim,idx); //midx is multidim index
+         Vectorni midx = InsertDimension(midx_slice,dim,idx); //midx is multidim index
          slice.cells_[id_slice] = Get(Id(midx));
        }
      }
@@ -519,7 +519,7 @@ public:
   bool CellCenter(Vectornd& x, int id) const{
     Vectorni gidx;
     if(!Index(gidx,id)){
-      x = Vectornd::Constant(numeric_limits<double>::quiet_NaN());
+      x = Vectornd::Constant(std::numeric_limits<double>::quiet_NaN());
       return false;
     }
     x = xlb_.array() +  (gidx.template cast<double>()+Vectornd::Constant(0.5)).array()*cs_.array() ;
@@ -614,7 +614,7 @@ public:
    */
   bool Index(Vectorni& gidx, int id) const {
     if(id>=nc_ || id<0){
-      gidx = Vectorni::Constant(numeric_limits<double>::quiet_NaN());
+      gidx = Vectorni::Constant(std::numeric_limits<double>::quiet_NaN());
       return false;
     }
 
@@ -890,7 +890,7 @@ public:
    * @param map
    * @param filename
    */
-  static void Save( GridCore<Vectornd,CellContent>& grid, const string& filename) {
+  static void Save( GridCore<Vectornd,CellContent>& grid, const std::string& filename) {
     std::ofstream fs(filename, std::fstream::out | std::ios::binary);
     if(fs.is_open()){
       //Serialize and write to file
@@ -907,7 +907,7 @@ public:
    * @param filename
    * @return
    */
-  static Ptr Load(const string& filename) {
+  static Ptr Load(const std::string& filename) {
     Ptr pgrid;
     std::ifstream fs (filename, std::fstream::in | std::ios::binary);
     if(fs.is_open()){
@@ -953,7 +953,7 @@ public:
   }
   inline void set_cells(const std::vector<CellContent>& cells){
     if(nc_ != cells.size())
-      throw length_error(" cells don't have the same length as nc.");
+      throw std::length_error(" cells don't have the same length as nc.");
     cells_ = cells;
   }
 

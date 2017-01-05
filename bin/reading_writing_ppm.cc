@@ -1,9 +1,9 @@
-#include "utils.h"
+#include "ppm_reader.h"
 #include <iostream>
+#include <assert.h>
 
 using namespace dsl;
 using namespace std;
-using namespace Eigen;
 
 int main(int argc, char** argv)
 {
@@ -19,7 +19,7 @@ int main(int argc, char** argv)
   LoadPpm(img1,argv[1]);
 
   cout<<"converting img1 to bitdepth of 255 and saving it to bitdepth_0xff.ppm"<<endl;
-  img1.changeBitDepth(ImageRGB::BD8);
+  img1.ChangeBitDepth(ImageRGB::BD8);
   SavePpm(img1,"bitdepth_0xff.ppm");
 
   cout<<"Loading the file bitdepth_255.ppm as img2"<<endl;
@@ -27,6 +27,6 @@ int main(int argc, char** argv)
   LoadPpm(img2,"bitdepth_0xff.ppm");
 
   cout<<"converting img2 to bitdepth of 65535 and saving it to bitdepth_0xffff.ppm"<<endl;
-  img2.changeBitDepth(ImageRGB::BD16);
+  img2.ChangeBitDepth(ImageRGB::BD16);
   SavePpm(img2, "saved_0xffff.ppm");
 }

@@ -14,12 +14,9 @@
 #include <Eigen/Geometry>
 namespace dsl {
 
-using namespace Eigen;
-using namespace std;
-
-typedef Transform< double, 2, Affine > Transform2d;
-typedef Matrix< double, 2, 4 > Matrix2x4d;
-typedef Matrix< int, 2, 4 > Matrix2x4i;
+using Transform2d = Eigen::Transform< double, 2, Eigen::Affine >;
+using Matrix2x4d = Eigen::Matrix< double, 2, 4 >;
+using Matrix2x4i = Eigen::Matrix< int, 2, 4 >;
 
 /**
  * Takes in the dimensions of a rectangle, position of its origin and a rotation
@@ -80,7 +77,7 @@ void scaleMap(T* map_scaled, const T* map, int w, int h, int scale) {
  * @param scale Scaling factor
  */
 template < typename T >
-void scaleMap(vector<T>& map_scaled, const vector<T>& map, int w, int h, int scale) {
+void scaleMap(std::vector<T>& map_scaled, const std::vector<T>& map, int w, int h, int scale) {
   int ws = scale * w;
   int hs = scale * h;
 
@@ -106,7 +103,7 @@ void scaleMap(vector<T>& map_scaled, const vector<T>& map, int w, int h, int sca
  * @return
  */
 template < typename T, int m, int n >
-int inPoly(Matrix< T, m, n > verts, Matrix< T, m, 1 > pt) {
+int inPoly(Eigen::Matrix< T, m, n > verts, Eigen::Matrix< T, m, 1 > pt) {
   int i, j, c = 0;
   for (i = 0, j = n - 1; i < n; j = i++) {
     if (((verts(1, i) > pt(1)) != (verts(1, j) > pt(1))) &&
@@ -130,8 +127,8 @@ int inPoly(Matrix< T, m, n > verts, Matrix< T, m, 1 > pt) {
  * @param lw linewidth in pixels
  */
 template < typename T >
-void addLine( T* map, int w, int h, Vector2d p1, Vector2d p2, T lval, double lw) {
-  Vector2d n = Rotation2Dd(M_PI / 2) * (p2 - p1).normalized();
+void addLine( T* map, int w, int h, Eigen::Vector2d p1, Eigen::Vector2d p2, T lval, double lw) {
+  Eigen::Vector2d n = Eigen::Rotation2Dd(M_PI / 2) * (p2 - p1).normalized();
   Matrix2x4d verts2d;
   verts2d.col(0) = p1 + n * lw / 2;
   verts2d.col(1) = p1 - n * lw / 2;
@@ -141,7 +138,7 @@ void addLine( T* map, int w, int h, Vector2d p1, Vector2d p2, T lval, double lw)
   for (int r = 0; r < h; r++) {
     for (int c = 0; c < w; c++) {
       int idx = c + r * w;
-      if (inPoly(verts2d, Vector2d(c, r)))
+      if (inPoly(verts2d, Eigen::Vector2d(c, r)))
         map[idx] = lval;
     }
   }
@@ -159,8 +156,8 @@ void addLine( T* map, int w, int h, Vector2d p1, Vector2d p2, T lval, double lw)
  * @param lw linewidth in pixels
  */
 template < typename T >
-void addLine( vector<T>& map, int w, int h, Vector2d p1, Vector2d p2, T lval, double lw) {
-  Vector2d n = Rotation2Dd(M_PI / 2) * (p2 - p1).normalized();
+void addLine( std::vector<T>& map, int w, int h, Eigen::Vector2d p1, Eigen::Vector2d p2, T lval, double lw) {
+  Eigen::Vector2d n = Eigen::Rotation2Dd(M_PI / 2) * (p2 - p1).normalized();
   Matrix2x4d verts2d;
   verts2d.col(0) = p1 + n * lw / 2;
   verts2d.col(1) = p1 - n * lw / 2;
@@ -170,7 +167,7 @@ void addLine( vector<T>& map, int w, int h, Vector2d p1, Vector2d p2, T lval, do
   for (int r = 0; r < h; r++) {
     for (int c = 0; c < w; c++) {
       int idx = c + r * w;
-      if (inPoly(verts2d, Vector2d(c, r)))
+      if (inPoly(verts2d, Eigen::Vector2d(c, r)))
         map[idx] = lval;
     }
   }
@@ -190,16 +187,16 @@ void addLine( vector<T>& map, int w, int h, Vector2d p1, Vector2d p2, T lval, do
  * @param oy_k y coordinate of the origin of the kernel image
  */
 template < typename T >
-void dilate(vector<T>& data_dil,
-            const vector<T>&  data,
+void dilate(std::vector<T>& data_dil,
+            const std::vector<T>&  data,
             int w,
             int h,
-            const vector<T>& data_k,
+            const std::vector<T>& data_k,
             int w_k,
             int h_k,
             int ox_k,
             int oy_k) {
-  vector< T > prod(h_k * w_k);
+  std::vector< T > prod(h_k * w_k);
 
   // Visit each pixel in the main image
   for (int r = 0; r < h; r++) {
@@ -229,7 +226,7 @@ void dilate(vector<T>& data_dil,
             prod[id_k] = 0;
         }
       }
-      data_dil[id] = *(max_element< typename vector< T >::iterator >(
+      data_dil[id] = *(std::max_element< typename std::vector< T >::iterator >(
           prod.begin(), prod.end()));
 
     }
@@ -246,11 +243,11 @@ void dilate(vector<T>& data_dil,
  * @param val the value that is to be fill in. Rest is 0
  */
 template < typename T = bool>
-    void fillQuad(vector<T>& data, int w, int h, Matrix2x4d verts, T val) {
+    void fillQuad(std::vector<T>& data, int w, int h, Matrix2x4d verts, T val) {
   for (int r = 0; r < h; r++) {
     for (int c = 0; c < w; c++) {
       int idx_2d = c + r * w;
-      if (inPoly(verts, Vector2d(c, r)))
+      if (inPoly(verts, Eigen::Vector2d(c, r)))
         data[idx_2d] = val;
       else
         data[idx_2d] = 0;

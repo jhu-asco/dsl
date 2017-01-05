@@ -7,6 +7,9 @@
 #include "gridutils.h"
 #include <numeric>
 #include "params.h"
+#include "ppm_reader.h"
+#include <thread>
+#include "utilsimg.h"
 
 namespace dsl {
 

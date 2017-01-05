@@ -1,16 +1,12 @@
 #ifndef DSL_GRIDUTILS_H
 #define DSL_GRIDUTILS_H
 
-#include <sys/time.h>
-#include <Eigen/Dense>
 #include "grid.h"
-#include "cargrid.h"
 #include "terrainse2grid.h"
 #include "cargeom.h"
 #include <vector>
-#include "utilsimg.h"
-#include "utils.h"
-#include <thread>
+#include <sys/time.h>
+#include <Eigen/Dense>
 
 namespace dsl {
 /**
@@ -19,14 +15,14 @@ namespace dsl {
  * @param cs cell size
  * @return The loaded map. Nullptr if unsuccesful.
  */
-Map<bool, 2>::Ptr LoadPpm(const string& filename, const Vector2d &cs);
+Map<bool, 2>::Ptr LoadPpm(const std::string& filename, const Vector2d &cs);
 
 /**
- * Save an occupancy map  to a .ppm file
+ * Save a 2D occupancy map to a .ppm file
  * @param map The 2D occupancy map
  * @param filename filename to save the image to
  */
-bool SavePpm(const dsl::Map<bool, 2> &map, const string& filename);
+bool SavePpm(const dsl::Map<bool, 2> &map, const std::string& filename);
 
 /**
  * Save all the slices of an 3D occupancy grid as a series of .ppm file, one for each angle
@@ -34,21 +30,21 @@ bool SavePpm(const dsl::Map<bool, 2> &map, const string& filename);
  * @param folder folder in which to put the images
  * @return True if saving was successful.
  */
-bool SavePpm(const dsl::Map<bool, 3> &cmap, string folder);
+bool SavePpm(const dsl::Map<bool, 3> &cmap, std::string folder);
 
 /**
  * Load an occupancy map from .omap file
  * @param omapfile filename with .omap extension
  * @return The loaded map. Nullptr if unsuccesful.
  */
-Map<bool, 2>::Ptr LoadOmap(const string& omapfile);
+Map<bool, 2>::Ptr LoadOmap(const std::string& omapfile);
 
 /**
  * Load a terrain map from .tmap file
  * @param tmapfile filename with .tmap extension
  * @return The loaded map. Nullptr if unsuccesful.
  */
-Map<TerrainData, 2>::Ptr LoadTmap(const string& tmapfile);
+Map<TerrainData, 2>::Ptr LoadTmap(const std::string& tmapfile);
 
 ///**
 // * Save an occupancy map to .omap file
@@ -72,7 +68,7 @@ Map<TerrainData, 2>::Ptr LoadTmap(const string& tmapfile);
  * @param filename .ppm filename to save the image to
  * @param path 2D path(x and y)
  */
-void SavePpmWithPath(const dsl::Map<bool, 2> &map, const string& filename, const std::vector<Vector2d>& path);
+void SavePpmWithPath(const dsl::Map<bool, 2> &map, const std::string& filename, const std::vector<Vector2d>& path);
 
 /**
  * Save an occupancy map as .ppm image with a start(green), goal(red) and the waypoints(blue) as points.

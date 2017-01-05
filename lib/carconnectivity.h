@@ -51,7 +51,7 @@ public:
    * @param cfg The configuration for generating primitives
    */
   SE2GridConnectivity(const Grid<PointType,DataType>& grid,const GridCost<PointType, DataType>& cost, CarPrimitiveConfig& cfg, bool allow_slip = true)
-:grid(grid),cost(cost), allow_slip(allow_slip){
+:grid_(grid),cost_(cost), allow_slip_(allow_slip){
     SetPrimitives(1, cfg);
   }
 
@@ -64,7 +64,7 @@ public:
    */
   SE2GridConnectivity(const Grid<PointType,DataType>& grid,const GridCost<PointType, DataType>& cost,
                   const std::vector<Eigen::Vector3d>& vbs,
-                  double dt = .25, bool allow_slip = true) : grid(grid),cost(cost), vbs(vbs), dt(dt), allow_slip(allow_slip)
+                  double dt = .25, bool allow_slip = true) : grid_(grid),cost_(cost), vbs_(vbs), dt_(dt), allow_slip_(allow_slip)
   {
   }
 
@@ -85,7 +85,7 @@ public:
                   int kseg = 4,
                   bool onlyfwd = false,
                   bool allow_slip = true)
-  : grid(grid),cost(cost), allow_slip(allow_slip) {
+  : grid_(grid),cost_(cost), allow_slip_(allow_slip) {
     SetPrimitives(dt, vx, kmax, kseg, onlyfwd);
   }
 
@@ -98,8 +98,8 @@ public:
    */
   bool SetPrimitives(double dt, CarPrimitiveConfig& cfg){
 
-    vbs.clear();
-    this->dt = dt;
+    vbs_.clear();
+    this->dt_ = dt;
 
     cfg.nl = cfg.nl<1 ? 1: cfg.nl;  //! Make sure the number of different traj length is atleast 1
     cfg.na = cfg.na<3 ? 3: cfg.na;  //! Make sure the number of differentsteering angle is atleast 3
@@ -135,15 +135,15 @@ public:
         Vector3d vbn(-w*tpert, -u*tpert,0);//reverse vel negative angular vel
 
         if(abs(w)<1e-16){
-          vbs.push_back(vfp);
+          vbs_.push_back(vfp);
           if(!cfg.fwdonly)
-            vbs.push_back(vbp);
+            vbs_.push_back(vbp);
         }else{
-          vbs.push_back(vfp);
-          vbs.push_back(vfn);
+          vbs_.push_back(vfp);
+          vbs_.push_back(vfn);
           if(!cfg.fwdonly){
-            vbs.push_back(vbp);
-            vbs.push_back(vbn);
+            vbs_.push_back(vbp);
+            vbs_.push_back(vbn);
           }
         }
       }
@@ -178,18 +178,18 @@ public:
 
     kseg = kseg < 1 ? 1 : kseg;
 
-    this->dt = dt;
+    this->dt_ = dt;
 
-    vbs.clear();
+    vbs_.clear();
 
     for (int i = 0; i <= kseg; i++) {
       double k = i*kmax/kseg;
       double w = vx*k;
-      vbs.push_back(Vector3d(w, vx, 0));
-      vbs.push_back(Vector3d(-w, vx, 0));
+      vbs_.push_back(Vector3d(w, vx, 0));
+      vbs_.push_back(Vector3d(-w, vx, 0));
       if (!onlyfwd) {
-        vbs.push_back(Vector3d(w, -vx, 0));
-        vbs.push_back(Vector3d(-w, -vx, 0));
+        vbs_.push_back(Vector3d(w, -vx, 0));
+        vbs_.push_back(Vector3d(-w, -vx, 0));
       }
     }
 
@@ -211,7 +211,7 @@ public:
    */
   bool GetPrims(const Vector3d pos, vector<vector<Vector2d>>& prims ){
     //Display the primitive at start
-    std::shared_ptr<Cell<PointType,DataType> > cell_start = grid.Get(pos);
+    std::shared_ptr<Cell<PointType,DataType> > cell_start = grid_.Get(pos);
     if(!cell_start){
       prims.clear();
       return false;
@@ -231,7 +231,7 @@ public:
         Matrix3d gi,dg; se2_inv(gi,g0); dg = gi*gto; //relative of from.data to to->data
         Vector3d v; se2_log(v,dg);//twist that take you exactly to successor
         double d = fabs(v[1]); // total distance along curve
-        int n_seg = ceil(d/ (2 * grid.cs()[1])); // 2 * grid.cs[1] is to improve efficiency
+        int n_seg = ceil(d/ (2 * grid_.cs()[1])); // 2 * grid.cs[1] is to improve efficiency
         double s = d/n_seg;
         vector<Vector2d> prim(0); prim.reserve(n_seg+1);
         prim.push_back(Vector2d(g0(0,2),g0(1,2)));
@@ -250,11 +250,11 @@ public:
     }
   }
 
-  const Grid<PointType,DataType>& grid; ///< the grid
-  const GridCost<PointType, DataType>& cost; ///< cost interface that gives you cost of taking primitive and if path is blocked
-  std::vector< Eigen::Vector3d > vbs; ///< primitives defined using motions with constant body-fixed velocities (w,vx,vy)
-  double dt = .5; ///< how long are the primitives
-  bool allow_slip; ///< to use primitive with slip or the no_slip counterpart? slip is accurate but not suitable for car
+  const Grid<PointType,DataType>& grid_; ///< the grid
+  const GridCost<PointType, DataType>& cost_; ///< cost interface that gives you cost of taking primitive and if path is blocked
+  std::vector< Eigen::Vector3d > vbs_; ///< primitives defined using motions with constant body-fixed velocities (w,vx,vy)
+  double dt_ = .5; ///< how long are the primitives
+  bool allow_slip_; ///< to use primitive with slip or the no_slip counterpart? slip is accurate but not suitable for car
 };
 
 using CarTwistConnectivity     = SE2GridConnectivity<SE2Cell::PointType, SE2Cell::DataType, SE2Twist>;
