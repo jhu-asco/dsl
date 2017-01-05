@@ -28,7 +28,7 @@ TerrainData::TerrainData(double height, double traversibility)
 
 TerrainSE2Grid::TerrainSE2Grid(const Map<bool, 3> &cmap, const Map<TerrainData,2>& tmap,
                                const Eigen::Vector3d& cs)
-: TerrainSE2GridBase(cmap.xlb, cmap.xub, cs,
+: TerrainSE2GridBase(cmap.xlb(), cmap.xub(), cs,
                      TerrainSE2GridBase::Vectornb(true, false, false),
                      TerrainSE2GridBase::Vectornb(true, true, true)) {
 
@@ -39,8 +39,8 @@ TerrainSE2Grid::TerrainSE2Grid(const Map<bool, 3> &cmap, const Map<TerrainData,2
     bool gotcenter = CellCenter(cc,gidx);assert(gotcenter);
     bool occ = cmap.Get(cc, false);
     if (!occ) {  //Allocate memory for grid cells if it is not occupied
-      cells[id].reset(new TerrainCell(id, cc));
-      cells[id]->data = tmap.Get(gidx2d);
+      cells_[id].reset(new TerrainCell(id, cc));
+      cells_[id]->data = tmap.Get(gidx2d);
     }
   };
   LoopOver(fun);

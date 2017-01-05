@@ -36,7 +36,7 @@ double CarCost::Real(const SE2Cell& a, const SE2Cell& b) const{
   //find cells along the way from a->b. If all the cell along the way don't exist then
   //it returns the max cost possible. Basically indicating they are not connected
   double d = twist.tail<2>().norm(); // total distance along curve
-  int n_seg = ceil(d/(2*grid_.cs[1])); // 2 * grid.cs[1] is to improve efficiency
+  int n_seg = ceil(d/(2*grid_.cs()(1))); // 2 * grid.cs[1] is to improve efficiency
   double d_seg = d/n_seg;
   SE2CellPtr wp; //waypoint cells
   for (int i_seg=1; i_seg<n_seg; i_seg++) {

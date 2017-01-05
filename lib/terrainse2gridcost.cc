@@ -1,7 +1,9 @@
 #include <terrainse2gridcost.h>
 #include "utils.h"
+#include <exception>
 
 namespace dsl {
+using namespace std;
 TerrainSE2GridCost::TerrainSE2GridCost(const TerrainSE2Grid& grid, const SE2GridCostConfig& config)
   :grid_(grid),config_(config), trav_min_(numeric_limits<double>::max()){
 
@@ -10,20 +12,20 @@ TerrainSE2GridCost::TerrainSE2GridCost(const TerrainSE2Grid& grid, const SE2Grid
 
   assert(eps > 0 && eps < 1);
   if(!(eps > 0 && eps < 1)){
-    cout<<"wrong eps in carcost"<<endl;
+    throw invalid_argument( "Wrong eps in TerrainSE2GridCost. 0 < eps < 1 desired." );
     eps = 1e-6;
   }
 
   assert( (wt(0)>0) && (wt(1)>0) && (wt(2)>0) );
   if(!((wt(0)>0) && (wt(1)>0) && (wt(2)>0))){
-    cout<<"wrong wt in carcost"<<endl;
+    throw invalid_argument( "Wrong wt in TerrainSE2GridCost. wt(i) > 0 for all i." );
     wt << 0.1, 1, 2;
   }
 
-  for(int id=0; id < grid.nc; id++)
-    if(grid.cells[id])
-      trav_min_ = trav_min_ < grid.cells[id]->data.traversibility ?
-                  trav_min_ : grid.cells[id]->data.traversibility;
+  for(int id=0; id < grid.nc(); id++)
+    if(grid.cells()[id])
+      trav_min_ = trav_min_ < grid.cells()[id]->data.traversibility ?
+                  trav_min_ : grid.cells()[id]->data.traversibility;
 
 }
 
@@ -41,7 +43,7 @@ double TerrainSE2GridCost::Real(const TerrainCell& a, const TerrainCell& b) cons
   //find cells along the way from a->b. If all the cell along the way don't exist then
   //it returns nan, indicating they are not connected
   double d = twist.tail<2>().norm(); // total distance along curve
-  int n_seg = ceil(d/ grid_.cs[1]); // want segments to lie in each cell along the way
+  int n_seg = ceil(d/ grid_.cs()[1]); // want segments to lie in each cell along the way
   double d_seg = d/n_seg;
   TerrainCellPtr wp; //waypoint cells
   double trav_sum = a.data.traversibility + b.data.traversibility;

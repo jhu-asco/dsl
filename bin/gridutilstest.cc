@@ -55,8 +55,8 @@ int main(int argc, char** argv)
   dsl::Map<bool, 2>::Ptr omap = loadPPM(mapName, ocs.tail<2>());
 
   // dimensions are determined from occupancy map
-  Vector3d xlb(-M_PI + gcs[0]/2, omap->xlb[0], omap->xlb[1]);
-  Vector3d xub(M_PI + gcs[0]/2, omap->xub[0], omap->xub[1]);
+  Vector3d xlb(-M_PI + gcs[0]/2, omap->xlb()[0], omap->xlb()[1]);
+  Vector3d xub(M_PI + gcs[0]/2, omap->xub()[0], omap->xub()[1]);
 
   // configuration-space map
   shared_ptr<dsl::Map<bool, 3> > cmap;
@@ -78,11 +78,11 @@ int main(int argc, char** argv)
     cmapName = mapName;
     replaceExt(cmapName, string("cmap"));
     dsl::Map<bool,3>::Save(*cmap, cmapName);
-    std::cout << "Saved cmap " << cmapName << " with xlb=" << cmap->xlb.transpose() << " xub=" << cmap->xub.transpose() << " gs=" << cmap->gs.transpose() << std::endl;
+    std::cout << "Saved cmap " << cmapName << " with xlb=" << cmap->xlb().transpose() << " xub=" << cmap->xub().transpose() << " gs=" << cmap->gs().transpose() << std::endl;
 
   } else {
     cmap = dsl::Map<bool,3>::Load(cmapName);
-    std::cout << "Loaded map with xlb=" << cmap->xlb.transpose() << " xub=" << cmap->xub.transpose() << " gs=" << cmap->gs.transpose() << std::endl;
+    std::cout << "Loaded map with xlb=" << cmap->xlb().transpose() << " xub=" << cmap->xub().transpose() << " gs=" << cmap->gs().transpose() << std::endl;
   }
 
   // saving all slices of the configuration map

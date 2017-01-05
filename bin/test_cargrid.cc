@@ -42,8 +42,8 @@ int main(int argc, char** argv)
   dsl::Map<bool, 2> dmap = *omap;
 
   // dimensions are determined from occupancy map
-  Vector3d xlb(-M_PI + gcs[0]/2, omap->xlb[0], omap->xlb[1]);
-  Vector3d xub(M_PI + gcs[0]/2, omap->xub[0], omap->xub[1]);
+  Vector3d xlb(-M_PI + gcs[0]/2, omap->xlb()[0], omap->xlb()[1]);
+  Vector3d xub(M_PI + gcs[0]/2, omap->xub()[0], omap->xub()[1]);
 
   // configuration-space map
   double l=3;

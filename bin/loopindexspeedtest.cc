@@ -21,8 +21,8 @@ int main(int argc, char** argv){
     Vector2b wd(false,false);
     GridCore<Vector2d,bool> grid(xlb,xub,cs, wd);
 
-    cout<<"grid.gs:"<<grid.gs.transpose()<<endl;
-    cout<<"grid nc:"<<grid.nc<<endl;
+    cout<<"grid.gs:"<<grid.gs().transpose()<<endl;
+    cout<<"grid nc:"<<grid.nc()<<endl;
 
     chrono::time_point<chrono::system_clock> t_start, t_end;
     chrono::duration<double> elapsed;
@@ -33,10 +33,10 @@ int main(int argc, char** argv){
 
     cout<<"iterating over all cells using Index()"<<endl;
     t_start = chrono::system_clock::now();
-    for(int id=0; id < grid.nc; id++){
+    for(int id=0; id < grid.nc(); id++){
       Vector2i gidx; grid.Index(gidx,id);
       gidx_mod  = 2* gidx; //do something with gidx
-      cellval = grid.cells[id]; //do something with id
+      cellval = grid.cells()[id]; //do something with id
     }
     t_end = chrono::system_clock::now();
     elapsed = t_end - t_start;
@@ -46,7 +46,7 @@ int main(int argc, char** argv){
     t_start = chrono::system_clock::now();
     auto fun = [&](int id, const Vector2i& gidx){
       gidx_mod  = 2* gidx; //do something with gidx
-      cellval = grid.cells[id]; //do something with id
+      cellval = grid.cells()[id]; //do something with id
     };
     grid.LoopOver(fun);
     t_end = chrono::system_clock::now();
@@ -56,11 +56,11 @@ int main(int argc, char** argv){
     cout<<"iterating over all cells using nested for loops"<<endl;
     t_start = chrono::system_clock::now();
     int id=0; Vector2i gidx;
-      for(int j=0; j < grid.gs[1]; j++){
-        for(int i=0; i < grid.gs[0]; i++){
+      for(int j=0; j < grid.gs()[1]; j++){
+        for(int i=0; i < grid.gs()[0]; i++){
           gidx[0] = i; gidx[1] = j;
           gidx_mod  = 2* gidx; //do something with gidx
-          cellval = grid.cells[id]; //do something with id
+          cellval = grid.cells()[id]; //do something with id
           id++;
         }
       }
@@ -78,8 +78,8 @@ int main(int argc, char** argv){
     Vector3b wd(false,false,false);
     GridCore<Vector3d,bool> grid(xlb,xub,cs, wd);
 
-    cout<<"grid.gs:"<<grid.gs.transpose()<<endl;
-    cout<<"grid nc:"<<grid.nc<<endl;
+    cout<<"grid.gs:"<<grid.gs().transpose()<<endl;
+    cout<<"grid nc:"<<grid.nc()<<endl;
 
     chrono::time_point<chrono::system_clock> t_start, t_end;
     chrono::duration<double> elapsed;
@@ -90,10 +90,10 @@ int main(int argc, char** argv){
 
     cout<<"iterating over all cells using Index()"<<endl;
     t_start = chrono::system_clock::now();
-    for(int id=0; id < grid.nc; id++){
+    for(int id=0; id < grid.nc(); id++){
       Vector3i gidx; grid.Index(gidx,id);
       gidx_mod  = 2* gidx; //do something with gidx
-      cellval = grid.cells[id]; //do something with id
+      cellval = grid.cells()[id]; //do something with id
     }
     t_end = chrono::system_clock::now();
     elapsed = t_end - t_start;
@@ -104,7 +104,7 @@ int main(int argc, char** argv){
     t_start = chrono::system_clock::now();
     auto fun = [&](int id, const Vector3i& gidx){
       gidx_mod  = 2* gidx; //do something with gidx
-      cellval = grid.cells[id]; //do something with id
+      cellval = grid.cells()[id]; //do something with id
     };
     grid.LoopOver(fun);
     t_end = chrono::system_clock::now();
@@ -114,12 +114,12 @@ int main(int argc, char** argv){
     cout<<"iterating over all cells using nested for loops"<<endl;
     t_start = chrono::system_clock::now();
     int id=0; Vector3i gidx;
-      for(int k=0; k < grid.gs[2]; k++){
-        for(int j=0; j < grid.gs[1]; j++){
-          for(int i=0; i < grid.gs[0]; i++){
+      for(int k=0; k < grid.gs()[2]; k++){
+        for(int j=0; j < grid.gs()[1]; j++){
+          for(int i=0; i < grid.gs()[0]; i++){
             gidx[0] = i; gidx[1] = j; gidx[2]=k;
             gidx_mod  = 2* gidx; //do something with gidx
-            cellval = grid.cells[id]; //do something with id
+            cellval = grid.cells()[id]; //do something with id
             id++;
           }
         }
@@ -138,8 +138,8 @@ int main(int argc, char** argv){
     Vector4b wd(false,false,false,false);
     GridCore<Vector4d,bool> grid(xlb,xub,cs, wd);
 
-    cout<<"grid.gs:"<<grid.gs.transpose()<<endl;
-    cout<<"grid nc:"<<grid.nc<<endl;
+    cout<<"grid.gs:"<<grid.gs().transpose()<<endl;
+    cout<<"grid nc:"<<grid.nc()<<endl;
 
     chrono::time_point<chrono::system_clock> t_start, t_end;
     chrono::duration<double> elapsed;
@@ -150,10 +150,10 @@ int main(int argc, char** argv){
 
     cout<<"iterating over all cells using Index()"<<endl;
     t_start = chrono::system_clock::now();
-    for(int id=0; id < grid.nc; id++){
+    for(int id=0; id < grid.nc(); id++){
       Vector4i gidx; grid.Index(gidx,id);
       gidx_mod  = 2* gidx; //do something with gidx
-      cellval = grid.cells[id]; //do something with id
+      cellval = grid.cells()[id]; //do something with id
     }
     t_end = chrono::system_clock::now();
     elapsed = t_end - t_start;
@@ -163,7 +163,7 @@ int main(int argc, char** argv){
     t_start = chrono::system_clock::now();
     auto fun = [&](int id, const Vector4i& gidx){
       gidx_mod  = 2* gidx; //do something with gidx
-      cellval = grid.cells[id]; //do something with id
+      cellval = grid.cells()[id]; //do something with id
     };
     grid.LoopOver(fun);
     t_end = chrono::system_clock::now();
@@ -173,14 +173,14 @@ int main(int argc, char** argv){
     cout<<"iterating over all cells using nested for loops"<<endl;
     t_start = chrono::system_clock::now();
     int id=0; Vector4i gidx;
-    for(int l=0; l < grid.gs[3]; l++){
-      for(int k=0; k < grid.gs[2]; k++){
-        for(int j=0; j < grid.gs[1]; j++){
-          for(int i=0; i < grid.gs[0]; i++){
+    for(int l=0; l < grid.gs()[3]; l++){
+      for(int k=0; k < grid.gs()[2]; k++){
+        for(int j=0; j < grid.gs()[1]; j++){
+          for(int i=0; i < grid.gs()[0]; i++){
             //gidx[0] = i; gidx[1]=j; gidx[2]=k; gidx[3]=l;
             gidx << i,j,k,l;
             gidx_mod  = 2* gidx; //do something with gidx
-            cellval = grid.cells[id]; //do something with id
+            cellval = grid.cells()[id]; //do something with id
             id++;
           }
         }

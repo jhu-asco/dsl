@@ -11,6 +11,8 @@
 namespace dsl {
 
 using namespace Eigen;
+using namespace std;
+using Vector2b = Matrix<bool,2,1>;
 
 Map<bool, 2>::Ptr loadPPM(const string& filename, const Vector2d &cs) {
   if(filename.compare(filename.size() - 4, 4, ".ppm")){
@@ -23,10 +25,12 @@ Map<bool, 2>::Ptr loadPPM(const string& filename, const Vector2d &cs) {
     return nullptr;
   }
 
-  dsl::Map<bool, 2>::Ptr omap(new Map<bool, 2>(Vector2d(0,0), Vector2d(cs[0]*img.w, cs[1]*img.h), cs));
-
+  vector<bool> cells(img.h*img.w);
   for (int id = 0; id < img.h*img.w; id++)
-    omap->cells[id] = img.rdata[id]? 1:0;
+    cells[id] = img.rdata[id]? 1:0;
+
+  dsl::Map<bool, 2>::Ptr omap(new Map<bool, 2>(Vector2d(0,0), Vector2d(cs[0]*img.w, cs[1]*img.h), Vector2i(img.w,img.h)));
+  omap->set_cells(cells);
 
   return omap;
 }
@@ -40,17 +44,17 @@ bool savePPM(const dsl::Map<bool, 2> &map, const string& filename) {
 
   //The image to be saved
   ImageRGB img;
-  img.w = map.gs(0);
-  img.h = map.gs(1);
+  img.w = map.gs()[0];
+  img.h = map.gs()[1];
   img.bitdepth = ImageRGB::BD8; // only occupancy information. Higher bit depth not required.
   img.rdata.resize(img.w*img.h);
   img.gdata.resize(img.w*img.h);
   img.bdata.resize(img.w*img.h);
 
-  for (int id = 0; id < map.nc; id++){
-    img.rdata[id] = map.cells[id]? img.bitdepth : 0;
-    img.gdata[id] = map.cells[id]? img.bitdepth : 0;
-    img.bdata[id] = map.cells[id]? img.bitdepth : 0;
+  for (int id = 0; id < map.nc(); id++){
+    img.rdata[id] = map.cells()[id]? img.bitdepth : 0;
+    img.gdata[id] = map.cells()[id]? img.bitdepth : 0;
+    img.bdata[id] = map.cells()[id]? img.bitdepth : 0;
   }
 
   if(!savePPM(img,filename)){
@@ -63,9 +67,9 @@ bool savePPM(const dsl::Map<bool, 2> &map, const string& filename) {
 
 bool savePPM(const dsl::Map<bool, 3> &cmap, string folder) {
 
-  int slices = cmap.gs[0];
-  int width  = cmap.gs[1];
-  int height = cmap.gs[2];
+  int slices = cmap.gs()[0];
+  int width  = cmap.gs()[1];
+  int height = cmap.gs()[2];
 
   char data[width*height*3];//rgb channels
 
@@ -100,7 +104,7 @@ bool savePPM(const dsl::Map<bool, 3> &cmap, string folder) {
     fs << "P6" << std::endl << width << " " << height << std::endl << "255" << std::endl;
     int ind = 0;
     for (int i = 0; i < width * height; i++, ind += 3) {
-      data[ind] = data[ind + 1] = data[ind + 2] = (char)(pomap->cells[i] * 100);
+      data[ind] = data[ind + 1] = data[ind + 2] = (char)(pomap->cells()[i] * 100);
     }
     assert(ind == 3*width*height);
     fs.write(data, ind);
@@ -136,11 +140,12 @@ Map<bool, 2>::Ptr loadOmap(const string& omapfile){
     return false;
   }
 
-  dsl::Map<bool, 2>::Ptr omap(new Map<bool, 2>(Vector2d(0,0), Vector2d(cs[0]*img.w, cs[1]*img.h), cs));
-
+  vector<bool> cells(img.h*img.w);
   for (int id = 0; id < img.h*img.w; id++)
-    omap->cells[id] = img.rdata[id]? 1:0;
+    cells[id] = img.rdata[id]? 1:0;
 
+  dsl::Map<bool, 2>::Ptr omap(new Map<bool, 2>(Vector2d(0,0), Vector2d(cs[0]*img.w, cs[1]*img.h), Vector2i(img.w,img.h)));
+  omap->set_cells(cells);
   return omap;
 }
 
@@ -185,11 +190,13 @@ Map<TerrainData, 2>::Ptr loadTmap(const string& tmapfile){
      return false;
    }
 
-   Map<TerrainData, 2>::Ptr tmap(new Map<TerrainData, 2>(Vector2d(0,0), Vector2d(cs[0]*img.w, cs[1]*img.h), cs));
+   vector<TerrainData> cells(img.h*img.w);
    for (int id = 0; id < img.h*img.w; id++){
-     tmap->cells[id].height = img.rdata[id]*hscale;
-     tmap->cells[id].traversibility = 1 + img.gdata[id]*tscale;
+     cells[id].height = img.rdata[id]*hscale;
+     cells[id].traversibility = 1 + img.gdata[id]*tscale;
    }
+   Map<TerrainData, 2>::Ptr tmap(new Map<TerrainData, 2>(Vector2d(0,0), Vector2d(cs[0]*img.w, cs[1]*img.h), Vector2i(img.w,img.h)));
+   tmap->set_cells(cells);
    return tmap;
 }
 
@@ -203,8 +210,8 @@ Map<TerrainData, 2>::Ptr loadTmap(const string& tmapfile){
 //}
 
 void savePPMWithPath(const dsl::Map<bool, 2> &map, const string& filename, const std::vector<Vector2d>& path) {
-  const int &width = map.gs[0];
-  const int &height = map.gs[1];
+  const int &width = map.gs()[0];
+  const int &height = map.gs()[1];
 
   char data[width*height*3];
   std::fstream fs(filename, std::fstream::out);
@@ -213,7 +220,7 @@ void savePPMWithPath(const dsl::Map<bool, 2> &map, const string& filename, const
 
   int ind = 0;
   for (int i = 0; i < width * height; i++, ind += 3) {
-    data[ind] = data[ind + 1] = data[ind + 2] = (char)(map.cells[i] * 100);
+    data[ind] = data[ind + 1] = data[ind + 2] = (char)(map.cells()[i] * 100);
   }
   assert(ind == 3*width*height);
 
@@ -251,17 +258,17 @@ bool savePPMWithPath(const dsl::Map<bool, 2>& omap, std::string filename, int sc
 
   //The image to be saved
   ImageRGB img;
-  img.w = smap->gs(0);
-  img.h = smap->gs(1);
+  img.w = smap->gs()[0];
+  img.h = smap->gs()[1];
   img.bitdepth = ImageRGB::BD8;
   img.rdata.resize(img.w*img.h);
   img.gdata.resize(img.w*img.h);
   img.bdata.resize(img.w*img.h);
 
-  for (int id = 0; id < smap->nc; id++){
-    img.rdata[id] = smap->cells[id]? 100:0;
-    img.gdata[id] = smap->cells[id]? 100:0;
-    img.bdata[id] = smap->cells[id]? 100:0;
+  for (int id = 0; id < smap->nc(); id++){
+    img.rdata[id] = smap->cells()[id]? 100:0;
+    img.gdata[id] = smap->cells()[id]? 100:0;
+    img.bdata[id] = smap->cells()[id]? 100:0;
   }
 
   for(size_t i=0; i<path.size(); i++){
@@ -273,29 +280,29 @@ bool savePPMWithPath(const dsl::Map<bool, 2>& omap, std::string filename, int sc
       smap->ToGridCoordinates(vs); //convert to grid coordinates
       int seq[]={3,0,1,2};
       double lwm = 0.05; //line width meters
-      int lw = ceil(lwm/smap->cs[0]);//line width in pixels
-      smap->cells = vector<bool>(smap->nc,false); //reset
+      int lw = ceil(lwm/smap->cs()[0]);//line width in pixels
+      vector<bool> temp(smap->nc(), false);
       for(int i=0;i<4;i++){
-        addLine<bool>(smap->cells, smap->gs[0], smap->gs[1], vs[i], vs[seq[i]], true,lw);
+        addLine<bool>(temp, smap->gs()[0], smap->gs()[1], vs[i], vs[seq[i]], true,lw);
       }
 
       if(i==0){
-        for (int id = 0; id < smap->nc; id++)
-          if(smap->cells[id]){
+        for (int id = 0; id < smap->nc(); id++)
+          if(temp[id]){
             img.rdata[id] = 0;
             img.gdata[id] = img.bitdepth;//Start of path in green
             img.bdata[id] = 0;
           }
       }else if(i==path.size()-1){
-        for (int id = 0; id < smap->nc; id++)
-          if(smap->cells[id]){
+        for (int id = 0; id < smap->nc(); id++)
+          if(temp[id]){
             img.rdata[id] = img.bitdepth;//End of path in red
             img.gdata[id] = 0;
             img.bdata[id] = 0;
           }
       }else{
-        for (int id = 0; id < smap->nc; id++)
-          if(smap->cells[id]){
+        for (int id = 0; id < smap->nc(); id++)
+          if(temp[id]){
             img.rdata[id] = 0;
             img.gdata[id] = 0;
             img.bdata[id] = img.bitdepth;//Points in between in blue
@@ -347,8 +354,8 @@ bool savePPMWithPath(const dsl::Map<TerrainData, 2>& tmap, std::string filename,
 
   //The image to be saved
   ImageRGB img;
-  img.w = smap->gs(0);
-  img.h = smap->gs(1);
+  img.w = smap->gs()[0];
+  img.h = smap->gs()[1];
   img.bitdepth = ImageRGB::BD16;
   img.rdata.resize(img.w*img.h);
   img.gdata.resize(img.w*img.h);
@@ -356,16 +363,16 @@ bool savePPMWithPath(const dsl::Map<TerrainData, 2>& tmap, std::string filename,
 
   double maxh = numeric_limits<double_t>::lowest(); //max height
   double maxt = numeric_limits<double_t>::lowest(); //max traversibility
-  for (int id = 0; id < smap->nc; id++){
-    maxh = smap->cells[id].height > maxh ? smap->cells[id].height: maxh;
-    maxt = smap->cells[id].traversibility > maxt ? smap->cells[id].traversibility: maxt;
+  for (int id = 0; id < smap->nc(); id++){
+    maxh = smap->cells()[id].height > maxh ? smap->cells()[id].height: maxh;
+    maxt = smap->cells()[id].traversibility > maxt ? smap->cells()[id].traversibility: maxt;
   }
   double hscale = img.bitdepth/maxh;
   double tscale = img.bitdepth/maxt;
 
-  for (int id = 0; id < smap->nc; id++){
-    img.rdata[id] = 0.5*smap->cells[id].height*hscale;
-    img.gdata[id] = 0.5*smap->cells[id].traversibility*tscale;
+  for (int id = 0; id < smap->nc(); id++){
+    img.rdata[id] = 0.5*smap->cells()[id].height*hscale;
+    img.gdata[id] = 0.5*smap->cells()[id].traversibility*tscale;
     img.bdata[id] = 0;
   }
 
@@ -378,28 +385,28 @@ bool savePPMWithPath(const dsl::Map<TerrainData, 2>& tmap, std::string filename,
       smap->ToGridCoordinates(vs); //convert to grid coordinates
       int seq[]={3,0,1,2};
       double lwm = 0.05; //meters
-      int lw = ceil(lwm/smap->cs[0]);//line width in pixels
-      vector<bool> temp(smap->nc, false);
+      int lw = ceil(lwm/smap->cs()[0]);//line width in pixels
+      vector<bool> temp(smap->nc(), false);
       for(int i=0;i<4;i++){
-        addLine<bool>(temp, smap->gs[0], smap->gs[1], vs[i], vs[seq[i]], true,lw);
+        addLine<bool>(temp, smap->gs()[0], smap->gs()[1], vs[i], vs[seq[i]], true,lw);
       }
 
       if(i==0){
-        for (int id = 0; id < smap->nc; id++)
+        for (int id = 0; id < smap->nc(); id++)
           if(temp[id]){
             img.rdata[id] = 0;
             img.gdata[id] = img.bitdepth;//Start of path in green
             img.bdata[id] = 0;
           }
       }else if(i==path.size()-1){
-        for (int id = 0; id < smap->nc; id++)
+        for (int id = 0; id < smap->nc(); id++)
           if(temp[id]){
             img.rdata[id] = img.bitdepth;//End of path in red
             img.gdata[id] = 0;
             img.bdata[id] = 0;
           }
       }else{
-        for (int id = 0; id < smap->nc; id++)
+        for (int id = 0; id < smap->nc(); id++)
           if(temp[id]){
             img.rdata[id] = 0;
             img.gdata[id] = 0;
@@ -451,17 +458,17 @@ bool savePPMWithPrimitives(const dsl::Map<bool, 2>& omap, std::string filename, 
 
   //The image to be saved
   ImageRGB img;
-  img.w = smap->gs(0);
-  img.h = smap->gs(1);
+  img.w = smap->gs()[0];
+  img.h = smap->gs()[1];
   img.bitdepth = ImageRGB::BD8;
   img.rdata.resize(img.w*img.h);
   img.gdata.resize(img.w*img.h);
   img.bdata.resize(img.w*img.h);
 
-  for (int id = 0; id < smap->nc; id++){
-    img.rdata[id] = smap->cells[id]? 100:0;
-    img.gdata[id] = smap->cells[id]? 100:0;
-    img.bdata[id] = smap->cells[id]? 100:0;
+  for (int id = 0; id < smap->nc(); id++){
+    img.rdata[id] = smap->cells()[id]? 100:0;
+    img.gdata[id] = smap->cells()[id]? 100:0;
+    img.bdata[id] = smap->cells()[id]? 100:0;
   }
 
   for(auto& prim: prims){
@@ -507,8 +514,8 @@ bool savePPMWithPrimitives(const dsl::Map<TerrainData, 2>& tmap, std::string fil
 
   //The image to be saved
   ImageRGB img;
-  img.w = smap->gs(0);
-  img.h = smap->gs(1);
+  img.w = smap->gs()[0];
+  img.h = smap->gs()[1];
   img.bitdepth = ImageRGB::BD16;
   img.rdata.resize(img.w*img.h);
   img.gdata.resize(img.w*img.h);
@@ -516,19 +523,19 @@ bool savePPMWithPrimitives(const dsl::Map<TerrainData, 2>& tmap, std::string fil
 
   double maxh = numeric_limits<double_t>::lowest(); //max height
   double maxt = numeric_limits<double_t>::lowest(); //max traversibility
-  for (int id = 0; id < smap->nc; id++){
-    maxh = smap->cells[id].height > maxh ? smap->cells[id].height: maxh;
-    maxt = smap->cells[id].traversibility > maxt ? smap->cells[id].traversibility: maxt;
+  for (int id = 0; id < smap->nc(); id++){
+    maxh = smap->cells()[id].height > maxh ? smap->cells()[id].height: maxh;
+    maxt = smap->cells()[id].traversibility > maxt ? smap->cells()[id].traversibility: maxt;
   }
   double hscale = img.bitdepth/maxh;
   double tscale = img.bitdepth/maxt;
-  for (int id = 0; id < smap->nc; id++){
-    img.rdata[id] = 0.5*smap->cells[id].height*hscale;
-    img.gdata[id] = 0.5*smap->cells[id].traversibility*tscale;
+  for (int id = 0; id < smap->nc(); id++){
+    img.rdata[id] = 0.5*smap->cells()[id].height*hscale;
+    img.gdata[id] = 0.5*smap->cells()[id].traversibility*tscale;
     img.bdata[id] = 0;
   }
 
-  char data[smap->nc*3];
+  char data[smap->nc()*3];
 
   for(auto& prim: prims){
     for(size_t i=0; i< prim.size(); i++){
@@ -562,7 +569,7 @@ Map<bool, 3>::Ptr makeCmap(const Map<bool, 2>& omap, double csa) {
 
   auto fun = [&](int id, const Vector3i& gidx){
     Vector2i gidx_omap = gidx.tail<2>();
-    cmap->cells[id] = omap.Get(gidx_omap);
+    cmap->set_cells(id, omap.Get(gidx_omap) );
   };
   cmap->LoopOver(fun);
 
@@ -582,7 +589,7 @@ Map<bool, 3>::Ptr makeCmap(const Map<bool, 2>& omap, double csa) {
 //  int dim_x(1); //dimension for angle
 //  int dim_y(2); //dimension for angle
 //
-//  for (int idx_a = 0; idx_a < cmap->gs[dim_a]; ++idx_a) {
+//  for (int idx_a = 0; idx_a < cmap->gs()[dim_a]; ++idx_a) {
 //    // dilate map for a particular angle
 //    double theta = cmap->CellCenterIth(idx_a,dim_a);
 //
@@ -592,14 +599,14 @@ Map<bool, 3>::Ptr makeCmap(const Map<bool, 2>& omap, double csa) {
 //    R(0,0) = ct; R(0,1) = -st;
 //    R(1,0) = st; R(1,1) = ct;
 //
-//    for (int idx_x = 0; idx_x < cmap->gs[dim_x]; ++idx_x) {
+//    for (int idx_x = 0; idx_x < cmap->gs()[dim_x]; ++idx_x) {
 //      double x = cmap->CellCenterIth(idx_x,dim_x);
-//      for (int idx_y = 0; idx_y < cmap->gs[2]; ++idx_y) {
+//      for (int idx_y = 0; idx_y < cmap->gs()[2]; ++idx_y) {
 //        // index into workspace
 //        int id_omap = omap.Id(Vector2i(idx_x,idx_y));
-//        assert(id_omap < omap.nc);
+//        assert(id_omap < omap.nc());
 //
-//        if (!omap.cells[id_omap])
+//        if (!omap.cells_[id_omap])
 //          continue;        // if free continue
 //
 //        double y = cmap->CellCenterIth(idx_y,dim_y);
@@ -622,10 +629,10 @@ Map<bool, 3>::Ptr makeCmap(const Map<bool, 2>& omap, double csa, const CarGeom& 
 
   nthreads = nthreads<1 ? 1:nthreads;
   vector< vector<bool> > dmaps(nthreads); //dilated map one for each thread
-  for(auto& dmap:dmaps){dmap.resize(omap.nc);} //allocate memory for all threads
+  for(auto& dmap:dmaps){dmap.resize(omap.nc());} //allocate memory for all threads
 
   int dim_a = 0; //The dimension corresponding to angle
-  int n_a = cmap->gs[dim_a]; //number of different grid angles
+  int n_a = cmap->gs()[dim_a]; //number of different grid angles
   if(nthreads==1){
     for (int idx_a = 0; idx_a < n_a; ++idx_a) {
       // create a dilated map for a particular angle
@@ -633,11 +640,11 @@ Map<bool, 3>::Ptr makeCmap(const Map<bool, 2>& omap, double csa, const CarGeom& 
 
       dilateMap(dmaps[0], omap, geom, theta); //Dilate map
 
-      for (int idx_x = 0; idx_x < cmap->gs[1]; ++idx_x) {
-        for (int idx_y = 0; idx_y < cmap->gs[2]; ++idx_y) {
+      for (int idx_x = 0; idx_x < cmap->gs()[1]; ++idx_x) {
+        for (int idx_y = 0; idx_y < cmap->gs()[2]; ++idx_y) {
           int id_omap = omap.Id( Vector2i(idx_x, idx_y) );
           int id_cmap = cmap->Id( Vector3i(idx_a, idx_x, idx_y) );
-          cmap->cells[id_cmap] = dmaps[0][id_omap];
+          cmap->set_cells(id_cmap,dmaps[0][id_omap]);
         }
       }
     }
@@ -654,11 +661,11 @@ Map<bool, 3>::Ptr makeCmap(const Map<bool, 2>& omap, double csa, const CarGeom& 
 
           dilateMap(dmaps[t], omap, geom, theta); //Dilate map
 
-          for (int idx_x = 0; idx_x < cmap->gs[1]; ++idx_x) {
-            for (int idx_y = 0; idx_y < cmap->gs[2]; ++idx_y) {
+          for (int idx_x = 0; idx_x < cmap->gs()[1]; ++idx_x) {
+            for (int idx_y = 0; idx_y < cmap->gs()[2]; ++idx_y) {
               int id_omap = omap.Id( Vector2i(idx_x, idx_y) );
               int id_cmap = cmap->Id( Vector3i(idx_a, idx_x, idx_y) );
-              cmap->cells[id_cmap] = dmaps[t][id_omap];
+              cmap->set_cells(id_cmap,dmaps[t][id_omap]);
             }
           }
         }
@@ -671,23 +678,21 @@ Map<bool, 3>::Ptr makeCmap(const Map<bool, 2>& omap, double csa, const CarGeom& 
 }
 
 Map<bool, 3>::Ptr makeCmap(const Map<TerrainData, 2> & tmap, double csa){
-  Map<bool, 2> omap(tmap.xlb,tmap.xub,tmap.gs);
+  Map<bool, 2> omap(tmap.xlb(), tmap.xub(), tmap.gs());
 
   //Iterate over all cells
-  for(int id = 0; id < omap.nc; id++)
-    omap.cells[id] = std::isnan(tmap.cells[id].traversibility); //occupied
+  for(int id = 0; id < omap.nc(); id++)
+  omap.set_cells(id, std::isnan(tmap.cells()[id].traversibility));//occupied
 
   return makeCmap(omap,csa);
-
-  return nullptr;
 }
 
 Map<bool, 3>::Ptr makeCmap(const Map<TerrainData, 2>& tmap, double csa, const CarGeom& geom, int nthreads){
-  Map<bool, 2> omap(tmap.xlb,tmap.xub,tmap.gs);
+  Map<bool, 2> omap(tmap.xlb(), tmap.xub(), tmap.gs());
 
     //Iterate over all cells
-    for(int id = 0; id < omap.nc; id++)
-      omap.cells[id] = std::isnan(tmap.cells[id].traversibility); //occupied
+    for(int id = 0; id < omap.nc(); id++)
+      omap.set_cells(id, std::isnan(tmap.cells()[id].traversibility));//occupied
 
     return makeCmap(omap,csa,geom,nthreads);
 }
@@ -695,7 +700,7 @@ Map<bool, 3>::Ptr makeCmap(const Map<TerrainData, 2>& tmap, double csa, const Ca
 void dilateMap(vector<bool>& dilated, const Map<bool,2>& omap, const CarGeom& geom, double theta){
 
   Matrix2x4d verts2d_rotd_pix;
-  getRotdVertsInPixWrtOrg(verts2d_rotd_pix, geom.le(), geom.be(), geom.ox(), geom.oy(), omap.cs[0], omap.cs[1], theta);
+  getRotdVertsInPixWrtOrg(verts2d_rotd_pix, geom.le(), geom.be(), geom.ox(), geom.oy(), omap.cs()[0], omap.cs()[1], theta);
 
   // round of the pixel values of the vertices above such that the rectange
   // formed by the rounded off
@@ -733,9 +738,9 @@ void dilateMap(vector<bool>& dilated, const Map<bool,2>& omap, const CarGeom& ge
 
   // Dilate
   dilate<bool>(dilated,
-               omap.cells,
-               omap.gs[0],
-               omap.gs[1],
+               omap.cells(),
+               omap.gs()[0],
+               omap.gs()[1],
                data_k,
                size2i_k(0),
                size2i_k(1),

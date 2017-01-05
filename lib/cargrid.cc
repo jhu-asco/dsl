@@ -22,7 +22,7 @@ using std::vector;
 
 //SE2CellGrid::Vectornb(true,false,false) says which dimensions are wrapped
 CarGrid::CarGrid(const Map<bool, 3> &cmap, const Vector3d& cs)
-    : SE2CellGrid(cmap.xlb, cmap.xub, cs, SE2CellGrid::Vectornb(true,false,false)){
+    : SE2CellGrid(cmap.xlb(), cmap.xub(), cs, SE2CellGrid::Vectornb(true,false,false)){
 
   //Iterate over all cells
   auto fun = [&](int id, const Vector3i& gidx){
@@ -30,8 +30,8 @@ CarGrid::CarGrid(const Map<bool, 3> &cmap, const Vector3d& cs)
     bool gotcenter = CellCenter(cc,gidx);assert(gotcenter);
     bool occ = cmap.Get(cc, false);
     if (!occ) {  //Allocate memory for grid cells if it is not occupied
-      cells[id].reset(new SE2Cell(id, cc));
-      se2_q2g(cells[id]->data, cells[id]->c);
+      cells_[id].reset(new SE2Cell(id, cc));
+      se2_q2g(cells_[id]->data, cells_[id]->c);
     }
   };
   LoopOver(fun);

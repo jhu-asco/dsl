@@ -231,7 +231,7 @@ public:
         Matrix3d gi,dg; se2_inv(gi,g0); dg = gi*gto; //relative of from.data to to->data
         Vector3d v; se2_log(v,dg);//twist that take you exactly to successor
         double d = fabs(v[1]); // total distance along curve
-        int n_seg = ceil(d/ (2 * grid.cs[1])); // 2 * grid.cs[1] is to improve efficiency
+        int n_seg = ceil(d/ (2 * grid.cs()[1])); // 2 * grid.cs[1] is to improve efficiency
         double s = d/n_seg;
         vector<Vector2d> prim(0); prim.reserve(n_seg+1);
         prim.push_back(Vector2d(g0(0,2),g0(1,2)));

@@ -157,7 +157,7 @@ template < class PointType, class DataType >
   optPath.cells.push_back(path.cells[0]);
 
   if (traceStep <= 0)
-    traceStep = grid.cs.norm();
+    traceStep = grid.cs().norm();
 
   for (; it1 != path.cells.end() - 1; ++it1) {
     x1 = it1->c;
@@ -172,8 +172,8 @@ template < class PointType, class DataType >
       for (double d = traceStep; d < dn; d += traceStep) {
         PointType x = x0 + dx1 * d;
         int id = grid.Id(x);
-        assert(id >= 0 && id < grid.nc);
-        if (!grid.cells[id] || !Free(grid.cells[id]->data)) {
+        assert(id >= 0 && id < grid.nc());
+        if (!grid.cells()[id] || !Free(grid.cells()[id]->data)) {
           optPath.cells.push_back(*it1);
           x0 = x1;
           break;

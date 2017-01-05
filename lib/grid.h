@@ -15,6 +15,7 @@
 #include <vector>
 #include <memory>
 #include <fstream>
+#include <exception>
 
 #include "cereal/archives/binary.hpp" //serialization support
 #include "cereal/types/vector.hpp" //type support
@@ -90,18 +91,6 @@ public:
   using Stack = GridCore<Vectornp1d,CellContent>;
   using StackPtr = shared_ptr<Stack>;
 
-
-  int n;        ///< grid dimension
-  int nc = 0;   ///< number of cells in grid
-  Vectornd xlb; ///< state lower bound
-  Vectornd xub; ///< state upper bound
-  Vectornd ds;  ///< dimension size (ds=xub-xlb)
-  Vectornd cs;  ///< cell length size per dimension
-  Vectorni gs;  ///< number of cells per dimension
-  Vectorni cgs; ///< cumulative(product) of gs. For n=3, cgs = [1, gs[0], gs[0]*gs[1]]
-  Vectornb wd;  ///< which dimensions are wrapped
-  std::vector<CellContent> cells; ///< grid cells
-
   /**
    * Initialize the grid using state lower bound, state upper bound, the number of grid cells
    * @param xlb state lower bound
@@ -109,22 +98,22 @@ public:
    * @param gs number of grid cells per each dimension
    * @param wd indicates if a dimension if wrapped or not. wd[i]=false(flat dim) wd[i]=1(wrapped dim).
    * For wrapped dimension i, the ds[i],i.e. dimension size, is given by xub[i]-xlb[i] (e.g. for angles it ds[i]=2*M_PI)
-   * @param fi enable fast conversion of array id to grid index(2 orders of magnitude times faster but takes memory)
    */
   GridCore(const Vectornd& xlb, const Vectornd& xub, const Vectorni& gs, const Vectornb wd = Vectornb::Zero())
-  : n(xlb.size()), xlb(xlb), xub(xub), gs(gs), wd(wd), cells(0){
-    ds = xub - xlb;
-    nc = 1;
-    cgs[0] = 1;
-    for (int i = 0; i < n; ++i) {
+  : xlb_(xlb), xub_(xub), gs_(gs), wd_(wd), cells_(0){
+    ds_ = xub - xlb;
+    nc_ = 1;
+    cgs_[0] = 1;
+    for (int i = 0; i < n_; ++i) {
       assert(xlb[i] <= xub[i]);
       assert(gs[i] > 0);
-      nc *= gs[i]; // total number of cells
-      cs[i] = ds[i] / gs[i];
+      nc_ *= gs[i]; // total number of cells
+      cs_[i] = ds_[i] / gs[i];
       if(i>0)
-        cgs[i] = cgs[i-1]*gs[i-1];
+        cgs_[i] = cgs_[i-1]*gs[i-1];
     }
-    cells.resize(nc);
+
+    cells_.resize(nc_);
   }
 
 //  /**
@@ -170,42 +159,42 @@ public:
    */
   GridCore(const Vectornd& sxlb, const Vectornd& sxub, const Vectornd& scs,
            const Vectornb wd = Vectornb::Zero(), const Vectornb ss = Vectornb::Zero())
-  : n(sxlb.size()), wd(wd), cells(0){
-    nc = 1;
-    cgs[0] = 1;
-    for (int i = 0; i < n; ++i) {
+  : wd_(wd), cells_(0){
+    nc_ = 1;
+    cgs_[0] = 1;
+    for (int i = 0; i < n_; ++i) {
       assert(sxlb[i] < sxub[i]);
       assert(scs[i] > 0);
 
       if(ss[i]){
           if(!wd[i]){ //if dimension is flat(cs=scs)
-            cs[i] = scs[i];
-            int n_org2ub = floor(sxub[i]/cs[i] - 0.5);
-            int n_org2lb =  ceil(sxlb[i]/cs[i] + 0.5);
-            gs[i] = n_org2ub  - n_org2lb + 1;
-            xub[i] = (n_org2ub +0.5)*cs[i];
-            xlb[i] = (n_org2lb -0.5)*cs[i];
-            ds[i] = xub[i] - xlb[i];
+            cs_[i] = scs[i];
+            int n_org2ub = floor(sxub[i]/cs_[i] - 0.5);
+            int n_org2lb =  ceil(sxlb[i]/cs_[i] + 0.5);
+            gs_[i] = n_org2ub  - n_org2lb + 1;
+            xub_[i] = (n_org2ub +0.5)*cs_[i];
+            xlb_[i] = (n_org2lb -0.5)*cs_[i];
+            ds_[i] = xub_[i] - xlb_[i];
           }else{ //dimension is wrapped
-            ds[i] = sxub[i] - sxlb[i]; //For angles this is = 2*M_PI
-            gs[i] = 4*ceil(ds[i]/(4*scs[i])); //Multiple of 4 number of cells
-            cs[i] = ds[i]/gs[i];
-            xlb[i] = -ds[i]/2 + cs[i]/2; //shifted by half cell so that pi/(pi/2)/0 lies at center of a cell
-            xub[i] =  ds[i]/2 + cs[i]/2; //shifted by half cell so that pi/(pi/2)/0 lies at center of a cell
+            ds_[i] = sxub[i] - sxlb[i]; //For angles this is = 2*M_PI
+            gs_[i] = 4*ceil(ds_[i]/(4*scs[i])); //Multiple of 4 number of cells
+            cs_[i] = ds_[i]/gs_[i];
+            xlb_[i] = -ds_[i]/2 + cs_[i]/2; //shifted by half cell so that pi/(pi/2)/0 lies at center of a cell
+            xub_[i] =  ds_[i]/2 + cs_[i]/2; //shifted by half cell so that pi/(pi/2)/0 lies at center of a cell
           }
       }else{
-          xlb[i] = sxlb[i];
-          xub[i] = sxub[i];
-          ds[i] = xub[i] - xlb[i];
-          gs[i] = floor(ds[i] / scs[i]);
-          cs[i] = ds[i] / gs[i];
+          xlb_[i] = sxlb[i];
+          xub_[i] = sxub[i];
+          ds_[i] = xub_[i] - xlb_[i];
+          gs_[i] = floor(ds_[i] / scs[i]);
+          cs_[i] = ds_[i] / gs_[i];
       }
 
-      nc *= gs[i]; // total number of cells
+      nc_ *= gs_[i]; // total number of cells
       if(i>0)
-        cgs[i] = cgs[i-1]*gs[i-1];
+        cgs_[i] = cgs_[i-1]*gs_[i-1];
     }
-    cells.resize(nc);
+    cells_.resize(nc_);
   }
 
   /**
@@ -213,13 +202,13 @@ public:
    * @param gridcore
    */
   GridCore(const GridCore &gridcore)
-  : n(gridcore.n), nc(gridcore.nc), xlb(gridcore.xlb), xub(gridcore.xub), ds(gridcore.ds),
-    cs(gridcore.cs), gs(gridcore.gs), cgs(gridcore.cgs), wd(gridcore.wd){
-    cells.resize(nc);
+  : nc_(gridcore.nc_), xlb_(gridcore.xlb_), xub_(gridcore.xub_), ds_(gridcore.ds_),
+    cs_(gridcore.cs_), gs_(gridcore.gs_), cgs_(gridcore.cgs_), wd_(gridcore.wd_){
+    cells_.resize(nc_);
 
     //copy data if not shared_ptr
     if(!has_template_type<CellContent, std::shared_ptr>::value)
-      cells = gridcore.cells;
+      cells_ = gridcore.cells_;
   }
 
   virtual ~GridCore() {}
@@ -230,19 +219,18 @@ public:
    * @return
    */
   GridCore& operator=(const GridCore& gridcore){
-    n   = gridcore.n;
-    nc  = gridcore.nc;
-    xlb = gridcore.xlb;
-    xub = gridcore.xub;
-    gs  = gridcore.gs;
-    cs  = gridcore.cs;
-    cgs = gridcore.cgs;
-    wd  = gridcore.wd;
-    cells.resize(nc);
+    nc_  = gridcore.nc_;
+    xlb_ = gridcore.xlb_;
+    xub_ = gridcore.xub_;
+    gs_  = gridcore.gs_;
+    cs_  = gridcore.cs_;
+    cgs_ = gridcore.cgs_;
+    wd_  = gridcore.wd_;
+    cells_.resize(nc_);
 
     //copy data if not shared_ptr
     if(!has_template_type<CellContent, std::shared_ptr>::value)
-      cells = gridcore.cells;
+      cells_ = gridcore.cells_;
     return *this;
   }
 
@@ -266,10 +254,10 @@ public:
     Vectornp1b wd_stack;
 
     //Get the new dimension
-    xlb_stack = insertDim(xlb,i, lbi);
-    xub_stack = insertDim(xub,i, ubi);
-    gs_stack  = insertDim(gs, i, gsi);
-    wd_stack  = insertDim(wd, i, wdi);
+    xlb_stack = insertDim(xlb_,i, lbi);
+    xub_stack = insertDim(xub_,i, ubi);
+    gs_stack  = insertDim(gs_, i, gsi);
+    wd_stack  = insertDim(wd_, i, wdi);
 
     StackPtr pstack(new Stack(xlb_stack,xub_stack, gs_stack, wd_stack));
 
@@ -278,9 +266,9 @@ public:
 
     //Iterate over all cells
     auto fun = [&](int id, const Vectorni& gidx) {
-      for( int idx=0; idx < pstack->gs[i] ; idx++ ){ //repeat val it along the extra dimension
+      for( int idx=0; idx < pstack->gs_[i] ; idx++ ){ //repeat val it along the extra dimension
         Vectornp1i gidx_stack = insertDim(gidx,i,idx);
-        pstack->cells[pstack->Id(gidx_stack)] = cells[id]; //get value of that cell
+        pstack->cells_[pstack->Id(gidx_stack)] = cells_[id]; //get value of that cell
       }
     };
     LoopOver(fun);
@@ -308,10 +296,10 @@ public:
 
 
     //Get the new dimension
-    xlb_stack = insertDim(xlb,i, lbi);
-    xub_stack = insertDim(xub,i, ubi);
-    scs_stack = insertDim(cs, i, scsi);
-    wd_stack  = insertDim(wd, i, wdi);
+    xlb_stack = insertDim(xlb_,i, lbi);
+    xub_stack = insertDim(xub_,i, ubi);
+    scs_stack = insertDim(cs_, i, scsi);
+    wd_stack  = insertDim(wd_, i, wdi);
 
     StackPtr pstack(new Stack(xlb_stack,xub_stack, scs_stack, wd_stack));
 
@@ -319,12 +307,12 @@ public:
     if(!init || has_template_type<CellContent, std::shared_ptr>::value)
       return pstack;
 
-    for(int id=0; id < nc; id++){
+    for(int id=0; id < nc_; id++){
       Vectorni gidx; Index(gidx,id);
-      CellContent val = cells[id];
-      for( int idx=0; idx < pstack->gs[i] ; idx++ ){
+      CellContent val = cells_[id];
+      for( int idx=0; idx < pstack->gs()[i] ; idx++ ){
         Vectornp1i gidx_stack = insertDim(gidx,i,idx);
-        pstack->cells[pstack->Id(gidx_stack)] = val;
+        pstack->cells_[pstack->Id(gidx_stack)] = val;
       }
     }
     return pstack;
@@ -343,20 +331,20 @@ public:
     Vectornm1b wd_slice;
 
     //Get the new dimension
-    xlb_slice = removeDim(xlb,i);
-    xub_slice = removeDim(xub,i);
-    gs_slice  = removeDim(gs,i);
-    wd_slice  = removeDim(wd,i);
+    xlb_slice = removeDim(xlb_,i);
+    xub_slice = removeDim(xub_,i);
+    gs_slice  = removeDim(gs_,i);
+    wd_slice  = removeDim(wd_,i);
 
     SlicePtr pslice(new Slice(xlb_slice,xub_slice, gs_slice, wd_slice));
 
     if(!init || has_template_type<CellContent, std::shared_ptr>::value)
       return pslice;
 
-    for(int id_slice=0; id_slice < pslice->nc; id_slice++){
+    for(int id_slice=0; id_slice < pslice->nc_; id_slice++){
       Vectornm1i gidx_slice; pslice->Index(gidx_slice,id_slice);
       Vectorni gidx = insertDim(gidx_slice,i,idx);
-      pslice->cells[id_slice] = Get(Id(gidx));
+      pslice->cells_[id_slice] = Get(Id(gidx));
     }
     return pslice;
   }
@@ -381,28 +369,28 @@ public:
       */
      void GetSlice(Slice& slice, int idx, int dim, bool init = true) const {
        //Get the new dimension
-       slice.xlb = removeDim(xlb,dim);
-       slice.xub = removeDim(xub,dim);
-       slice.gs  = removeDim(gs,dim);
-       slice.wd  = removeDim(wd,dim);
-       slice.cs  = removeDim(cs,dim);
-       slice.ds  = removeDim(ds,dim);
-       slice.nc=1;
-       slice.cgs[0]=1;
-       for(int i = 0; i < n-1; i++){
-         slice.nc *=slice.gs[i];
+       slice.xlb_ = removeDim(xlb_,dim);
+       slice.xub_ = removeDim(xub_,dim);
+       slice.gs_  = removeDim(gs_,dim);
+       slice.wd_  = removeDim(wd_,dim);
+       slice.cs_  = removeDim(cs_,dim);
+       slice.ds_  = removeDim(ds_,dim);
+       slice.nc_=1;
+       slice.cgs_[0]=1;
+       for(int i = 0; i < n_-1; i++){
+         slice.nc_ *=slice.gs_[i];
          if(i>0)
-           slice.cgs[i] = slice.cgs[i-1]*slice.gs[i-1];
+           slice.cgs_[i] = slice.cgs_[i-1]*slice.gs_[i-1];
        }
-       slice.cells.resize(slice.nc);//if data is already allocated resize does nothing
+       slice.cells_.resize(slice.nc());//if data is already allocated resize does nothing
 
        if(!init || has_template_type<CellContent, std::shared_ptr>::value)
          return;
 
-       for(int id_slice=0; id_slice < slice.nc; id_slice++){
+       for(int id_slice=0; id_slice < slice.nc(); id_slice++){
          Vectornm1i midx_slice; slice.Index(midx_slice,id_slice);
          Vectorni midx = insertDim(midx_slice,dim,idx); //midx is multidim index
-         slice.cells[id_slice] = Get(Id(midx));
+         slice.cells_[id_slice] = Get(Id(midx));
        }
      }
 
@@ -425,15 +413,15 @@ public:
       return pscaled;
     }
 
-    Vectorni gs_scaled = gs*scale;
-    pscaled.reset(new GridCore<PointType, CellContent>(xlb,xub, gs_scaled, wd));
+    Vectorni gs_scaled = gs_*scale;
+    pscaled.reset(new GridCore<PointType, CellContent>(xlb_,xub_, gs_scaled, wd_));
 
     if(!init || has_template_type<CellContent, std::shared_ptr>::value)
       return pscaled;
 
-    for(int id_scaled = 0; id_scaled <pscaled->nc; id_scaled++){
+    for(int id_scaled = 0; id_scaled <pscaled->nc(); id_scaled++){
       Vectornd cc; pscaled->CellCenter(cc,id_scaled);
-      pscaled->cells[id_scaled] = Get(cc,false);
+      pscaled->cells_[id_scaled] = Get(cc,false);
     }
     return pscaled;
   }
@@ -479,10 +467,10 @@ public:
    */
   bool Valid(const Vectornd& x, double eps = 1e-10) const {
     for (int i = 0; i < x.size(); ++i) {
-      if(!wd[i]){ //if dimension is flat
-        if (x[i] < xlb[i] + eps)
+      if(!wd_[i]){ //if dimension is flat
+        if (x[i] < xlb_[i] + eps)
           return false;
-        if (x[i] > xub[i] - eps)
+        if (x[i] > xub_[i] - eps)
           return false;
       }
     }
@@ -495,8 +483,8 @@ public:
    * @return true if within bounds
    */
   bool Valid(const Vectorni& gidx) const{
-    for(size_t i=0; i< n; i++){
-      if(gidx[i]<0 || gidx[i]>=gs[i])
+    for(size_t i=0; i< n_; i++){
+      if(gidx[i]<0 || gidx[i]>=gs_[i])
         return false;
     }
     return true;
@@ -508,7 +496,7 @@ public:
    * @return true if within bounds
    */
   bool Valid(int id) const{
-    return (id>=0 && id<nc);
+    return (id>=0 && id<nc_);
   }
 
   /**
@@ -518,7 +506,7 @@ public:
    * @return true if cell center inside grid bounds
    */
   bool CellCenter(Vectornd& x,const Vectorni& gidx) const{
-    x = xlb.array() +  (gidx.template cast<double>() + Vectornd::Constant(0.5)).array()*cs.array() ;
+    x = xlb_.array() +  (gidx.template cast<double>() + Vectornd::Constant(0.5)).array()*cs_.array() ;
     return Valid(gidx);
   }
 
@@ -534,7 +522,7 @@ public:
       x = Vectornd::Constant(numeric_limits<double>::quiet_NaN());
       return false;
     }
-    x = xlb.array() +  (gidx.template cast<double>()+Vectornd::Constant(0.5)).array()*cs.array() ;
+    x = xlb_.array() +  (gidx.template cast<double>()+Vectornd::Constant(0.5)).array()*cs_.array() ;
     return true;
   }
 
@@ -545,7 +533,7 @@ public:
    * @return Returns cc[i]. Meaningful result even when idx out of range
    */
   double CellCenterIth(int idx, int i) const{
-    return xlb[i] + (idx +0.5)*cs[i];
+    return xlb_[i] + (idx +0.5)*cs_[i];
   }
 
   /**
@@ -556,7 +544,7 @@ public:
   int Id(const Vectornd& x) const {
     Vectorni gidx; Index(gidx,x);
     if(Valid(gidx))
-      return gidx.transpose()*cgs;
+      return gidx.transpose()*cgs_;
     else
        return -1;
   }
@@ -568,7 +556,7 @@ public:
    */
   int Id(const Vectorni& gidx) const {
     if(Valid(gidx))
-      return gidx.transpose()*cgs;
+      return gidx.transpose()*cgs_;
     else
       return -1;
   }
@@ -581,11 +569,11 @@ public:
    */
   int Index(const Vectornd& x, int i) const {
     double xi = x[i];
-    if(wd[i]){ //dimension is wrapped
-      while(xi < xlb[i]){xi += ds[i];}
-      while(xi > xub[i]){xi -= ds[i];}
+    if(wd_[i]){ //dimension is wrapped
+      while(xi < xlb_[i]){xi += ds_[i];}
+      while(xi > xub_[i]){xi -= ds_[i];}
     }
-    return floor((xi - xlb[i]) / ds[i] * gs[i]);
+    return floor((xi - xlb_[i]) / ds_[i] * gs_[i]);
   }
 
   /**
@@ -595,11 +583,11 @@ public:
    * @return gidx[i], i.e. grid index along i coordinate/dimension. Meaningful even when x is out of bounds.
    */
   int Index(double xi, int i) const {
-    if(wd[i]){ //dimension is wrapped
-      while(xi < xlb[i]){xi += ds[i];}
-      while(xi > xub[i]){xi -= ds[i];}
+    if(wd_[i]){ //dimension is wrapped
+      while(xi < xlb_[i]){xi += ds_[i];}
+      while(xi > xub_[i]){xi -= ds_[i];}
     }
-    return floor((xi - xlb[i]) / ds[i] * gs[i]);
+    return floor((xi - xlb_[i]) / ds_[i] * gs_[i]);
   }
 
   /**
@@ -608,13 +596,13 @@ public:
    * @param x point
    */
   void Index(Vectorni& gidx, const Vectornd& x) const {
-    for(size_t i=0;i<n;i++){
+    for(size_t i=0;i<n_;i++){
       double xi = x[i];
-      if(wd[i]){ //dimension is wrapped
-        while(xi < xlb[i]){xi += ds[i];}
-        while(xi > xub[i]){xi -= ds[i];}
+      if(wd_[i]){ //dimension is wrapped
+        while(xi < xlb_[i]){xi += ds_[i];}
+        while(xi > xub_[i]){xi -= ds_[i];}
       }
-      gidx[i] = floor((xi - xlb[i]) / ds[i] * gs[i]);
+      gidx[i] = floor((xi - xlb_[i]) / ds_[i] * gs_[i]);
     }
   }
 
@@ -625,41 +613,41 @@ public:
    * @return false if index is out of range
    */
   bool Index(Vectorni& gidx, int id) const {
-    if(id>=nc || id<0){
+    if(id>=nc_ || id<0){
       gidx = Vectorni::Constant(numeric_limits<double>::quiet_NaN());
       return false;
     }
 
-    switch(n){
+    switch(n_){
       case 1:
         gidx[0] = id;
         break;
       case 2:
-        gidx[1] = int(id/cgs[1]);
-        gidx[0] = int(id - gidx[1]*cgs[1]);
+        gidx[1] = int(id/cgs_[1]);
+        gidx[0] = int(id - gidx[1]*cgs_[1]);
         break;
       case 3:
-        gidx[2] = int(id/cgs[2]);
-        gidx[1] = int(id/cgs[1] - gidx[2]*cgs[2]/cgs[1]);
-        gidx[0] = int(id - gidx[2]*cgs[2] - gidx[1]*cgs[1]);
+        gidx[2] = int(id/cgs_[2]);
+        gidx[1] = int(id/cgs_[1] - gidx[2]*cgs_[2]/cgs_[1]);
+        gidx[0] = int(id - gidx[2]*cgs_[2] - gidx[1]*cgs_[1]);
         break;
       case 4:
-        gidx[3] = int( id/cgs[3]);
-        gidx[2] = int((id - gidx[3]*cgs[3])/cgs[2]);
-        gidx[1] = int((id - gidx[3]*cgs[3] - gidx[2]*cgs[2])/cgs[1]);
-        gidx[0] = int( id - gidx[3]*cgs[3] - gidx[2]*cgs[2] - gidx[1]*cgs[1]);
+        gidx[3] = int( id/cgs_[3]);
+        gidx[2] = int((id - gidx[3]*cgs_[3])/cgs_[2]);
+        gidx[1] = int((id - gidx[3]*cgs_[3] - gidx[2]*cgs_[2])/cgs_[1]);
+        gidx[0] = int( id - gidx[3]*cgs_[3] - gidx[2]*cgs_[2] - gidx[1]*cgs_[1]);
         break;
       case 5:
-        gidx[4] = int( id/cgs[4]);
-        gidx[3] = int((id - gidx[4]*cgs[4])/cgs[3]);
-        gidx[2] = int((id - gidx[4]*cgs[4] - gidx[3]*cgs[3])/cgs[2]);
-        gidx[1] = int((id - gidx[4]*cgs[4] - gidx[3]*cgs[3] - gidx[2]*cgs[2])/cgs[1]);
-        gidx[0] = int( id - gidx[4]*cgs[4] - gidx[3]*cgs[3] - gidx[2]*cgs[2] - gidx[1]*cgs[1]);
+        gidx[4] = int( id/cgs_[4]);
+        gidx[3] = int((id - gidx[4]*cgs_[4])/cgs_[3]);
+        gidx[2] = int((id - gidx[4]*cgs_[4] - gidx[3]*cgs_[3])/cgs_[2]);
+        gidx[1] = int((id - gidx[4]*cgs_[4] - gidx[3]*cgs_[3] - gidx[2]*cgs_[2])/cgs_[1]);
+        gidx[0] = int( id - gidx[4]*cgs_[4] - gidx[3]*cgs_[3] - gidx[2]*cgs_[2] - gidx[1]*cgs_[1]);
         break;
       default:
-        for(int i=n-1; i>=0; i--){
-          gidx[i] = int(id/cgs[i]);
-          id -= gidx[i]*cgs[i];
+        for(int i=n_-1; i>=0; i--){
+          gidx[i] = int(id/cgs_[i]);
+          id -= gidx[i]*cgs_[i];
         }
     }
     return true;
@@ -688,10 +676,10 @@ public:
    * If cell doesn't exist default object is returned, which in case of a pointer is a nullptr.
    */
   CellContent Get(int id) const {
-    if (id<0 || id >= nc)
+    if (id<0 || id >= nc_)
       return CellContent();//nullptr for shared_ptr
 
-    return cells[id];
+    return cells_[id];
   }
 
   /**
@@ -704,7 +692,7 @@ public:
     if (!Valid(gidx))
       return CellContent();//nullptr for shared_ptr
 
-    return cells[Id(gidx)];
+    return cells_[Id(gidx)];
   }
 
   /**
@@ -717,7 +705,7 @@ public:
     int id = Id(x);
     if(id<0)
       return false;
-    cells[id] = data;
+    cells_[id] = data;
     return true;
   }
 
@@ -731,7 +719,7 @@ public:
     int id = Id(gidx);
     if(id<0)
       return false;
-    cells[id] = data;
+    cells_[id] = data;
     return true;
   }
 
@@ -742,9 +730,9 @@ public:
    * @return true if it was able to set the data
    */
   bool Set(int id, const CellContent& data) {
-    if (id<0 || id >= nc)
+    if (id<0 || id >= nc_)
       return false;
-    cells[id] = data;
+    cells_[id] = data;
     return true;
   }
 
@@ -757,17 +745,17 @@ public:
   void LoopOver(std::function<void(int id, const Vectorni& gidx)> fun) const {
     int id=0;
     Vectorni gidx;
-    switch(n){
+    switch(n_){
       case 1:
-          for(int i0=0; i0<gs[0]; i0++){
+          for(int i0=0; i0<gs_[0]; i0++){
             gidx[0] = i0;
             fun(id,gidx);
             id++;
           }
         break;
       case 2:
-        for(int i1=0; i1<gs[1]; i1++){
-          for(int i0=0; i0<gs[0]; i0++){
+        for(int i1=0; i1<gs_[1]; i1++){
+          for(int i0=0; i0<gs_[0]; i0++){
             gidx[0] = i0; gidx[1] = i1;
             fun(id,gidx);
             id++;
@@ -775,9 +763,9 @@ public:
         }
         break;
       case 3:
-        for(int i2=0; i2<gs[2]; i2++){
-          for(int i1=0; i1<gs[1]; i1++){
-            for(int i0=0; i0<gs[0]; i0++){
+        for(int i2=0; i2<gs_[2]; i2++){
+          for(int i1=0; i1<gs_[1]; i1++){
+            for(int i0=0; i0<gs_[0]; i0++){
               gidx[0] = i0; gidx[1] = i1; gidx[2] = i2;
               fun(id,gidx);
               id++;
@@ -786,10 +774,10 @@ public:
         }
         break;
       case 4:
-        for(int i3=0; i3<gs[3]; i3++){
-          for(int i2=0; i2<gs[2]; i2++){
-            for(int i1=0; i1<gs[1]; i1++){
-              for(int i0=0; i0<gs[0]; i0++){
+        for(int i3=0; i3<gs_[3]; i3++){
+          for(int i2=0; i2<gs_[2]; i2++){
+            for(int i1=0; i1<gs_[1]; i1++){
+              for(int i0=0; i0<gs_[0]; i0++){
                 gidx[0] = i0; gidx[1] = i1; gidx[2] = i2; gidx[3] = i3;
                 fun(id,gidx);
                 id++;
@@ -799,11 +787,11 @@ public:
         }
         break;
       case 5:
-        for(int i4=0; i4<gs[4]; i4++){
-          for(int i3=0; i3<gs[3]; i3++){
-            for(int i2=0; i2<gs[2]; i2++){
-              for(int i1=0; i1<gs[1]; i1++){
-                for(int i0=0; i0<gs[0]; i0++){
+        for(int i4=0; i4<gs_[4]; i4++){
+          for(int i3=0; i3<gs_[3]; i3++){
+            for(int i2=0; i2<gs_[2]; i2++){
+              for(int i1=0; i1<gs_[1]; i1++){
+                for(int i0=0; i0<gs_[0]; i0++){
                   gidx[0] = i0; gidx[1] = i1; gidx[2] = i2; gidx[3] = i3;  gidx[4] = i4;
                   fun(id,gidx);
                   id++;
@@ -815,10 +803,10 @@ public:
         break;
       default:
         Vectornp1i gidxe = Vectornp1i::Zero();//e stands for extra element
-        Vectornp1i  gse; gse << gs,0; //0 to indicate iteration over all cells over
+        Vectornp1i  gse; gse << gs_,0; //0 to indicate iteration over all cells over
         int dim = 0;
-        while (gidxe[n]==0) {
-          gidx = gidxe.head(n);
+        while (gidxe[n_]==0) {
+          gidx = gidxe.head(n_);
           fun(id,gidx); //This function is called in loop
           id++; gidxe[0]++;
           while(gidxe[dim]==gse[dim]){
@@ -840,7 +828,7 @@ public:
     grid_coord.resize(metric_coord.size());
     Vectornd point0; CellCenter(point0,Vectorni::Zero());
     for(size_t i=0; i <metric_coord.size(); i++)
-      grid_coord[i] = (metric_coord[i] - point0).array()/cs.array();
+      grid_coord[i] = (metric_coord[i] - point0).array()/cs_.array();
   }
 
   /**
@@ -851,7 +839,7 @@ public:
 
     Vectornd point0; CellCenter(point0,Vectorni::Zero());
     for(size_t i=0; i <coord.size(); i++)
-      coord[i] = (coord[i] - point0).array()/cs.array();
+      coord[i] = (coord[i] - point0).array()/cs_.array();
   }
 
   /**
@@ -861,7 +849,7 @@ public:
    */
   void ToGridCoordinates(Vectornd& grid_coord, const Vectornd& metric_coord) const{
     Vectornd point0; CellCenter(point0,Vectorni::Zero());
-    grid_coord = (metric_coord - point0).array()/cs.array();
+    grid_coord = (metric_coord - point0).array()/cs_.array();
   }
 
   /**
@@ -873,7 +861,7 @@ public:
     metric_coord.resize(grid_coord.size());
     Vectornd point0; CellCenter(point0,Vectorni::Zero());
     for(size_t i=0; i <metric_coord.size(); i++)
-      metric_coord[i] = grid_coord[i].array()*cs.array() + point0;
+      metric_coord[i] = grid_coord[i].array()*cs_.array() + point0;
   }
 
   /**
@@ -883,7 +871,7 @@ public:
   void FromGridCoordinates(vector<Vectornd>& coord) const{
     Vectornd point0; CellCenter(point0,Vectorni::Zero());
     for(size_t i=0; i <coord.size(); i++)
-      coord[i] = coord[i].array()*cs.array() + point0;
+      coord[i] = coord[i].array()*cs_.array() + point0;
   }
 
   /**
@@ -893,7 +881,7 @@ public:
    */
   void FromGridCoordinates(Vectornd& metric_coord, const Vectornd& grid_coord) const{
     Vectornd point0; CellCenter(point0,Vectorni::Zero());
-    metric_coord = grid_coord.array()*cs.array() + point0;
+    metric_coord = grid_coord.array()*cs_.array() + point0;
   }
 
 
@@ -933,6 +921,45 @@ public:
     return pgrid;
   }
 
+  // Accessors
+  inline const int&       n(void)   const {
+    return n_;
+  }
+  inline const int&       nc(void)  const {
+    return nc_;
+  }
+  inline const Vectornd& xlb(void) const {
+    return xlb_;
+  }
+  inline const Vectornd& xub(void) const {
+    return xub_;
+  }
+  inline const Vectornd& cs(void)  const {
+    return cs_;
+  }
+  inline const Vectorni& gs(void)  const {
+    return gs_;
+  }
+  inline const Vectornb& wd(void)  const {
+    return wd_;
+  }
+  inline const std::vector<CellContent>& cells(void)  const {
+    return cells_;
+  }
+
+  // Mutators
+  inline void set_cells(int id, CellContent content){
+    cells_.at(id) = content;
+  }
+  inline void set_cells(const std::vector<CellContent>& cells){
+    if(nc_ != cells.size())
+      throw length_error(" cells don't have the same length as nc.");
+    cells_ = cells;
+  }
+
+  // To give data access to Slice and Stack
+  template < class PT, class CT> friend class GridCore;
+
 private:
   /**
    * Private constructor only to be used by the Cereal serialization
@@ -951,9 +978,22 @@ private:
    */
   template <class Archive>
   void serialize( Archive & ar ){
-    ar( n, nc, xlb, xub, ds, cs, gs, cgs, wd, cells);
+    ar( nc_, xlb_, xub_, ds_, cs_, gs_, cgs_, wd_, cells_);
   }
 
+
+  const int n_ = PointType::SizeAtCompileTime; ///< grid dimension
+  int nc_ = 0;   ///< number of cells in grid
+  Vectornd xlb_; ///< state lower bound
+  Vectornd xub_; ///< state upper bound
+  Vectornd ds_;  ///< dimension size (ds=xub-xlb)
+  Vectornd cs_;  ///< cell length size per dimension
+  Vectorni gs_;  ///< number of cells per dimension
+  Vectorni cgs_; ///< cumulative(product) of gs. For n=3, cgs = [1, gs[0], gs[0]*gs[1]]
+  Vectornb wd_;  ///< which dimensions are wrapped
+
+protected:
+  std::vector<CellContent> cells_; ///< grid cells
 };
 
 /**

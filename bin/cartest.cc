@@ -96,8 +96,8 @@ int main(int argc, char** argv)
   dsl::Map<bool, 2>::Ptr omap = loadPPM(mapName, ocs.tail<2>());
 
   // dimensions are determined from occupancy map
-  Vector3d xlb(-M_PI + gcs[0]/2, omap->xlb[0], omap->xlb[1]);
-  Vector3d xub(M_PI + gcs[0]/2, omap->xub[0], omap->xub[1]);
+  Vector3d xlb(-M_PI + gcs[0]/2, omap->xlb()[0], omap->xlb()[1]);
+  Vector3d xub(M_PI + gcs[0]/2, omap->xub()[0], omap->xub()[1]);
 
   // configuration-space map
   shared_ptr<dsl::Map<bool, 3> > cmap;
@@ -119,11 +119,11 @@ int main(int argc, char** argv)
     cmapName = mapName;
     replaceExt(cmapName, string("cmap"));
     dsl::Map<bool,3>::Save(*cmap, cmapName);
-    std::cout << "Saved cmap " << cmapName << " with xlb=" << cmap->xlb.transpose() << " xub=" << cmap->xub.transpose() << " gs=" << cmap->gs.transpose() << std::endl;
+    std::cout << "Saved cmap " << cmapName << " with xlb=" << cmap->xlb().transpose() << " xub=" << cmap->xub().transpose() << " gs=" << cmap->gs().transpose() << std::endl;
 
   } else {
     cmap = dsl::Map<bool,3>::Load(cmapName);
-    std::cout << "Loaded map with xlb=" << cmap->xlb.transpose() << " xub=" << cmap->xub.transpose() << " gs=" << cmap->gs.transpose() << std::endl;
+    std::cout << "Loaded map with xlb=" << cmap->xlb().transpose() << " xub=" << cmap->xub().transpose() << " gs=" << cmap->gs().transpose() << std::endl;
   }
   savePPM(*cmap, "cmap_slices");
 
@@ -269,7 +269,7 @@ int main(int argc, char** argv)
 
       cout << "Graph has " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
 
-      vector<Vector3d> path3d = ToVector3dPath(path,grid.cs[1]);
+      vector<Vector3d> path3d = ToVector3dPath(path,grid.cs()[1]);
 
       // save it to image for viewing
       if(plot_car){

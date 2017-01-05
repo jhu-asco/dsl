@@ -17,7 +17,7 @@ Grid3dConnectivity::Grid3dConnectivity(const Grid< Vector3d, double >& grid)
     }
   }
   for (auto& x : lines) {
-    x = x.cwiseProduct(grid.cs);
+    x = x.cwiseProduct(grid.cs());
     costs.push_back(x.norm());
   }
 }

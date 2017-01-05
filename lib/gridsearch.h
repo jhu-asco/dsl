@@ -210,11 +210,11 @@ template < class PointType, class DataType, class ConnectionType >
     cost(cost),
     trackEdgesThroughCell(trackEdgesThroughCell) {
 
-      vertexMap = new CellVertex* [grid.nc];
-      memset(vertexMap, 0, grid.nc * sizeof(CellVertex*));
+      vertexMap = new CellVertex* [grid.nc()];
+      memset(vertexMap, 0, grid.nc() * sizeof(CellVertex*));
 
   if (expand) {
-    for (int i = 0; i < grid.nc; ++i) {
+    for (int i = 0; i < grid.nc(); ++i) {
       const TypedCellPtr cell = grid.Get(i);
       if (cell) {
         vertexMap[i] = new CellVertex(*cell);
@@ -223,7 +223,7 @@ template < class PointType, class DataType, class ConnectionType >
     }
 
     // expand the successors of each vertex
-    for (int i = 0; i < grid.nc; ++i) {
+    for (int i = 0; i < grid.nc(); ++i) {
       const TypedCellPtr cell = grid.Get(i);
       if (cell) {
         CellVertex* from = vertexMap[i];
@@ -415,7 +415,7 @@ template < class PointType, class DataType, class ConnectionType >
   }
 
   int id = grid.Id(x);
-  assert(id >= 0 && id < grid.nc);
+  assert(id >= 0 && id < grid.nc());
 
   const TypedCellPtr cell = grid.Get(id);
   if (!cell) {
@@ -440,7 +440,7 @@ template < class PointType, class DataType, class ConnectionType >
 template < class PointType, class DataType, class ConnectionType >
     bool GridSearch< PointType, DataType, ConnectionType >::RemoveCell(const PointType& x) {
   int id = grid.Id(x);  
-  if (id < 0 || id >= grid.nc) {
+  if (id < 0 || id >= grid.nc()) {
     std::cout << "[W] GridSearch::RemoveCell: id=" << id << " out of bounds!" << std::endl;    
     return false;
   }
@@ -455,8 +455,9 @@ template < class PointType, class DataType, class ConnectionType >
     return false;
   }
 
-  if (grid.cells[id]) {
-    grid.cells[id].reset();
+  if (grid.cells()[id]) {
+    grid.set_cells(id,nullptr);
+    //grid.cells_[id].reset();
   } else {
     return false;
   }
@@ -527,7 +528,7 @@ template <class PointType, class DataType, class ConnectionType>
 template < class PointType, class DataType, class ConnectionType>
     double GridSearch< PointType, DataType, ConnectionType>::GetCost(const PointType& x) const {
   int id = grid.Id(x);
-  if (id < 0 || id >= grid.nc)
+  if (id < 0 || id >= grid.nc())
     return 0;
 
   Cell< PointType, DataType >* cell = grid.Get(id);
@@ -543,7 +544,7 @@ template < class PointType, class DataType, class ConnectionType>
 template < class PointType, class DataType, class ConnectionType >
     bool GridSearch< PointType, DataType, ConnectionType>::SetCost(const PointType& x, double cost) {
   int id = grid.Id(x);
-  if (id < 0 || id >= grid.nc)
+  if (id < 0 || id >= grid.nc())
     return false;
 
   TypedCellPtr cell = grid.Get(id);

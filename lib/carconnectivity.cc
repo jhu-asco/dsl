@@ -134,7 +134,7 @@ bool CarPathConnectivity::
     Vector3d vdt_noslip;vdt_noslip << getWVx(dg(0,2),dg(1,2)),0;//twist that takes you to successor(exactly only in position, not orientation))
     Vector3d vdt_final = allow_slip ? vdt_slip : vdt_noslip;
     double d = vdt_final.tail<2>().norm(); // total distance along curve
-    int n_seg = ceil(d/(2*grid.cs[1])); // 2 * grid.cs[1] is to improve efficiency
+    int n_seg = ceil(d/(2*grid.cs()[1])); // 2 * grid.cs()[1] is to improve efficiency
     double d_seg = d/n_seg;
     SE2Path path; path.resize(n_seg); // path doesn't include start
     if(fwd){

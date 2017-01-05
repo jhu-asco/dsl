@@ -81,9 +81,9 @@ int main(int argc, char** argv)
     return -1;
   }
   cout<<"  Loaded terrain map with"<<endl;
-  cout<<"    xlb: "<<tmap->xlb.transpose().format(eigformat)<<endl;
-  cout<<"    xub: "<<tmap->xub.transpose().format(eigformat)<<endl;
-  cout<<"    gs: "<<tmap->gs.transpose().format(eigformat)<<endl;
+  cout<<"    xlb: "<<tmap->xlb().transpose().format(eigformat)<<endl;
+  cout<<"    xub: "<<tmap->xub().transpose().format(eigformat)<<endl;
+  cout<<"    gs: "<<tmap->gs().transpose().format(eigformat)<<endl;
 
 
   //Create or load the configuration space occupancy map
@@ -95,9 +95,9 @@ int main(int argc, char** argv)
     if(!cmap)
       return -1;
     cout << "  Loaded cmap from "<<cmapfile<<" with"<<endl;
-    cout << "    xlb=" << cmap->xlb.transpose().format(eigformat)<<endl;
-    cout << "    xub=" << cmap->xub.transpose().format(eigformat)<<endl;
-    cout << "    gs="  << cmap->gs.transpose().format(eigformat)<<endl;
+    cout << "    xlb=" << cmap->xlb().transpose().format(eigformat)<<endl;
+    cout << "    xub=" << cmap->xub().transpose().format(eigformat)<<endl;
+    cout << "    gs="  << cmap->gs().transpose().format(eigformat)<<endl;
   }else { // make cmap
     double ocsy; params.GetDouble("ocsy", ocsy);
     timer_start(&timer);
@@ -118,9 +118,9 @@ int main(int argc, char** argv)
     replaceExt(cmapfile, string("cmap"));
     dsl::Map<bool,3>::Save(*cmap, cmapfile);
     cout << "  Saved cmap in "<<cmapfile <<" with"<<endl;
-    cout << "    xlb=" << cmap->xlb.transpose().format(eigformat)<<endl;
-    cout << "    xub=" << cmap->xub.transpose().format(eigformat)<<endl;
-    cout << "    gs="  << cmap->gs.transpose().format(eigformat)<<endl;
+    cout << "    xlb=" << cmap->xlb().transpose().format(eigformat)<<endl;
+    cout << "    xub=" << cmap->xub().transpose().format(eigformat)<<endl;
+    cout << "    gs="  << cmap->gs().transpose().format(eigformat)<<endl;
   }
   savePPM(*cmap,"cmap_slices");
 
@@ -136,9 +136,9 @@ int main(int argc, char** argv)
   cout<<"\nMain lattice grid"<<endl;
   TerrainSE2Grid grid(*cmap, *tmap, gcs);
   cout<<"  Created the main lattice grid with"<<endl;
-  cout<<"    xlb: "<<grid.xlb.transpose().format(eigformat)<<endl;
-  cout<<"    xub: "<<grid.xub.transpose().format(eigformat)<<endl;
-  cout<<"    gs: "<<grid.gs.transpose().format(eigformat)<<endl;
+  cout<<"    xlb: "<<grid.xlb().transpose().format(eigformat)<<endl;
+  cout<<"    xub: "<<grid.xub().transpose().format(eigformat)<<endl;
+  cout<<"    gs: "<<grid.gs().transpose().format(eigformat)<<endl;
 
   //create cost
   SE2GridCostConfig cost_config;
@@ -208,7 +208,7 @@ int main(int argc, char** argv)
   //Plot the start goal and the path
   cout << "\nPlotting start goal path and primitives"<<endl;
   if(start_set && goal_set){
-    vector<Vector3d> path3d = ToVector3dPath(path,grid.cs[1]);
+    vector<Vector3d> path3d = ToVector3dPath(path,grid.cs()[1]);
     savePPMWithPath(*tmap, "terrain_car_path.ppm", 3, path3d, &geom);
     cout << "  Map and path saved to terrain_car_path.ppm" << endl;
   }else{
