@@ -93,7 +93,7 @@ int main(int argc, char** argv)
     geom.set(lboxoysb);
 
   // load an occupancy map from ppm file
-  dsl::Map<bool, 2>::Ptr omap = loadPPM(mapName, ocs.tail<2>());
+  dsl::Map<bool, 2>::Ptr omap = LoadPpm(mapName, ocs.tail<2>());
 
   // dimensions are determined from occupancy map
   Vector3d xlb(-M_PI + gcs[0]/2, omap->xlb()[0], omap->xlb()[1]);
@@ -109,9 +109,9 @@ int main(int argc, char** argv)
     timer_start(&timer);
     if (use_geom) {
       int nthreads; params.GetInt("nthreads", nthreads);
-      cmap = makeCmap(*omap, ocs(0), geom, nthreads);
+      cmap = MakeCmap(*omap, ocs(0), geom, nthreads);
     } else {
-      cmap = makeCmap(*omap, ocs(0));
+      cmap = MakeCmap(*omap, ocs(0));
     }
     long time = timer_us(&timer);
     printf("cmap construction time= %ld  us\n", time);
@@ -125,7 +125,7 @@ int main(int argc, char** argv)
     cmap = dsl::Map<bool,3>::Load(cmapName);
     std::cout << "Loaded map with xlb=" << cmap->xlb().transpose() << " xub=" << cmap->xub().transpose() << " gs=" << cmap->gs().transpose() << std::endl;
   }
-  savePPM(*cmap, "cmap_slices");
+  SavePpm(*cmap, "cmap_slices");
 
   //The main grid structure
   CarGrid grid(*cmap, gcs);
@@ -195,17 +195,17 @@ int main(int argc, char** argv)
       // save it to image for viewing
       vector<Vector3d> path3d = ToVector3dPath(path);
       if(plot_car)
-        savePPMWithPath(*omap, "path1.ppm", 3, path3d, &geom);
+        SavePpmWithPath(*omap, "path1.ppm", 3, path3d, &geom);
       else
-        savePPMWithPath(*omap, "path1.ppm", 3, path3d);
+        SavePpmWithPath(*omap, "path1.ppm", 3, path3d);
 
       cout << "Map and path saved to path1.ppm" << endl;
     }else{
       vector<Vector3d> path3d; path3d.push_back(start); path3d.push_back(goal);
       if(plot_car)
-        savePPMWithPath(*omap, "path1.ppm", 3, path3d, &geom);
+        SavePpmWithPath(*omap, "path1.ppm", 3, path3d, &geom);
       else
-        savePPMWithPath(*omap, "path1.ppm", 3, path3d);
+        SavePpmWithPath(*omap, "path1.ppm", 3, path3d);
 
       cout << "Map, start and goal (no path available) saved to path1.ppm" << endl;
     }
@@ -214,7 +214,7 @@ int main(int argc, char** argv)
     vector<vector<Vector2d>> prims(0);
     bool gotprims = connectivity.GetPrims(start,prims);
     if(gotprims){
-      savePPMWithPrimitives(*omap, "prim1.ppm",3, prims);
+      SavePpmWithPrimitives(*omap, "prim1.ppm",3, prims);
       cout << "Map, with primitives from start saved to prim1.ppm" << endl;
     }
   }
@@ -273,17 +273,17 @@ int main(int argc, char** argv)
 
       // save it to image for viewing
       if(plot_car){
-        savePPMWithPath(*omap, "path2.ppm", 3, path3d, &geom);
+        SavePpmWithPath(*omap, "path2.ppm", 3, path3d, &geom);
       }else{
-        savePPMWithPath(*omap, "path2.ppm", 3, path3d);
+        SavePpmWithPath(*omap, "path2.ppm", 3, path3d);
       }
       cout << "Map and path saved to path2.ppm" << endl;
     }else{
       vector<Vector3d> path3d; path3d.push_back(start); path3d.push_back(goal);
       if(plot_car)
-        savePPMWithPath(*omap, "path2.ppm", 3, path3d, &geom);
+        SavePpmWithPath(*omap, "path2.ppm", 3, path3d, &geom);
       else
-        savePPMWithPath(*omap, "path2.ppm", 3, path3d);
+        SavePpmWithPath(*omap, "path2.ppm", 3, path3d);
 
       cout << "Map, start and goal (no path available ) saved to path2.ppm" << endl;
     }
@@ -292,7 +292,7 @@ int main(int argc, char** argv)
     vector<vector<Vector2d>> prims(0);
     bool gotprims = connectivity.GetPrims(start,prims);
     if(gotprims){
-      savePPMWithPrimitives(*omap, "prim2.ppm",3, prims);
+      SavePpmWithPrimitives(*omap, "prim2.ppm",3, prims);
       cout << "Map, with primitives from start saved to prim2.ppm" << endl;
     }
 

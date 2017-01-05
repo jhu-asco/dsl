@@ -26,9 +26,9 @@ struct ImageRGB{
 
 void removeComment(ifstream &f);
 
-bool loadPPM(ImageRGB& img, const string& filename);
+bool LoadPpm(ImageRGB& img, const string& filename);
 
-bool savePPM(ImageRGB& img,  const string& filename);
+bool SavePpm(ImageRGB& img,  const string& filename);
 
 void save_map(const char* map, int width, int height, const char* filename);
 

@@ -52,7 +52,7 @@ int main(int argc, char** argv)
     geom.set(whxy(0),whxy(1),whxy(2),whxy(3),whxy(4));
   
   // load an occupancy map from ppm file
-  dsl::Map<bool, 2>::Ptr omap = loadPPM(mapName, ocs.tail<2>());
+  dsl::Map<bool, 2>::Ptr omap = LoadPpm(mapName, ocs.tail<2>());
 
   // dimensions are determined from occupancy map
   Vector3d xlb(-M_PI + gcs[0]/2, omap->xlb()[0], omap->xlb()[1]);
@@ -68,9 +68,9 @@ int main(int argc, char** argv)
     timer_start(&timer);
     if (useGeom) {
       int nthreads; params.GetInt("nthreads", nthreads);
-      cmap = makeCmap(*omap, ocs(0), geom, nthreads);
+      cmap = MakeCmap(*omap, ocs(0), geom, nthreads);
     } else {
-      cmap = makeCmap(*omap, ocs(0));
+      cmap = MakeCmap(*omap, ocs(0));
     }
     long time = timer_us(&timer);
     printf("cmap construction time= %ld  us\n", time);
@@ -87,6 +87,6 @@ int main(int argc, char** argv)
 
   // saving all slices of the configuration map
   string folder = "slices";
-  savePPM(*cmap,folder);
+  SavePpm(*cmap,folder);
   return 0;
 }

@@ -47,7 +47,7 @@ void removeComment(ifstream &f){
     f.getline(linebuf, 1023);
 }
 
-bool loadPPM(ImageRGB &img, const string &filename){
+bool LoadPpm(ImageRGB &img, const string &filename){
   if(filename.compare(filename.size() - 4, 4, ".ppm")){
     cout<<"File doesn't have .ppm extension"<<endl;
     return false;
@@ -144,7 +144,7 @@ bool loadPPM(ImageRGB &img, const string &filename){
   return true;
 }
 
-bool savePPM(ImageRGB& img,  const string& filename) {
+bool SavePpm(ImageRGB& img,  const string& filename) {
 
   if(filename.compare(filename.size() - 4, 4, ".ppm")){
     cout<<"File doesn't have .ppm extension"<<endl;

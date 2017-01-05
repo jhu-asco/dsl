@@ -75,7 +75,7 @@ int main(int argc, char** argv)
     cout<<"There is no string parameter named tmap. Exiting."<<endl;
     return -1;
   }
-  dsl::Map<TerrainData,2>::Ptr tmap =loadTmap(tmapfile);
+  dsl::Map<TerrainData,2>::Ptr tmap =LoadTmap(tmapfile);
   if(!tmap){
     cout<<"Unable to load the .tmap file:"<<tmapfile<<endl;
     return -1;
@@ -104,10 +104,10 @@ int main(int argc, char** argv)
     if (use_geom) {
       std::cout << "  Making cmap with car geometry " << std::endl;
       int nthreads; params.GetInt("nthreads", nthreads);
-      cmap = makeCmap(*tmap, ocsy, geom, nthreads);
+      cmap = MakeCmap(*tmap, ocsy, geom, nthreads);
     } else {
       std::cout << "  Making cmap with point geometry " << std::endl;
-      cmap = makeCmap(*tmap, ocsy);
+      cmap = MakeCmap(*tmap, ocsy);
     }
     if(!cmap)
       return -1;
@@ -122,7 +122,7 @@ int main(int argc, char** argv)
     cout << "    xub=" << cmap->xub().transpose().format(eigformat)<<endl;
     cout << "    gs="  << cmap->gs().transpose().format(eigformat)<<endl;
   }
-  savePPM(*cmap,"cmap_slices");
+  SavePpm(*cmap,"cmap_slices");
 
   //To plot the path as rectanges or just points
   bool plot_car; params.GetBool("plot_car", plot_car);
@@ -209,19 +209,19 @@ int main(int argc, char** argv)
   cout << "\nPlotting start goal path and primitives"<<endl;
   if(start_set && goal_set){
     vector<Vector3d> path3d = ToVector3dPath(path,grid.cs()[1]);
-    savePPMWithPath(*tmap, "terrain_car_path.ppm", 3, path3d, &geom);
+    SavePpmWithPath(*tmap, "terrain_car_path.ppm", 3, path3d, &geom);
     cout << "  Map and path saved to terrain_car_path.ppm" << endl;
   }else{
     cout<<"  No planning done so plotting just the start and goal cars"<<endl;
     vector<Vector3d> path3d; path3d.push_back(start); path3d.push_back(goal);
-    savePPMWithPath(*tmap, "terrain_car_path.ppm", 3, path3d, &geom);
+    SavePpmWithPath(*tmap, "terrain_car_path.ppm", 3, path3d, &geom);
     cout << "  Map, start and goal (no path available ) saved to terrain_car_path.ppm" << endl;
   }
 
   //Plot the primitive at start position
   vector<vector<Vector2d>> prims(0);
   bool gotprims = connectivity.GetPrims(start,prims);
-  savePPMWithPrimitives(*tmap, "terrain_car_prim.ppm", 3, prims);
+  SavePpmWithPrimitives(*tmap, "terrain_car_prim.ppm", 3, prims);
   cout << "  Map, with primitives from start saved to terrain_car_prim.ppm" << endl;
 
   return 0;

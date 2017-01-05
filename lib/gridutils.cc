@@ -14,13 +14,13 @@ using namespace Eigen;
 using namespace std;
 using Vector2b = Matrix<bool,2,1>;
 
-Map<bool, 2>::Ptr loadPPM(const string& filename, const Vector2d &cs) {
+Map<bool, 2>::Ptr LoadPpm(const string& filename, const Vector2d &cs) {
   if(filename.compare(filename.size() - 4, 4, ".ppm")){
     cout<<"File doesn't have .ppm extension"<<endl;
     return nullptr;
   }
   ImageRGB img;
-  if(!loadPPM(img,filename)){
+  if(!LoadPpm(img,filename)){
     cout<<"Had problems reading the image file"<<endl;
     return nullptr;
   }
@@ -36,7 +36,7 @@ Map<bool, 2>::Ptr loadPPM(const string& filename, const Vector2d &cs) {
 }
 
 //TODO: requires testing
-bool savePPM(const dsl::Map<bool, 2> &map, const string& filename) {
+bool SavePpm(const dsl::Map<bool, 2> &map, const string& filename) {
   if(filename.compare(filename.size() - 4, 4, ".ppm")){
     cout<<"File doesn't have .ppm extension"<<endl;
     return false;
@@ -57,7 +57,7 @@ bool savePPM(const dsl::Map<bool, 2> &map, const string& filename) {
     img.bdata[id] = map.cells()[id]? img.bitdepth : 0;
   }
 
-  if(!savePPM(img,filename)){
+  if(!SavePpm(img,filename)){
     cout<<"Had problems saving the image file"<<endl;
     return false;
   }
@@ -65,7 +65,7 @@ bool savePPM(const dsl::Map<bool, 2> &map, const string& filename) {
 }
 
 
-bool savePPM(const dsl::Map<bool, 3> &cmap, string folder) {
+bool SavePpm(const dsl::Map<bool, 3> &cmap, string folder) {
 
   int slices = cmap.gs()[0];
   int width  = cmap.gs()[1];
@@ -113,7 +113,7 @@ bool savePPM(const dsl::Map<bool, 3> &cmap, string folder) {
   return true;
 }
 
-Map<bool, 2>::Ptr loadOmap(const string& omapfile){
+Map<bool, 2>::Ptr LoadOmap(const string& omapfile){
   if(omapfile.compare(omapfile.size() - 5, 5, ".omap")){
     cout<<"File doesn't have .omap extension"<<endl;
     return false;
@@ -135,7 +135,7 @@ Map<bool, 2>::Ptr loadOmap(const string& omapfile){
   string imgfile = omapfile.substr(0, omapfile.find_last_of("\\/")) + "/" + imgfilerel;
 
   ImageRGB img;
-  if(!loadPPM(img,imgfile)){
+  if(!LoadPpm(img,imgfile)){
     cout<<"Had problems reading the image file"<<endl;
     return false;
   }
@@ -149,7 +149,7 @@ Map<bool, 2>::Ptr loadOmap(const string& omapfile){
   return omap;
 }
 
-Map<TerrainData, 2>::Ptr loadTmap(const string& tmapfile){
+Map<TerrainData, 2>::Ptr LoadTmap(const string& tmapfile){
   if(tmapfile.compare(tmapfile.size() - 5, 5, ".tmap")){
     cout<<"extention doesn't match .tmap. The file name is: "<<tmapfile<<endl;
     return false;
@@ -185,7 +185,7 @@ Map<TerrainData, 2>::Ptr loadTmap(const string& tmapfile){
    }
 
    ImageRGB img;
-   if(!loadPPM(img,imgfile)){
+   if(!LoadPpm(img,imgfile)){
      cout<<"Had problems reading the image file:"<< imgfile<<endl;
      return false;
    }
@@ -209,7 +209,7 @@ Map<TerrainData, 2>::Ptr loadTmap(const string& tmapfile){
 //
 //}
 
-void savePPMWithPath(const dsl::Map<bool, 2> &map, const string& filename, const std::vector<Vector2d>& path) {
+void SavePpmWithPath(const dsl::Map<bool, 2> &map, const string& filename, const std::vector<Vector2d>& path) {
   const int &width = map.gs()[0];
   const int &height = map.gs()[1];
 
@@ -241,7 +241,7 @@ void savePPMWithPath(const dsl::Map<bool, 2> &map, const string& filename, const
   fs.close();
 }
 
-bool savePPMWithPath(const dsl::Map<bool, 2>& omap, std::string filename, int scale,
+bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename, int scale,
                       const std::vector<Vector3d>& path, const CarGeom* geom){
   //checks
   if(scale<1){
@@ -328,7 +328,7 @@ bool savePPMWithPath(const dsl::Map<bool, 2>& omap, std::string filename, int sc
     }
   }
 
-  if(!savePPM(img,filename)){
+  if(!SavePpm(img,filename)){
     cout<<"Had problems saving the image file"<<endl;
     return false;
   }
@@ -337,7 +337,7 @@ bool savePPMWithPath(const dsl::Map<bool, 2>& omap, std::string filename, int sc
 }
 
 //TODO: requires testing
-bool savePPMWithPath(const dsl::Map<TerrainData, 2>& tmap, std::string filename, int scale,
+bool SavePpmWithPath(const dsl::Map<TerrainData, 2>& tmap, std::string filename, int scale,
                      const std::vector<Vector3d>& path, const CarGeom* geom){
   //checks
   if(scale<1){
@@ -433,7 +433,7 @@ bool savePPMWithPath(const dsl::Map<TerrainData, 2>& tmap, std::string filename,
     }
   }
 
-  if(!savePPM(img,filename)){
+  if(!SavePpm(img,filename)){
     cout<<"Had problems saving the image file"<<endl;
     return false;
   }
@@ -441,7 +441,7 @@ bool savePPMWithPath(const dsl::Map<TerrainData, 2>& tmap, std::string filename,
 }
 
 //TODO: requires testing
-bool savePPMWithPrimitives(const dsl::Map<bool, 2>& omap, std::string filename, int scale,
+bool SavePpmWithPrimitives(const dsl::Map<bool, 2>& omap, std::string filename, int scale,
                       const std::vector<vector<Vector2d>>& prims){
   //checks
   if(scale<1){
@@ -490,14 +490,14 @@ bool savePPMWithPrimitives(const dsl::Map<bool, 2>& omap, std::string filename, 
     }
   }
 
-  if(!savePPM(img,filename)){
+  if(!SavePpm(img,filename)){
     cout<<"Had problems saving the image file"<<endl;
     return false;
   }
   return true;
 }
 
-bool savePPMWithPrimitives(const dsl::Map<TerrainData, 2>& tmap, std::string filename,int scale,
+bool SavePpmWithPrimitives(const dsl::Map<TerrainData, 2>& tmap, std::string filename,int scale,
                       const std::vector<vector<Vector2d>>& prims){
   //checks
   if(scale<1){
@@ -556,14 +556,14 @@ bool savePPMWithPrimitives(const dsl::Map<TerrainData, 2>& tmap, std::string fil
     }
   }
 
-  if(!savePPM(img,filename)){
+  if(!SavePpm(img,filename)){
     cout<<"Had problems saving the image file"<<endl;
     return false;
   }
   return true;
 }
 
-Map<bool, 3>::Ptr makeCmap(const Map<bool, 2>& omap, double csa) {
+Map<bool, 3>::Ptr MakeCmap(const Map<bool, 2>& omap, double csa) {
 
   Map<bool, 3>::Ptr cmap = omap.GetStack(0,-M_PI, M_PI, csa, true);
 
@@ -577,7 +577,7 @@ Map<bool, 3>::Ptr makeCmap(const Map<bool, 2>& omap, double csa) {
 }
 
 // //rasterization based method
-//Map<bool, 3>::Ptr makeCmap(const Map<bool, 2> &omap, double csa, const CarGeom& geom, int nthreads) {
+//Map<bool, 3>::Ptr MakeCmap(const Map<bool, 2> &omap, double csa, const CarGeom& geom, int nthreads) {
 //  Map<bool, 3>::Ptr cmap = omap.GetStack(0,-M_PI, M_PI, csa, true);
 //
 //  vector<Vector2d> points;
@@ -623,7 +623,7 @@ Map<bool, 3>::Ptr makeCmap(const Map<bool, 2>& omap, double csa) {
 //}
 
 
-Map<bool, 3>::Ptr makeCmap(const Map<bool, 2>& omap, double csa, const CarGeom& geom, int nthreads) {
+Map<bool, 3>::Ptr MakeCmap(const Map<bool, 2>& omap, double csa, const CarGeom& geom, int nthreads) {
 
   Map<bool, 3>::Ptr cmap = omap.GetStack(0,-M_PI, M_PI, csa, true);
 
@@ -638,7 +638,7 @@ Map<bool, 3>::Ptr makeCmap(const Map<bool, 2>& omap, double csa, const CarGeom& 
       // create a dilated map for a particular angle
       double theta = cmap->CellCenterIth(idx_a,dim_a);
 
-      dilateMap(dmaps[0], omap, geom, theta); //Dilate map
+      DilateMap(dmaps[0], omap, geom, theta); //Dilate map
 
       for (int idx_x = 0; idx_x < cmap->gs()[1]; ++idx_x) {
         for (int idx_y = 0; idx_y < cmap->gs()[2]; ++idx_y) {
@@ -659,7 +659,7 @@ Map<bool, 3>::Ptr makeCmap(const Map<bool, 2>& omap, double csa, const CarGeom& 
           // create a dilated map for a particular angle
           double theta = cmap->CellCenterIth(idx_a,dim_a);
 
-          dilateMap(dmaps[t], omap, geom, theta); //Dilate map
+          DilateMap(dmaps[t], omap, geom, theta); //Dilate map
 
           for (int idx_x = 0; idx_x < cmap->gs()[1]; ++idx_x) {
             for (int idx_y = 0; idx_y < cmap->gs()[2]; ++idx_y) {
@@ -677,27 +677,27 @@ Map<bool, 3>::Ptr makeCmap(const Map<bool, 2>& omap, double csa, const CarGeom& 
   return cmap;
 }
 
-Map<bool, 3>::Ptr makeCmap(const Map<TerrainData, 2> & tmap, double csa){
+Map<bool, 3>::Ptr MakeCmap(const Map<TerrainData, 2> & tmap, double csa){
   Map<bool, 2> omap(tmap.xlb(), tmap.xub(), tmap.gs());
 
   //Iterate over all cells
   for(int id = 0; id < omap.nc(); id++)
   omap.set_cells(id, std::isnan(tmap.cells()[id].traversibility));//occupied
 
-  return makeCmap(omap,csa);
+  return MakeCmap(omap,csa);
 }
 
-Map<bool, 3>::Ptr makeCmap(const Map<TerrainData, 2>& tmap, double csa, const CarGeom& geom, int nthreads){
+Map<bool, 3>::Ptr MakeCmap(const Map<TerrainData, 2>& tmap, double csa, const CarGeom& geom, int nthreads){
   Map<bool, 2> omap(tmap.xlb(), tmap.xub(), tmap.gs());
 
     //Iterate over all cells
     for(int id = 0; id < omap.nc(); id++)
       omap.set_cells(id, std::isnan(tmap.cells()[id].traversibility));//occupied
 
-    return makeCmap(omap,csa,geom,nthreads);
+    return MakeCmap(omap,csa,geom,nthreads);
 }
 
-void dilateMap(vector<bool>& dilated, const Map<bool,2>& omap, const CarGeom& geom, double theta){
+void DilateMap(vector<bool>& dilated, const Map<bool,2>& omap, const CarGeom& geom, double theta){
 
   Matrix2x4d verts2d_rotd_pix;
   getRotdVertsInPixWrtOrg(verts2d_rotd_pix, geom.le(), geom.be(), geom.ox(), geom.oy(), omap.cs()[0], omap.cs()[1], theta);
@@ -748,7 +748,7 @@ void dilateMap(vector<bool>& dilated, const Map<bool,2>& omap, const CarGeom& ge
                org2i_rotd_pospix(1));
 }
 
-//void dilateMap(Map<bool,2>& dmap, const Map<bool,2> omap, const vector<Vector2d>& vertices){
+//void DilateMap(Map<bool,2>& dmap, const Map<bool,2> omap, const vector<Vector2d>& vertices){
 //
 //}
 

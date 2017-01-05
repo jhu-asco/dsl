@@ -36,7 +36,7 @@ int main(int argc, char** argv)
   params.GetVector3d("gcs", gcs);  
 
   // load an occupancy map from ppm file
-  dsl::Map<bool, 2>::Ptr omap = loadPPM(mapName, ocs.tail<2>());
+  dsl::Map<bool, 2>::Ptr omap = LoadPpm(mapName, ocs.tail<2>());
 
   // a map that we'll use for display
   dsl::Map<bool, 2> dmap = *omap;
@@ -51,7 +51,7 @@ int main(int argc, char** argv)
   double ox = -0.75;
   double oy = 0;
   CarGeom geom(l, b, ox, oy);
-  dsl::Map<bool, 3>::Ptr cmap = makeCmap(*omap,ocs(0),geom);
+  dsl::Map<bool, 3>::Ptr cmap = MakeCmap(*omap,ocs(0),geom);
   
   CarGrid grid(*cmap, gcs);
 
@@ -59,8 +59,8 @@ int main(int argc, char** argv)
   smap = cmap->GetSlice(-M_PI+0.05, 0);
   
   // save it to image for viewing
-  savePPM(dmap, "path1.ppm");
-  savePPM(*smap, "slice0.ppm");
+  SavePpm(dmap, "path1.ppm");
+  SavePpm(*smap, "slice0.ppm");
 
   return 0;
 }
