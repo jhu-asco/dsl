@@ -1,5 +1,5 @@
-#ifndef DSL_UTILS_H
-#define DSL_UTILS_H
+#ifndef DSL_LIB_UTILS_H_
+#define DSL_LIB_UTILS_H_
 
 #include <sys/time.h>
 #include <Eigen/Dense>

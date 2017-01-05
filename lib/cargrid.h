@@ -6,8 +6,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_CARGRID_H
-#define DSL_CARGRID_H
+#ifndef DSL_LIB_CARGRID_H_
+#define DSL_LIB_CARGRID_H_
 
 #include "grid.h"
 #include <Eigen/Dense>

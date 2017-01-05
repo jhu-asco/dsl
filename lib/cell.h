@@ -6,8 +6,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_CELL_H
-#define DSL_CELL_H
+#ifndef DSL_LIB_CELL_H_
+#define DSL_LIB_CELL_H_
 
 #include <memory>
 

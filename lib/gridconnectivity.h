@@ -6,8 +6,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_GRIDCONNECTIVITY_H
-#define DSL_GRIDCONNECTIVITY_H
+#ifndef DSL_LIB_GRIDCONNECTIVITY_H_
+#define DSL_LIB_GRIDCONNECTIVITY_H_
 
 #include "gridpath.h"
 #include <tuple>

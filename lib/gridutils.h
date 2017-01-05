@@ -1,5 +1,5 @@
-#ifndef DSL_GRIDUTILS_H
-#define DSL_GRIDUTILS_H
+#ifndef DSL_LIB_GRIDUTILS_H_
+#define DSL_LIB_GRIDUTILS_H_
 
 #include "grid.h"
 #include "terrainse2grid.h"

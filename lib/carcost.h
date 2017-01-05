@@ -6,8 +6,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_CARCOST_H
-#define DSL_CARCOST_H
+#ifndef DSL_LIB_CARCOST_H_
+#define DSL_LIB_CARCOST_H_
 
 #include <memory>
 #include <Eigen/Dense>
