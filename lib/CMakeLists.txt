@@ -15,7 +15,9 @@ add_library(dsl SHARED fibheap.c
                        terrainse2gridcost.cc
                        params.cc
                        ppm_reader.cc
+                       grid_data.pb.cc
 )
+target_link_libraries(dsl ${LIBS})
 
 SET_TARGET_PROPERTIES(dsl
                       PROPERTIES
@@ -57,4 +59,5 @@ INSTALL(FILES fibheap.h
               spline.h
               params.h
               ppm_reader.h
+              grid_data.pb.h
               DESTINATION include/dsl)              

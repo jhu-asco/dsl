@@ -1,0 +1,14 @@
+package dsl;
+
+message GridData{
+  required int32 n = 1;
+  required int32 nc = 2;
+  repeated double xlb = 3;
+  repeated double xub = 4;
+  repeated double ds = 5;
+  repeated double cs = 6;
+  repeated int32  gs = 7;
+  repeated int32  cgs = 8;
+  repeated bool wd = 9;
+  repeated bool cells = 10;
+}

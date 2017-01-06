@@ -15,11 +15,9 @@
 #include <vector>
 #include <memory>
 #include <fstream>
+#include <iostream>
 #include <exception>
-
-#include "cereal/archives/binary.hpp" //serialization support
-#include "cereal/types/vector.hpp" //type support
-#include "cereal/types/eigen.hpp" //type support
+#include "grid_data.pb.h"
 
 namespace dsl {
 
@@ -891,12 +889,42 @@ public:
    * @param filename
    */
   static void Save( GridCore<Vectornd,CellContent>& grid, const std::string& filename) {
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
     std::ofstream fs(filename, std::fstream::out | std::ios::binary);
     if(fs.is_open()){
-      //Serialize and write to file
-      cereal::BinaryOutputArchive cerealout(fs);
-      cerealout(grid);
+      //Copy the GridCore data into the protobuff class
+      dsl::GridData data;
+      data.set_n(grid.n_);
+      data.set_nc(grid.nc_);
+
+      std::cout<<"reached here"<<std::endl;
+      data.mutable_xlb()->Reserve(grid.n_);
+      data.mutable_xub()->Reserve(grid.n_);
+      data.mutable_ds()->Reserve(grid.n_);
+      data.mutable_cs()->Reserve(grid.n_);
+      data.mutable_gs()->Reserve(grid.n_);
+      data.mutable_cgs()->Reserve(grid.n_);
+      data.mutable_wd()->Reserve(grid.n_);
+      for(int i=0; i < grid.n_; i++){
+        data.mutable_xlb()->AddAlreadyReserved(grid.xlb_[i]);
+        data.mutable_xub()->AddAlreadyReserved(grid.xub_[i]);
+        data.mutable_ds()->AddAlreadyReserved(grid.ds_[i]);
+        data.mutable_cs()->AddAlreadyReserved(grid.cs_[i]);
+        data.mutable_gs()->AddAlreadyReserved(grid.gs_[i]);
+        data.mutable_cgs()->AddAlreadyReserved(grid.cgs_[i]);
+        data.mutable_wd()->AddAlreadyReserved(grid.wd_[i]);
+      }
+      std::cout<<"not here"<<std::endl;
+
+      data.mutable_cells()->Reserve(grid.nc_);
+      for(int id=0; id < grid.nc_; id++){
+        data.mutable_cells()->AddAlreadyReserved(grid.cells_[id]);
+      }
+
+      data.SerializeToOstream(&fs);
+
       fs.close();
+      google::protobuf::ShutdownProtobufLibrary();
     }else{
       std::cout<<"Couldn't open file:"<< filename<<" to write"<<std::endl;
     }
@@ -905,20 +933,49 @@ public:
   /**
    * Read data from a binary file, deserialize data and create a map object from it
    * @param filename
-   * @return
+   * @return The object loaded
    */
   static Ptr Load(const std::string& filename) {
-    Ptr pgrid;
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
+    Ptr grid;
     std::ifstream fs (filename, std::fstream::in | std::ios::binary);
     if(fs.is_open()){
-      pgrid.reset(new GridCore<Vectornd,CellContent>());
-      cereal::BinaryInputArchive cerealin(fs);
-      cerealin(*pgrid);
+      dsl::GridData data;
+      if(!data.ParseFromIstream(&fs))
+        return nullptr;
       fs.close();
+      grid.reset(new GridCore<Vectornd,CellContent>());
+
+      grid->nc_ =  data.nc();
+      if(data.xlb_size() != data.n() || data.xub_size()   != data.n() ||
+          data.ds_size()  != data.n() || data.cs_size()    != data.n() ||
+          data.gs_size()  != data.n() || data.cgs_size()   != data.n() ||
+          data.wd_size()  != data.n() || data.cells_size() != data.nc() ||
+          grid->n_        != data.n()){
+        std::cout<<"All or one of n xlb, xub, ds, cs, gs, cgs, wd and cells is of wrong size:"<<std::endl;
+        return nullptr;
+      }
+
+      for(int i=0; i < grid->n_; i++){
+        grid->xlb_[i] = data.xlb(i);
+        grid->xub_[i] = data.xub(i);
+        grid->ds_[i]  = data.ds(i);
+        grid->cs_[i]  = data.cs(i);
+        grid->gs_[i]  = data.gs(i);
+        grid->cgs_[i] = data.cgs(i);
+        grid->wd_[i]  = data.wd(i);
+      }
+
+      grid->cells_.resize(grid->nc_);
+      for(int id=0; id < grid->nc_; id++){
+        grid->cells_[id] = data.cells(id);
+      }
+
     }else{
       std::cout<<"Couldn't open file:"<< filename<<" to read"<<std::endl;
     }
-    return pgrid;
+
+    return grid;
   }
 
   // Accessors
@@ -962,25 +1019,9 @@ public:
 
 private:
   /**
-   * Private constructor only to be used by the Cereal serialization
+   * Private constructor only to be used by the Load member
    */
   GridCore(){}
-
-  /**
-   * give cereal access to non-public methods
-   *
-   */
-  friend class cereal::access;
-
-  /**
-   * serealizes data members for cereal library
-   * @param ar cereal(library) archive
-   */
-  template <class Archive>
-  void serialize( Archive & ar ){
-    ar( nc_, xlb_, xub_, ds_, cs_, gs_, cgs_, wd_, cells_);
-  }
-
 
   const int n_ = PointType::SizeAtCompileTime; ///< grid dimension
   int nc_ = 0;   ///< number of cells in grid
