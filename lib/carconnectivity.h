@@ -134,7 +134,7 @@ public:
         Vector3d vbp(w*tpert, -u*tpert,0); //reverse vel positive angular vel
         Vector3d vbn(-w*tpert, -u*tpert,0);//reverse vel negative angular vel
 
-        if(abs(w)<1e-16){
+        if(std::abs(w)<1e-16){
           vbs_.push_back(vfp);
           if(!cfg.fwdonly)
             vbs_.push_back(vbp);
@@ -230,7 +230,7 @@ public:
 
         Matrix3d gi,dg; se2_inv(gi,g0); dg = gi*gto; //relative of from.data to to->data
         Vector3d v; se2_log(v,dg);//twist that take you exactly to successor
-        double d = fabs(v[1]); // total distance along curve
+        double d = std::abs(v[1]); // total distance along curve
         int n_seg = ceil(d/ (2 * grid_.cs()[1])); // 2 * grid.cs[1] is to improve efficiency
         double s = d/n_seg;
         vector<Vector2d> prim(0); prim.reserve(n_seg+1);

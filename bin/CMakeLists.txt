@@ -3,8 +3,11 @@ link_directories(${DSL_BINARY_DIR}/lib)
 add_executable(test2d test2d.cc)
 target_link_libraries(test2d dsl)
 
-add_executable(cartest cartest.cc)
-target_link_libraries(cartest dsl)
+add_executable(cartest_simple cartest_simple.cc)
+target_link_libraries(cartest_simple dsl)
+
+add_executable(cartest_viz cartest_viz.cc)
+target_link_libraries(cartest_viz dsl)
 
 add_executable(terraincartest terraincartest.cc)
 target_link_libraries(terraincartest dsl)

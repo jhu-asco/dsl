@@ -21,7 +21,7 @@ vector<Vector3d> ToVector3dPath(const CarTwistPath &path, double gridcs) {
     Vector3d axy = path.cells[i].c;
     Matrix3d g_from;
     se2_q2g(g_from, axy);
-    double d = abs(v(1));
+    double d = std::abs(v(1));
     int n_seg = ceil(d/ (2 * gridcs));
     double s = d/n_seg;
     for (int i_seg=0; i_seg<=n_seg; i_seg++){

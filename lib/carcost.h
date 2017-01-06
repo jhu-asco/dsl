@@ -28,13 +28,6 @@ namespace dsl {
   class CarCost : public GridCost< SE2Cell::PointType, SE2Cell::DataType > {
 public:
 
-
-  /**
-   * Initialize the cost(distance_metric)
-   * @param ac angular cost coefficient
-   */
-  CarCost(const CarGrid& grid, double ac, double eps = 1e-6);
-
   /**
    * Initialize the cost(twistnorm_metric)
    * @param wt weight for weighted norm of the twist between two SE2 cells
@@ -68,7 +61,6 @@ public:
   bool use_twistnorm_metric_; ///< if true uses twistnorm_metric else distance_metric
 
   Vector3d wt_; ///< weight for weighted norm of the twist between two SE2 cells used by twistnorm_metric
-  double ac_ = 1; ///< angular cost coefficient used by distance_metric(see explanation above),
   double eps_ = 1e-6; ///< for Heur cost a factor of (1-eps) is multiplied to final cost to ensure admissability
 };
 }

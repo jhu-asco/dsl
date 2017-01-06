@@ -5,6 +5,7 @@
 #include <Eigen/Dense>
 #include <vector>
 #include "utilsimg.h"
+#include <cmath>
 
 namespace dsl {
 

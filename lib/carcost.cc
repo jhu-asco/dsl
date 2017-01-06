@@ -1,27 +1,23 @@
 #include "carcost.h"
 #include "utils.h"
+#include <exception>
 
 namespace dsl {
 using namespace std;
 
-CarCost::CarCost(const CarGrid& grid, double ac, double eps)
-:grid_(grid), use_twistnorm_metric_(false),wt_(Vector3d(0.1,1,2)), ac_(ac),eps_(eps){
-  assert(eps > 0 && eps < 1);
-  assert(ac >= 0);
-}
-
 CarCost::CarCost(const CarGrid& grid, const Vector3d& wt, double eps )
-:grid_(grid), use_twistnorm_metric_(true), wt_(wt), ac_(0.1),eps_(eps){
+:grid_(grid), use_twistnorm_metric_(true), wt_(wt),eps_(eps){
+
   assert(eps > 0 && eps < 1);
   if(!(eps > 0 && eps < 1)){
-    cout<<"wrong eps in carcost"<<endl;
-    eps = 1e-6;
+    throw invalid_argument( "Wrong eps in TerrainSE2GridCost. 0 < eps < 1 desired." );
+    eps_ = 1e-6;
   }
 
   assert( (wt(0)>0) && (wt(1)>0) && (wt(2)>0) );
   if(!((wt(0)>0) && (wt(1)>0) && (wt(2)>0))){
-    cout<<"wrong wt in carcost"<<endl;
-    this->wt_ << 0.1, 1, 2;
+    throw invalid_argument( "Wrong wt in TerrainSE2GridCost. wt(i) > 0 for all i." );
+    wt_ << 0.1, 1, 2;
   }
 }
 
@@ -50,13 +46,7 @@ double CarCost::Real(const SE2Cell& a, const SE2Cell& b) const{
 
   double wl = (twist.array()* wt_.array()).matrix().norm();//weighted length
 
-  //Determine cost
-  if(use_twistnorm_metric_){
-    return wl;
-  }else{
-    return ac_*abs(twist(0)) + twist.tail<2>().norm();
-
-  }
+  return wl;
 }
 
 double CarCost::Heur(const SE2Cell& a, const SE2Cell& b) const {
@@ -68,11 +58,6 @@ double CarCost::Heur(const SE2Cell& a, const SE2Cell& b) const {
   Vector3d twist; se2_log(twist,dg);
   double wl = (twist.array()* wt_.array()).matrix().norm();//weighted length
 
-  if(use_twistnorm_metric_){
-    return (1 - eps_)*wl;
-  }else{
-    return (1-eps_)*(ac_*abs(twist(0)) + twist.tail<2>().norm());
-
-  }
+  return (1 - eps_)*wl;
 }
 }
