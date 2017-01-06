@@ -889,6 +889,11 @@ public:
    * @param filename
    */
   static void Save( GridCore<Vectornd,CellContent>& grid, const std::string& filename) {
+    if(has_template_type<CellContent, std::shared_ptr>::value){
+      throw std::logic_error("not meant for grid that stores smart_pointers");
+      return;
+    }
+
     GOOGLE_PROTOBUF_VERIFY_VERSION;
     std::ofstream fs(filename, std::fstream::out | std::ios::binary);
     if(fs.is_open()){
@@ -936,8 +941,15 @@ public:
    * @return The object loaded
    */
   static Ptr Load(const std::string& filename) {
-    GOOGLE_PROTOBUF_VERIFY_VERSION;
     Ptr grid;
+
+    if(has_template_type<CellContent, std::shared_ptr>::value){
+      throw std::logic_error("not meant for grid that stores smart_pointers");
+      return grid;
+    }
+
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
+
     std::ifstream fs (filename, std::fstream::in | std::ios::binary);
     if(fs.is_open()){
       dsl::GridData data;
