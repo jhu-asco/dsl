@@ -33,18 +33,18 @@ void  protobuf_AddDesc_grid_5fdata_2eproto();
 void protobuf_AssignDesc_grid_5fdata_2eproto();
 void protobuf_ShutdownFile_grid_5fdata_2eproto();
 
-class GridData;
+class ProtobufGrid;
 
 // ===================================================================
 
-class GridData : public ::google::protobuf::Message {
+class ProtobufGrid : public ::google::protobuf::Message {
  public:
-  GridData();
-  virtual ~GridData();
+  ProtobufGrid();
+  virtual ~ProtobufGrid();
 
-  GridData(const GridData& from);
+  ProtobufGrid(const ProtobufGrid& from);
 
-  inline GridData& operator=(const GridData& from) {
+  inline ProtobufGrid& operator=(const ProtobufGrid& from) {
     CopyFrom(from);
     return *this;
   }
@@ -58,17 +58,17 @@ class GridData : public ::google::protobuf::Message {
   }
 
   static const ::google::protobuf::Descriptor* descriptor();
-  static const GridData& default_instance();
+  static const ProtobufGrid& default_instance();
 
-  void Swap(GridData* other);
+  void Swap(ProtobufGrid* other);
 
   // implements Message ----------------------------------------------
 
-  GridData* New() const;
+  ProtobufGrid* New() const;
   void CopyFrom(const ::google::protobuf::Message& from);
   void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const GridData& from);
-  void MergeFrom(const GridData& from);
+  void CopyFrom(const ProtobufGrid& from);
+  void MergeFrom(const ProtobufGrid& from);
   void Clear();
   bool IsInitialized() const;
 
@@ -189,24 +189,38 @@ class GridData : public ::google::protobuf::Message {
   inline ::google::protobuf::RepeatedField< bool >*
       mutable_wd();
 
-  // repeated bool cells = 10;
-  inline int cells_size() const;
-  inline void clear_cells();
-  static const int kCellsFieldNumber = 10;
-  inline bool cells(int index) const;
-  inline void set_cells(int index, bool value);
-  inline void add_cells(bool value);
-  inline const ::google::protobuf::RepeatedField< bool >&
-      cells() const;
-  inline ::google::protobuf::RepeatedField< bool >*
-      mutable_cells();
+  // required string data = 10;
+  inline bool has_data() const;
+  inline void clear_data();
+  static const int kDataFieldNumber = 10;
+  inline const ::std::string& data() const;
+  inline void set_data(const ::std::string& value);
+  inline void set_data(const char* value);
+  inline void set_data(const char* value, size_t size);
+  inline ::std::string* mutable_data();
+  inline ::std::string* release_data();
+  inline void set_allocated_data(::std::string* data);
 
-  // @@protoc_insertion_point(class_scope:dsl.GridData)
+  // repeated int32 ids_allocated = 11;
+  inline int ids_allocated_size() const;
+  inline void clear_ids_allocated();
+  static const int kIdsAllocatedFieldNumber = 11;
+  inline ::google::protobuf::int32 ids_allocated(int index) const;
+  inline void set_ids_allocated(int index, ::google::protobuf::int32 value);
+  inline void add_ids_allocated(::google::protobuf::int32 value);
+  inline const ::google::protobuf::RepeatedField< ::google::protobuf::int32 >&
+      ids_allocated() const;
+  inline ::google::protobuf::RepeatedField< ::google::protobuf::int32 >*
+      mutable_ids_allocated();
+
+  // @@protoc_insertion_point(class_scope:dsl.ProtobufGrid)
  private:
   inline void set_has_n();
   inline void clear_has_n();
   inline void set_has_nc();
   inline void clear_has_nc();
+  inline void set_has_data();
+  inline void clear_has_data();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -219,267 +233,338 @@ class GridData : public ::google::protobuf::Message {
   ::google::protobuf::RepeatedField< ::google::protobuf::int32 > gs_;
   ::google::protobuf::RepeatedField< ::google::protobuf::int32 > cgs_;
   ::google::protobuf::RepeatedField< bool > wd_;
-  ::google::protobuf::RepeatedField< bool > cells_;
+  ::std::string* data_;
+  ::google::protobuf::RepeatedField< ::google::protobuf::int32 > ids_allocated_;
 
   mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(10 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(11 + 31) / 32];
 
   friend void  protobuf_AddDesc_grid_5fdata_2eproto();
   friend void protobuf_AssignDesc_grid_5fdata_2eproto();
   friend void protobuf_ShutdownFile_grid_5fdata_2eproto();
 
   void InitAsDefaultInstance();
-  static GridData* default_instance_;
+  static ProtobufGrid* default_instance_;
 };
 // ===================================================================
 
 
 // ===================================================================
 
-// GridData
+// ProtobufGrid
 
 // required int32 n = 1;
-inline bool GridData::has_n() const {
+inline bool ProtobufGrid::has_n() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
-inline void GridData::set_has_n() {
+inline void ProtobufGrid::set_has_n() {
   _has_bits_[0] |= 0x00000001u;
 }
-inline void GridData::clear_has_n() {
+inline void ProtobufGrid::clear_has_n() {
   _has_bits_[0] &= ~0x00000001u;
 }
-inline void GridData::clear_n() {
+inline void ProtobufGrid::clear_n() {
   n_ = 0;
   clear_has_n();
 }
-inline ::google::protobuf::int32 GridData::n() const {
+inline ::google::protobuf::int32 ProtobufGrid::n() const {
   return n_;
 }
-inline void GridData::set_n(::google::protobuf::int32 value) {
+inline void ProtobufGrid::set_n(::google::protobuf::int32 value) {
   set_has_n();
   n_ = value;
 }
 
 // required int32 nc = 2;
-inline bool GridData::has_nc() const {
+inline bool ProtobufGrid::has_nc() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
-inline void GridData::set_has_nc() {
+inline void ProtobufGrid::set_has_nc() {
   _has_bits_[0] |= 0x00000002u;
 }
-inline void GridData::clear_has_nc() {
+inline void ProtobufGrid::clear_has_nc() {
   _has_bits_[0] &= ~0x00000002u;
 }
-inline void GridData::clear_nc() {
+inline void ProtobufGrid::clear_nc() {
   nc_ = 0;
   clear_has_nc();
 }
-inline ::google::protobuf::int32 GridData::nc() const {
+inline ::google::protobuf::int32 ProtobufGrid::nc() const {
   return nc_;
 }
-inline void GridData::set_nc(::google::protobuf::int32 value) {
+inline void ProtobufGrid::set_nc(::google::protobuf::int32 value) {
   set_has_nc();
   nc_ = value;
 }
 
 // repeated double xlb = 3;
-inline int GridData::xlb_size() const {
+inline int ProtobufGrid::xlb_size() const {
   return xlb_.size();
 }
-inline void GridData::clear_xlb() {
+inline void ProtobufGrid::clear_xlb() {
   xlb_.Clear();
 }
-inline double GridData::xlb(int index) const {
+inline double ProtobufGrid::xlb(int index) const {
   return xlb_.Get(index);
 }
-inline void GridData::set_xlb(int index, double value) {
+inline void ProtobufGrid::set_xlb(int index, double value) {
   xlb_.Set(index, value);
 }
-inline void GridData::add_xlb(double value) {
+inline void ProtobufGrid::add_xlb(double value) {
   xlb_.Add(value);
 }
 inline const ::google::protobuf::RepeatedField< double >&
-GridData::xlb() const {
+ProtobufGrid::xlb() const {
   return xlb_;
 }
 inline ::google::protobuf::RepeatedField< double >*
-GridData::mutable_xlb() {
+ProtobufGrid::mutable_xlb() {
   return &xlb_;
 }
 
 // repeated double xub = 4;
-inline int GridData::xub_size() const {
+inline int ProtobufGrid::xub_size() const {
   return xub_.size();
 }
-inline void GridData::clear_xub() {
+inline void ProtobufGrid::clear_xub() {
   xub_.Clear();
 }
-inline double GridData::xub(int index) const {
+inline double ProtobufGrid::xub(int index) const {
   return xub_.Get(index);
 }
-inline void GridData::set_xub(int index, double value) {
+inline void ProtobufGrid::set_xub(int index, double value) {
   xub_.Set(index, value);
 }
-inline void GridData::add_xub(double value) {
+inline void ProtobufGrid::add_xub(double value) {
   xub_.Add(value);
 }
 inline const ::google::protobuf::RepeatedField< double >&
-GridData::xub() const {
+ProtobufGrid::xub() const {
   return xub_;
 }
 inline ::google::protobuf::RepeatedField< double >*
-GridData::mutable_xub() {
+ProtobufGrid::mutable_xub() {
   return &xub_;
 }
 
 // repeated double ds = 5;
-inline int GridData::ds_size() const {
+inline int ProtobufGrid::ds_size() const {
   return ds_.size();
 }
-inline void GridData::clear_ds() {
+inline void ProtobufGrid::clear_ds() {
   ds_.Clear();
 }
-inline double GridData::ds(int index) const {
+inline double ProtobufGrid::ds(int index) const {
   return ds_.Get(index);
 }
-inline void GridData::set_ds(int index, double value) {
+inline void ProtobufGrid::set_ds(int index, double value) {
   ds_.Set(index, value);
 }
-inline void GridData::add_ds(double value) {
+inline void ProtobufGrid::add_ds(double value) {
   ds_.Add(value);
 }
 inline const ::google::protobuf::RepeatedField< double >&
-GridData::ds() const {
+ProtobufGrid::ds() const {
   return ds_;
 }
 inline ::google::protobuf::RepeatedField< double >*
-GridData::mutable_ds() {
+ProtobufGrid::mutable_ds() {
   return &ds_;
 }
 
 // repeated double cs = 6;
-inline int GridData::cs_size() const {
+inline int ProtobufGrid::cs_size() const {
   return cs_.size();
 }
-inline void GridData::clear_cs() {
+inline void ProtobufGrid::clear_cs() {
   cs_.Clear();
 }
-inline double GridData::cs(int index) const {
+inline double ProtobufGrid::cs(int index) const {
   return cs_.Get(index);
 }
-inline void GridData::set_cs(int index, double value) {
+inline void ProtobufGrid::set_cs(int index, double value) {
   cs_.Set(index, value);
 }
-inline void GridData::add_cs(double value) {
+inline void ProtobufGrid::add_cs(double value) {
   cs_.Add(value);
 }
 inline const ::google::protobuf::RepeatedField< double >&
-GridData::cs() const {
+ProtobufGrid::cs() const {
   return cs_;
 }
 inline ::google::protobuf::RepeatedField< double >*
-GridData::mutable_cs() {
+ProtobufGrid::mutable_cs() {
   return &cs_;
 }
 
 // repeated int32 gs = 7;
-inline int GridData::gs_size() const {
+inline int ProtobufGrid::gs_size() const {
   return gs_.size();
 }
-inline void GridData::clear_gs() {
+inline void ProtobufGrid::clear_gs() {
   gs_.Clear();
 }
-inline ::google::protobuf::int32 GridData::gs(int index) const {
+inline ::google::protobuf::int32 ProtobufGrid::gs(int index) const {
   return gs_.Get(index);
 }
-inline void GridData::set_gs(int index, ::google::protobuf::int32 value) {
+inline void ProtobufGrid::set_gs(int index, ::google::protobuf::int32 value) {
   gs_.Set(index, value);
 }
-inline void GridData::add_gs(::google::protobuf::int32 value) {
+inline void ProtobufGrid::add_gs(::google::protobuf::int32 value) {
   gs_.Add(value);
 }
 inline const ::google::protobuf::RepeatedField< ::google::protobuf::int32 >&
-GridData::gs() const {
+ProtobufGrid::gs() const {
   return gs_;
 }
 inline ::google::protobuf::RepeatedField< ::google::protobuf::int32 >*
-GridData::mutable_gs() {
+ProtobufGrid::mutable_gs() {
   return &gs_;
 }
 
 // repeated int32 cgs = 8;
-inline int GridData::cgs_size() const {
+inline int ProtobufGrid::cgs_size() const {
   return cgs_.size();
 }
-inline void GridData::clear_cgs() {
+inline void ProtobufGrid::clear_cgs() {
   cgs_.Clear();
 }
-inline ::google::protobuf::int32 GridData::cgs(int index) const {
+inline ::google::protobuf::int32 ProtobufGrid::cgs(int index) const {
   return cgs_.Get(index);
 }
-inline void GridData::set_cgs(int index, ::google::protobuf::int32 value) {
+inline void ProtobufGrid::set_cgs(int index, ::google::protobuf::int32 value) {
   cgs_.Set(index, value);
 }
-inline void GridData::add_cgs(::google::protobuf::int32 value) {
+inline void ProtobufGrid::add_cgs(::google::protobuf::int32 value) {
   cgs_.Add(value);
 }
 inline const ::google::protobuf::RepeatedField< ::google::protobuf::int32 >&
-GridData::cgs() const {
+ProtobufGrid::cgs() const {
   return cgs_;
 }
 inline ::google::protobuf::RepeatedField< ::google::protobuf::int32 >*
-GridData::mutable_cgs() {
+ProtobufGrid::mutable_cgs() {
   return &cgs_;
 }
 
 // repeated bool wd = 9;
-inline int GridData::wd_size() const {
+inline int ProtobufGrid::wd_size() const {
   return wd_.size();
 }
-inline void GridData::clear_wd() {
+inline void ProtobufGrid::clear_wd() {
   wd_.Clear();
 }
-inline bool GridData::wd(int index) const {
+inline bool ProtobufGrid::wd(int index) const {
   return wd_.Get(index);
 }
-inline void GridData::set_wd(int index, bool value) {
+inline void ProtobufGrid::set_wd(int index, bool value) {
   wd_.Set(index, value);
 }
-inline void GridData::add_wd(bool value) {
+inline void ProtobufGrid::add_wd(bool value) {
   wd_.Add(value);
 }
 inline const ::google::protobuf::RepeatedField< bool >&
-GridData::wd() const {
+ProtobufGrid::wd() const {
   return wd_;
 }
 inline ::google::protobuf::RepeatedField< bool >*
-GridData::mutable_wd() {
+ProtobufGrid::mutable_wd() {
   return &wd_;
 }
 
-// repeated bool cells = 10;
-inline int GridData::cells_size() const {
-  return cells_.size();
+// required string data = 10;
+inline bool ProtobufGrid::has_data() const {
+  return (_has_bits_[0] & 0x00000200u) != 0;
 }
-inline void GridData::clear_cells() {
-  cells_.Clear();
+inline void ProtobufGrid::set_has_data() {
+  _has_bits_[0] |= 0x00000200u;
 }
-inline bool GridData::cells(int index) const {
-  return cells_.Get(index);
+inline void ProtobufGrid::clear_has_data() {
+  _has_bits_[0] &= ~0x00000200u;
 }
-inline void GridData::set_cells(int index, bool value) {
-  cells_.Set(index, value);
+inline void ProtobufGrid::clear_data() {
+  if (data_ != &::google::protobuf::internal::kEmptyString) {
+    data_->clear();
+  }
+  clear_has_data();
 }
-inline void GridData::add_cells(bool value) {
-  cells_.Add(value);
+inline const ::std::string& ProtobufGrid::data() const {
+  return *data_;
 }
-inline const ::google::protobuf::RepeatedField< bool >&
-GridData::cells() const {
-  return cells_;
+inline void ProtobufGrid::set_data(const ::std::string& value) {
+  set_has_data();
+  if (data_ == &::google::protobuf::internal::kEmptyString) {
+    data_ = new ::std::string;
+  }
+  data_->assign(value);
 }
-inline ::google::protobuf::RepeatedField< bool >*
-GridData::mutable_cells() {
-  return &cells_;
+inline void ProtobufGrid::set_data(const char* value) {
+  set_has_data();
+  if (data_ == &::google::protobuf::internal::kEmptyString) {
+    data_ = new ::std::string;
+  }
+  data_->assign(value);
+}
+inline void ProtobufGrid::set_data(const char* value, size_t size) {
+  set_has_data();
+  if (data_ == &::google::protobuf::internal::kEmptyString) {
+    data_ = new ::std::string;
+  }
+  data_->assign(reinterpret_cast<const char*>(value), size);
+}
+inline ::std::string* ProtobufGrid::mutable_data() {
+  set_has_data();
+  if (data_ == &::google::protobuf::internal::kEmptyString) {
+    data_ = new ::std::string;
+  }
+  return data_;
+}
+inline ::std::string* ProtobufGrid::release_data() {
+  clear_has_data();
+  if (data_ == &::google::protobuf::internal::kEmptyString) {
+    return NULL;
+  } else {
+    ::std::string* temp = data_;
+    data_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+    return temp;
+  }
+}
+inline void ProtobufGrid::set_allocated_data(::std::string* data) {
+  if (data_ != &::google::protobuf::internal::kEmptyString) {
+    delete data_;
+  }
+  if (data) {
+    set_has_data();
+    data_ = data;
+  } else {
+    clear_has_data();
+    data_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  }
+}
+
+// repeated int32 ids_allocated = 11;
+inline int ProtobufGrid::ids_allocated_size() const {
+  return ids_allocated_.size();
+}
+inline void ProtobufGrid::clear_ids_allocated() {
+  ids_allocated_.Clear();
+}
+inline ::google::protobuf::int32 ProtobufGrid::ids_allocated(int index) const {
+  return ids_allocated_.Get(index);
+}
+inline void ProtobufGrid::set_ids_allocated(int index, ::google::protobuf::int32 value) {
+  ids_allocated_.Set(index, value);
+}
+inline void ProtobufGrid::add_ids_allocated(::google::protobuf::int32 value) {
+  ids_allocated_.Add(value);
+}
+inline const ::google::protobuf::RepeatedField< ::google::protobuf::int32 >&
+ProtobufGrid::ids_allocated() const {
+  return ids_allocated_;
+}
+inline ::google::protobuf::RepeatedField< ::google::protobuf::int32 >*
+ProtobufGrid::mutable_ids_allocated() {
+  return &ids_allocated_;
 }
 
 

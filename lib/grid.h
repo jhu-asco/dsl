@@ -17,6 +17,7 @@
 #include <fstream>
 #include <iostream>
 #include <exception>
+#include <type_traits>
 #include "grid_data.pb.h"
 
 namespace dsl {
@@ -36,6 +37,11 @@ struct has_template_type : std::false_type {};
 template < template <typename...> class T, typename... Ts>
 struct has_template_type<T<Ts...>, T> : std::true_type {};
 
+template<class T>
+struct remove_shared_ptr { typedef T type; };
+
+template<class T>
+struct remove_shared_ptr<std::shared_ptr<T> > { typedef T type; };
 
 /**
  * An n-dimenensional grid consisting of abstract "cells", or elements
@@ -88,6 +94,8 @@ public:
 
   using Stack = GridCore<Vectornp1d,CellContent>;
   using StackPtr = shared_ptr<Stack>;
+
+  using ValType = typename remove_shared_ptr<CellContent>::type;
 
   /**
    * Initialize the grid using state lower bound, state upper bound, the number of grid cells
@@ -885,103 +893,107 @@ public:
 
   /**
    * Serialize data of the map class and save it in a binary file
-   * @param map
    * @param filename
    */
-  static void Save( GridCore<Vectornd,CellContent>& grid, const std::string& filename) {
-    if(has_template_type<CellContent, std::shared_ptr>::value){
-      throw std::logic_error("not meant for grid that stores smart_pointers");
-      return;
-    }
-
+  void Save(const std::string& filename){
     GOOGLE_PROTOBUF_VERIFY_VERSION;
     std::ofstream fs(filename, std::fstream::out | std::ios::binary);
     if(fs.is_open()){
+
       //Copy the GridCore data into the protobuff class
-      dsl::GridData data;
-      data.set_n(grid.n_);
-      data.set_nc(grid.nc_);
+      dsl::ProtobufGrid pb;
+      pb.set_n(n_);
+      pb.set_nc(nc_);
 
-      std::cout<<"reached here"<<std::endl;
-      data.mutable_xlb()->Reserve(grid.n_);
-      data.mutable_xub()->Reserve(grid.n_);
-      data.mutable_ds()->Reserve(grid.n_);
-      data.mutable_cs()->Reserve(grid.n_);
-      data.mutable_gs()->Reserve(grid.n_);
-      data.mutable_cgs()->Reserve(grid.n_);
-      data.mutable_wd()->Reserve(grid.n_);
-      for(int i=0; i < grid.n_; i++){
-        data.mutable_xlb()->AddAlreadyReserved(grid.xlb_[i]);
-        data.mutable_xub()->AddAlreadyReserved(grid.xub_[i]);
-        data.mutable_ds()->AddAlreadyReserved(grid.ds_[i]);
-        data.mutable_cs()->AddAlreadyReserved(grid.cs_[i]);
-        data.mutable_gs()->AddAlreadyReserved(grid.gs_[i]);
-        data.mutable_cgs()->AddAlreadyReserved(grid.cgs_[i]);
-        data.mutable_wd()->AddAlreadyReserved(grid.wd_[i]);
-      }
-      std::cout<<"not here"<<std::endl;
-
-      data.mutable_cells()->Reserve(grid.nc_);
-      for(int id=0; id < grid.nc_; id++){
-        data.mutable_cells()->AddAlreadyReserved(grid.cells_[id]);
+      pb.mutable_xlb()->Reserve(n_);
+      pb.mutable_xub()->Reserve(n_);
+      pb.mutable_ds()->Reserve(n_);
+      pb.mutable_cs()->Reserve(n_);
+      pb.mutable_gs()->Reserve(n_);
+      pb.mutable_cgs()->Reserve(n_);
+      pb.mutable_wd()->Reserve(n_);
+      for(int i=0; i < n_; i++){
+        pb.mutable_xlb()->AddAlreadyReserved(xlb_[i]);
+        pb.mutable_xub()->AddAlreadyReserved(xub_[i]);
+        pb.mutable_ds()->AddAlreadyReserved(ds_[i]);
+        pb.mutable_cs()->AddAlreadyReserved(cs_[i]);
+        pb.mutable_gs()->AddAlreadyReserved(gs_[i]);
+        pb.mutable_cgs()->AddAlreadyReserved(cgs_[i]);
+        pb.mutable_wd()->AddAlreadyReserved(wd_[i]);
       }
 
-      data.SerializeToOstream(&fs);
+      CellsToPb(pb, has_template_type<CellContent,std::shared_ptr>());
+
+      pb.SerializeToOstream(&fs);
 
       fs.close();
       google::protobuf::ShutdownProtobufLibrary();
     }else{
       std::cout<<"Couldn't open file:"<< filename<<" to write"<<std::endl;
     }
+
   }
+
+
 
   /**
    * Read data from a binary file, deserialize data and create a map object from it
    * @param filename
    * @return The object loaded
    */
-  static Ptr Load(const std::string& filename) {
-    Ptr grid;
-
-    if(has_template_type<CellContent, std::shared_ptr>::value){
-      throw std::logic_error("not meant for grid that stores smart_pointers");
-      return grid;
-    }
-
+  static Ptr Load(const std::string& filename){
     GOOGLE_PROTOBUF_VERIFY_VERSION;
-
+    Ptr grid;
     std::ifstream fs (filename, std::fstream::in | std::ios::binary);
     if(fs.is_open()){
-      dsl::GridData data;
-      if(!data.ParseFromIstream(&fs))
+      dsl::ProtobufGrid pb;
+      if(!pb.ParseFromIstream(&fs))
         return nullptr;
       fs.close();
-      grid.reset(new GridCore<Vectornd,CellContent>());
 
-      grid->nc_ =  data.nc();
-      if(data.xlb_size() != data.n() || data.xub_size()   != data.n() ||
-          data.ds_size()  != data.n() || data.cs_size()    != data.n() ||
-          data.gs_size()  != data.n() || data.cgs_size()   != data.n() ||
-          data.wd_size()  != data.n() || data.cells_size() != data.nc() ||
-          grid->n_        != data.n()){
-        std::cout<<"All or one of n xlb, xub, ds, cs, gs, cgs, wd and cells is of wrong size:"<<std::endl;
+
+      // size checks
+      int data_size, n_bytes;
+      n_bytes = sizeof(ValType);
+      if(has_template_type<CellContent,std::shared_ptr>::value)
+        data_size = pb.ids_allocated_size()*n_bytes;
+      else
+        data_size = pb.nc()*n_bytes;
+
+      if(pb.xlb_size() != pb.n() || pb.xub_size()   != pb.n() ||
+          pb.ds_size()  != pb.n() || pb.cs_size()    != pb.n() ||
+          pb.gs_size()  != pb.n() || pb.cgs_size()   != pb.n() ||
+          pb.wd_size()  != pb.n() ){
+        throw std::length_error("All or one of xlb, xub, ds, cs, gs, cgs and wd is of wrong size");
+        return nullptr;
+      }
+      if( pb.data().size()!= data_size){
+        throw std::length_error("data field is of wrong size");
         return nullptr;
       }
 
-      for(int i=0; i < grid->n_; i++){
-        grid->xlb_[i] = data.xlb(i);
-        grid->xub_[i] = data.xub(i);
-        grid->ds_[i]  = data.ds(i);
-        grid->cs_[i]  = data.cs(i);
-        grid->gs_[i]  = data.gs(i);
-        grid->cgs_[i] = data.cgs(i);
-        grid->wd_[i]  = data.wd(i);
+      // Data probably is valid, so initilize the grid and load data into it
+      grid.reset(new GridCore<Vectornd,CellContent>());
+
+      if(grid->n_ !=  pb.n()){ //one last check
+        throw std::length_error("pb's n doesn't match with grid.h");
+        return nullptr;
       }
 
-      grid->cells_.resize(grid->nc_);
-      for(int id=0; id < grid->nc_; id++){
-        grid->cells_[id] = data.cells(id);
+      grid->nc_ =  pb.nc();
+      grid->cells_.resize(pb.nc());
+
+      for(int i=0; i < grid->n_; i++){
+        grid->xlb_[i] = pb.xlb(i);
+        grid->xub_[i] = pb.xub(i);
+        grid->ds_[i]  = pb.ds(i);
+        grid->cs_[i]  = pb.cs(i);
+        grid->gs_[i]  = pb.gs(i);
+        grid->cgs_[i] = pb.cgs(i);
+        grid->wd_[i]  = pb.wd(i);
       }
+      PbToCells(*grid,pb,has_template_type<CellContent,std::shared_ptr>());
+
 
     }else{
       std::cout<<"Couldn't open file:"<< filename<<" to read"<<std::endl;
@@ -989,6 +1001,7 @@ public:
 
     return grid;
   }
+
 
   // Accessors
   inline const int&       n(void)   const {
@@ -1031,9 +1044,80 @@ public:
 
 private:
   /**
-   * Private constructor only to be used by the Load member
+   * Private constructor only to be used by the Load method
    */
   GridCore(){}
+
+  /**
+   * Loads data from cells to protocol buffer non shared_ptr CellContent
+   * @param pb
+   * @param false_type
+   */
+  void CellsToPb(dsl::ProtobufGrid& pb, std::false_type){
+    int n_bytes = sizeof(CellContent);
+    int data_size = nc_*n_bytes;
+    std::string& data = *pb.mutable_data();
+    data.resize(data_size);
+    for(int id=0; id < nc_; id++){
+      CellContent val = cells_[id]; //bools are saved in bits in vec<bool>
+      data.replace(id*n_bytes, n_bytes, (char*)&val, n_bytes);
+    }
+  }
+
+  /**
+   * Loads data from cells to protocol buffer shared_ptr CellContent
+   * @param pb
+   * @param true_type
+   */
+  void CellsToPb(dsl::ProtobufGrid& pb, std::true_type){
+    pb.mutable_ids_allocated()->Reserve(nc_);
+    for(int id = 0; id < nc_; id++)
+      if(cells_[id])
+        pb.mutable_ids_allocated()->AddAlreadyReserved(id);
+
+    int n_bytes = sizeof(ValType);
+    int data_size = pb.ids_allocated_size()*n_bytes;
+    std::string& data = *pb.mutable_data();
+    data.resize(data_size);
+
+    for(int i=0; i < pb.ids_allocated_size(); i++){
+      int id = pb.ids_allocated(i);
+      auto val = *cells_[id];
+      data.replace(i*n_bytes, n_bytes, (char*)&val, n_bytes);
+    }
+  }
+
+  /**
+   * Loads data from protocol buffer to cells for non shared_ptr CellContent
+   * @param grid
+   * @param pb
+   * @param
+   */
+  static void PbToCells(GridCore& grid, dsl::ProtobufGrid& pb, std::false_type){
+    int n_bytes = sizeof(CellContent);
+    for(int id=0; id < grid.nc_; id++){
+      CellContent val;
+      std::memcpy(&val,pb.data().c_str()+id*n_bytes, n_bytes);
+      grid.cells_[id] = val;
+    }
+  }
+
+  /**
+   * Loads data from protocol buffer to cells for shared_ptr CellContent
+   * @param grid
+   * @param pb
+   * @param
+   */
+  static void PbToCells(GridCore& grid, dsl::ProtobufGrid& pb, std::true_type){
+    int n_bytes = sizeof(ValType);
+    for(int i=0; i < pb.ids_allocated_size(); i++){
+      ValType val;
+      std::memcpy(&val,pb.data().c_str()+i*n_bytes, n_bytes);
+      int id = pb.ids_allocated(i);
+      grid.cells_[id].reset(new ValType);
+      *grid.cells_[id] = val;
+    }
+  }
 
   const int n_ = PointType::SizeAtCompileTime; ///< grid dimension
   int nc_ = 0;   ///< number of cells in grid

@@ -117,7 +117,7 @@ int main(int argc, char** argv)
 
     cmapName = mapName;
     ReplaceExtension(cmapName, string("cmap"));
-    dsl::Map<bool,3>::Save(*cmap, cmapName);
+    cmap->Save(cmapName);
     std::cout << "Saved cmap " << cmapName << " with xlb=" << cmap->xlb().transpose() << " xub=" << cmap->xub().transpose() << " gs=" << cmap->gs().transpose() << std::endl;
 
   }else{

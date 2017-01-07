@@ -1,6 +1,6 @@
 package dsl;
 
-message GridData{
+message ProtobufGrid{
   required int32 n = 1;
   required int32 nc = 2;
   repeated double xlb = 3;
@@ -10,5 +10,6 @@ message GridData{
   repeated int32  gs = 7;
   repeated int32  cgs = 8;
   repeated bool wd = 9;
-  repeated bool cells = 10;
+  required string data = 10; 
+  repeated int32 ids_allocated = 11; // ids of cells that have been allocated
 }

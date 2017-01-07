@@ -46,8 +46,9 @@ int main(int argc, char** argv)
     return 0;
   }
   assert(argc == 2);
-
   Params params(argv[1]);
+
+  struct timeval timer;
   // The problem setup for planning the path of a car on a plane is done as follows:
   // 1. Load 2D(x and y) occupancy map, or omap, from image file(.ppm).
   // 2. Create or load configuration space( yaw, x and y) occupancy map, or cmap.
@@ -106,7 +107,6 @@ int main(int argc, char** argv)
   // configuration-space map
   shared_ptr<dsl::Map<bool, 3> > cmap;
 
-  struct timeval timer;
   if(!cmapValid){
     cmap.reset(new dsl::Map<bool, 3>(xlb, xub, ocs));
     std::cout << "Making cmap... " << std::endl;
@@ -122,7 +122,7 @@ int main(int argc, char** argv)
 
     cmapName = mapName;
     ReplaceExtension(cmapName, string("cmap"));
-    dsl::Map<bool,3>::Save(*cmap, cmapName);
+    cmap->Save(cmapName);
     std::cout << "Saved cmap " << cmapName << " with xlb=" << cmap->xlb().transpose() << " xub=" << cmap->xub().transpose() << " gs=" << cmap->gs().transpose() << std::endl;
 
   }else{
@@ -180,7 +180,6 @@ int main(int argc, char** argv)
   // create planner
   timer_start(&timer);
   GridSearch<Vector3d, Matrix3d, SE2Twist> search(grid, connectivity, *cost, initExpand);
-  CarTwistPath path;
   long time = timer_us(&timer);
   printf("graph construction time= %ld  us\n", time);
 
@@ -196,6 +195,7 @@ int main(int argc, char** argv)
   bool start_set = search.SetStart(start);
   bool goal_set = search.SetGoal(goal);
 
+  CarTwistPath path;
   if(start_set && goal_set){
     cout << "Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges." << endl;
 

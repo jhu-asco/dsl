@@ -35,15 +35,6 @@ vector<Vector3d> ToVector3dPath(const CarTwistPath &path, double gridcs) {
   return path3d;
 }
 
-vector<Vector2d> ToVector2dPath(const CarTwistPath &path, double cs) {
-  vector<Vector3d> path3d = ToVector3dPath(path,cs);
-  vector<Vector2d> path2d;
-  for(auto& p:path3d)
-    path2d.push_back(Vector2d(p(1),p(2)));
-  return path2d;
-}
-
-
 int main(int argc, char** argv)
 {
   if (argc!=2) {
@@ -54,27 +45,42 @@ int main(int argc, char** argv)
     return 0;
   }
   assert(argc == 2);
-
   Params params(argv[1]);
 
   struct timeval timer;
-
   IOFormat eigformat(StreamPrecision, DontAlignCols, ", ", ", ", "", "", "(", ")");
 
-  //Use Geometry of car or not
-  Vector5d lboxoysb;
-  bool use_geom = params.GetVector5d("geom", lboxoysb);
-  CarGeom geom;
-  if(use_geom)
-    geom.set(lboxoysb);
+  // The problem setup for planning the path of a car on a plane is done as follows:
+  // 1. Load 2D(x and y) occupancy map, or omap, from image file(.ppm).
+  // 2. Create or load configuration space( yaw, x and y) occupancy map, or cmap.
+  //     a.Loading cmap is done from a .cmap file, if already available.
+  //     b.Creating cmap is done by taking an omap and doing a Minkowski sum with the shape of the car.
+  //        CarGeom object deals with the details of shape of the car. If car geometry is not available
+  //        then the omap is simply stack(for all angles) to create cmap.
+  // 3. Create a lower resolution(than cmap) grid, or lattice, that for every unoccupied cell. This grid
+  //     is what the search algorithm will work on.
+  // 4. Create cost object whose job is to provide, given a lattice, the cost of motion from one cell of
+  //     the lattice to another. It also provides heuristics cost for the same. Calculation of heuristics
+  //     cost is faster but the cost is an underestimator of the real cost.
+  // 5. Create connectivity object whose job is to provide the search algorithm with motion primitives
+  //     (along with cost), for a given cell, to its neighboring cells. In case of car these motion primitives
+  //     are se2 twists. It uses the cost object above to get the primitive costs.
+  // 6. Create the main search graph which uses the lattice, cost, connectivity create above.
+  // 7. Plan the path from a start and goal position using the search graph created above
+  // 8. Plot the results on the occupancy map we read before.
 
-  //load the terrain map
+  //**********************************************************************************/
+  //************************************omap******************************************/
+  //**********************************************************************************/
   cout<<"\nLoading terrain map from .tmap file"<<endl;
+  // get filename+ path for the terrain file(.tmap) containing the height and
+  //  traversibility of terrain
   string tmapfile; ;
   if(!params.GetString("tmap", tmapfile)){
     cout<<"There is no string parameter named tmap. Exiting."<<endl;
     return -1;
   }
+
   dsl::Map<TerrainData,2>::Ptr tmap =LoadTmap(tmapfile);
   if(!tmap){
     cout<<"Unable to load the .tmap file:"<<tmapfile<<endl;
@@ -85,11 +91,24 @@ int main(int argc, char** argv)
   cout<<"    xub: "<<tmap->xub().transpose().format(eigformat)<<endl;
   cout<<"    gs: "<<tmap->gs().transpose().format(eigformat)<<endl;
 
-
-  //Create or load the configuration space occupancy map
+  //**********************************************************************************/
+  //************************************cmap******************************************/
+  //**********************************************************************************/
   cout<<"\nconfiguration space occupancy map(cmap)"<<endl;
+  // get filename+ path for .cmap file that stores representing our occupancy map
   string cmapfile;
-  dsl::Map<bool, 3>::Ptr cmap;
+  bool cmapValid = params.GetString("cmap", cmapfile);
+
+  // get geometry information
+  Vector5d lboxoysb;
+  bool use_geom = params.GetVector5d("geom", lboxoysb);
+  CarGeom geom;
+  if(use_geom)
+    geom.set(lboxoysb);
+
+  // configuration-space map
+  shared_ptr<dsl::Map<bool, 3> > cmap;
+
   if(params.GetString("cmap", cmapfile)){ //load cmap from file
     cmap = dsl::Map<bool,3>::Load(cmapfile);
     if(!cmap)
@@ -116,7 +135,7 @@ int main(int argc, char** argv)
 
     cmapfile = tmapfile;
     ReplaceExtension(cmapfile, string("cmap"));
-    dsl::Map<bool,3>::Save(*cmap, cmapfile);
+    cmap->Save(cmapfile);
     cout << "  Saved cmap in "<<cmapfile <<" with"<<endl;
     cout << "    xlb=" << cmap->xlb().transpose().format(eigformat)<<endl;
     cout << "    xub=" << cmap->xub().transpose().format(eigformat)<<endl;
@@ -124,29 +143,34 @@ int main(int argc, char** argv)
   }
   SavePpm(*cmap,"cmap_slices");
 
-  //To plot the path as rectanges or just points
-  bool plot_car; params.GetBool("plot_car", plot_car);
+  //**********************************************************************************/
+  //*************************************lattice**************************************/
+  //**********************************************************************************/
+  cout<<"\nMain lattice"<<endl;
 
-  // grid cell size (normally larger than ocs)
-  Vector3d gcs;
+  Vector3d gcs;  // grid cell size (normally larger than ocs)
   params.GetVector3d("gcs", gcs);
 
-  //The main lattice grid
-
-  cout<<"\nMain lattice grid"<<endl;
   TerrainSE2Grid grid(*cmap, *tmap, gcs);
   cout<<"  Created the main lattice grid with"<<endl;
   cout<<"    xlb: "<<grid.xlb().transpose().format(eigformat)<<endl;
   cout<<"    xub: "<<grid.xub().transpose().format(eigformat)<<endl;
   cout<<"    gs: "<<grid.gs().transpose().format(eigformat)<<endl;
 
+  //**********************************************************************************/
+  //*************************************cost**************************************/
+  //**********************************************************************************/
+
   //create cost
   SE2GridCostConfig cost_config;
   cost_config.eps = 1e-6;
   if( !params.GetVector3d("wt", cost_config.twist_weight))
     cout<<"param wt missing. Using default values "<<endl;
-  shared_ptr<TerrainSE2GridCost> cost;
-  cost.reset(new TerrainSE2GridCost(grid, cost_config));
+  shared_ptr<TerrainSE2GridCost> cost(new TerrainSE2GridCost(grid, cost_config));
+
+  //**********************************************************************************/
+  //*************************************connectivity*********************************/
+  //**********************************************************************************/
 
   // load car connectivity and set custom parameters
   CarPrimitiveConfig primcfg;
@@ -162,16 +186,23 @@ int main(int argc, char** argv)
   params.GetBool("prim_pert",primcfg.pert);
   connectivity.SetPrimitives(1,primcfg);
 
-
-  // create planner
+  //**********************************************************************************/
+  //***************************************search graph*******************************/
+  //**********************************************************************************/
   cout << "\nPlanner and graph creation" << endl;
+
   bool initExpand = false;
   params.GetBool("initExpand", initExpand);
+
   timer_start(&timer);
   GridSearch<TerrainCell::PointType, TerrainCell::DataType, SE2Twist> search(grid, connectivity, *cost, initExpand);
   long time = timer_us(&timer);
   printf("  graph construction time= %ld  us\n", time);
   cout <<"  Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges." << endl;
+
+  //**********************************************************************************/
+  //***************************************plan***************************************/
+  //**********************************************************************************/
 
   // get start and goal
   cout << "\nSet start and goal" << endl;
@@ -205,18 +236,19 @@ int main(int argc, char** argv)
     cout<< "  Start or goal or both not feasible. Couldn't run planner"<<endl;
   }
 
-  //Plot the start goal and the path
+  //**********************************************************************************/
+  //***************************************plot***************************************/
+  //**********************************************************************************/
   cout << "\nPlotting start goal path and primitives"<<endl;
+  vector<Vector3d> path3d;
   if(start_set && goal_set){
-    vector<Vector3d> path3d = ToVector3dPath(path,grid.cs()[1]);
-    SavePpmWithPath(*tmap, "terrain_car_path.ppm", 3, path3d, &geom);
+    path3d = ToVector3dPath(path,grid.cs()[1]);
     cout << "  Map and path saved to terrain_car_path.ppm" << endl;
   }else{
-    cout<<"  No planning done so plotting just the start and goal cars"<<endl;
-    vector<Vector3d> path3d; path3d.push_back(start); path3d.push_back(goal);
-    SavePpmWithPath(*tmap, "terrain_car_path.ppm", 3, path3d, &geom);
-    cout << "  Map, start and goal (no path available ) saved to terrain_car_path.ppm" << endl;
+    path3d.push_back(start); path3d.push_back(goal);
+    cout<<"  No planning done so plotting just the start and goal cars to terrain_car_path.ppm"<<endl;
   }
+  SavePpmWithPath(*tmap, "terrain_car_path.ppm", 3, path3d, &geom);
 
   //Plot the primitive at start position
   vector<vector<Vector2d>> prims(0);

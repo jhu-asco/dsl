@@ -20,9 +20,9 @@ namespace dsl {
 
 namespace {
 
-const ::google::protobuf::Descriptor* GridData_descriptor_ = NULL;
+const ::google::protobuf::Descriptor* ProtobufGrid_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
-  GridData_reflection_ = NULL;
+  ProtobufGrid_reflection_ = NULL;
 
 }  // namespace
 
@@ -33,30 +33,31 @@ void protobuf_AssignDesc_grid_5fdata_2eproto() {
     ::google::protobuf::DescriptorPool::generated_pool()->FindFileByName(
       "grid_data.proto");
   GOOGLE_CHECK(file != NULL);
-  GridData_descriptor_ = file->message_type(0);
-  static const int GridData_offsets_[10] = {
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GridData, n_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GridData, nc_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GridData, xlb_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GridData, xub_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GridData, ds_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GridData, cs_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GridData, gs_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GridData, cgs_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GridData, wd_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GridData, cells_),
+  ProtobufGrid_descriptor_ = file->message_type(0);
+  static const int ProtobufGrid_offsets_[11] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProtobufGrid, n_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProtobufGrid, nc_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProtobufGrid, xlb_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProtobufGrid, xub_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProtobufGrid, ds_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProtobufGrid, cs_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProtobufGrid, gs_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProtobufGrid, cgs_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProtobufGrid, wd_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProtobufGrid, data_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProtobufGrid, ids_allocated_),
   };
-  GridData_reflection_ =
+  ProtobufGrid_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
-      GridData_descriptor_,
-      GridData::default_instance_,
-      GridData_offsets_,
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GridData, _has_bits_[0]),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(GridData, _unknown_fields_),
+      ProtobufGrid_descriptor_,
+      ProtobufGrid::default_instance_,
+      ProtobufGrid_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProtobufGrid, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProtobufGrid, _unknown_fields_),
       -1,
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
-      sizeof(GridData));
+      sizeof(ProtobufGrid));
 }
 
 namespace {
@@ -70,14 +71,14 @@ inline void protobuf_AssignDescriptorsOnce() {
 void protobuf_RegisterTypes(const ::std::string&) {
   protobuf_AssignDescriptorsOnce();
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
-    GridData_descriptor_, &GridData::default_instance());
+    ProtobufGrid_descriptor_, &ProtobufGrid::default_instance());
 }
 
 }  // namespace
 
 void protobuf_ShutdownFile_grid_5fdata_2eproto() {
-  delete GridData::default_instance_;
-  delete GridData_reflection_;
+  delete ProtobufGrid::default_instance_;
+  delete ProtobufGrid_reflection_;
 }
 
 void protobuf_AddDesc_grid_5fdata_2eproto() {
@@ -87,14 +88,15 @@ void protobuf_AddDesc_grid_5fdata_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\017grid_data.proto\022\003dsl\"\207\001\n\010GridData\022\t\n\001n"
-    "\030\001 \002(\005\022\n\n\002nc\030\002 \002(\005\022\013\n\003xlb\030\003 \003(\001\022\013\n\003xub\030\004"
-    " \003(\001\022\n\n\002ds\030\005 \003(\001\022\n\n\002cs\030\006 \003(\001\022\n\n\002gs\030\007 \003(\005"
-    "\022\013\n\003cgs\030\010 \003(\005\022\n\n\002wd\030\t \003(\010\022\r\n\005cells\030\n \003(\010", 160);
+    "\n\017grid_data.proto\022\003dsl\"\241\001\n\014ProtobufGrid\022"
+    "\t\n\001n\030\001 \002(\005\022\n\n\002nc\030\002 \002(\005\022\013\n\003xlb\030\003 \003(\001\022\013\n\003x"
+    "ub\030\004 \003(\001\022\n\n\002ds\030\005 \003(\001\022\n\n\002cs\030\006 \003(\001\022\n\n\002gs\030\007"
+    " \003(\005\022\013\n\003cgs\030\010 \003(\005\022\n\n\002wd\030\t \003(\010\022\014\n\004data\030\n "
+    "\002(\t\022\025\n\rids_allocated\030\013 \003(\005", 186);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "grid_data.proto", &protobuf_RegisterTypes);
-  GridData::default_instance_ = new GridData();
-  GridData::default_instance_->InitAsDefaultInstance();
+  ProtobufGrid::default_instance_ = new ProtobufGrid();
+  ProtobufGrid::default_instance_->InitAsDefaultInstance();
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_grid_5fdata_2eproto);
 }
 
@@ -108,73 +110,85 @@ struct StaticDescriptorInitializer_grid_5fdata_2eproto {
 // ===================================================================
 
 #ifndef _MSC_VER
-const int GridData::kNFieldNumber;
-const int GridData::kNcFieldNumber;
-const int GridData::kXlbFieldNumber;
-const int GridData::kXubFieldNumber;
-const int GridData::kDsFieldNumber;
-const int GridData::kCsFieldNumber;
-const int GridData::kGsFieldNumber;
-const int GridData::kCgsFieldNumber;
-const int GridData::kWdFieldNumber;
-const int GridData::kCellsFieldNumber;
+const int ProtobufGrid::kNFieldNumber;
+const int ProtobufGrid::kNcFieldNumber;
+const int ProtobufGrid::kXlbFieldNumber;
+const int ProtobufGrid::kXubFieldNumber;
+const int ProtobufGrid::kDsFieldNumber;
+const int ProtobufGrid::kCsFieldNumber;
+const int ProtobufGrid::kGsFieldNumber;
+const int ProtobufGrid::kCgsFieldNumber;
+const int ProtobufGrid::kWdFieldNumber;
+const int ProtobufGrid::kDataFieldNumber;
+const int ProtobufGrid::kIdsAllocatedFieldNumber;
 #endif  // !_MSC_VER
 
-GridData::GridData()
+ProtobufGrid::ProtobufGrid()
   : ::google::protobuf::Message() {
   SharedCtor();
 }
 
-void GridData::InitAsDefaultInstance() {
+void ProtobufGrid::InitAsDefaultInstance() {
 }
 
-GridData::GridData(const GridData& from)
+ProtobufGrid::ProtobufGrid(const ProtobufGrid& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
 }
 
-void GridData::SharedCtor() {
+void ProtobufGrid::SharedCtor() {
   _cached_size_ = 0;
   n_ = 0;
   nc_ = 0;
+  data_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
-GridData::~GridData() {
+ProtobufGrid::~ProtobufGrid() {
   SharedDtor();
 }
 
-void GridData::SharedDtor() {
+void ProtobufGrid::SharedDtor() {
+  if (data_ != &::google::protobuf::internal::kEmptyString) {
+    delete data_;
+  }
   if (this != default_instance_) {
   }
 }
 
-void GridData::SetCachedSize(int size) const {
+void ProtobufGrid::SetCachedSize(int size) const {
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
   _cached_size_ = size;
   GOOGLE_SAFE_CONCURRENT_WRITES_END();
 }
-const ::google::protobuf::Descriptor* GridData::descriptor() {
+const ::google::protobuf::Descriptor* ProtobufGrid::descriptor() {
   protobuf_AssignDescriptorsOnce();
-  return GridData_descriptor_;
+  return ProtobufGrid_descriptor_;
 }
 
-const GridData& GridData::default_instance() {
+const ProtobufGrid& ProtobufGrid::default_instance() {
   if (default_instance_ == NULL) protobuf_AddDesc_grid_5fdata_2eproto();
   return *default_instance_;
 }
 
-GridData* GridData::default_instance_ = NULL;
+ProtobufGrid* ProtobufGrid::default_instance_ = NULL;
 
-GridData* GridData::New() const {
-  return new GridData;
+ProtobufGrid* ProtobufGrid::New() const {
+  return new ProtobufGrid;
 }
 
-void GridData::Clear() {
+void ProtobufGrid::Clear() {
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     n_ = 0;
     nc_ = 0;
+  }
+  if (_has_bits_[9 / 32] & (0xffu << (9 % 32))) {
+    if (has_data()) {
+      if (data_ != &::google::protobuf::internal::kEmptyString) {
+        data_->clear();
+      }
+    }
   }
   xlb_.Clear();
   xub_.Clear();
@@ -183,12 +197,12 @@ void GridData::Clear() {
   gs_.Clear();
   cgs_.Clear();
   wd_.Clear();
-  cells_.Clear();
+  ids_allocated_.Clear();
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
 
-bool GridData::MergePartialFromCodedStream(
+bool ProtobufGrid::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!(EXPRESSION)) return false
   ::google::protobuf::uint32 tag;
@@ -375,28 +389,45 @@ bool GridData::MergePartialFromCodedStream(
           goto handle_uninterpreted;
         }
         if (input->ExpectTag(72)) goto parse_wd;
-        if (input->ExpectTag(80)) goto parse_cells;
+        if (input->ExpectTag(82)) goto parse_data;
         break;
       }
 
-      // repeated bool cells = 10;
+      // required string data = 10;
       case 10: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+         parse_data:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_data()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+            this->data().data(), this->data().length(),
+            ::google::protobuf::internal::WireFormat::PARSE);
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(88)) goto parse_ids_allocated;
+        break;
+      }
+
+      // repeated int32 ids_allocated = 11;
+      case 11: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
-         parse_cells:
+         parse_ids_allocated:
           DO_((::google::protobuf::internal::WireFormatLite::ReadRepeatedPrimitive<
-                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
-                 1, 80, input, this->mutable_cells())));
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 1, 88, input, this->mutable_ids_allocated())));
         } else if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag)
                    == ::google::protobuf::internal::WireFormatLite::
                       WIRETYPE_LENGTH_DELIMITED) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPackedPrimitiveNoInline<
-                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
-                 input, this->mutable_cells())));
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, this->mutable_ids_allocated())));
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(80)) goto parse_cells;
+        if (input->ExpectTag(88)) goto parse_ids_allocated;
         if (input->ExpectAtEnd()) return true;
         break;
       }
@@ -417,7 +448,7 @@ bool GridData::MergePartialFromCodedStream(
 #undef DO_
 }
 
-void GridData::SerializeWithCachedSizes(
+void ProtobufGrid::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
   // required int32 n = 1;
   if (has_n()) {
@@ -471,10 +502,19 @@ void GridData::SerializeWithCachedSizes(
       9, this->wd(i), output);
   }
 
-  // repeated bool cells = 10;
-  for (int i = 0; i < this->cells_size(); i++) {
-    ::google::protobuf::internal::WireFormatLite::WriteBool(
-      10, this->cells(i), output);
+  // required string data = 10;
+  if (has_data()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+      this->data().data(), this->data().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
+      10, this->data(), output);
+  }
+
+  // repeated int32 ids_allocated = 11;
+  for (int i = 0; i < this->ids_allocated_size(); i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(
+      11, this->ids_allocated(i), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -483,7 +523,7 @@ void GridData::SerializeWithCachedSizes(
   }
 }
 
-::google::protobuf::uint8* GridData::SerializeWithCachedSizesToArray(
+::google::protobuf::uint8* ProtobufGrid::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
   // required int32 n = 1;
   if (has_n()) {
@@ -537,10 +577,20 @@ void GridData::SerializeWithCachedSizes(
       WriteBoolToArray(9, this->wd(i), target);
   }
 
-  // repeated bool cells = 10;
-  for (int i = 0; i < this->cells_size(); i++) {
+  // required string data = 10;
+  if (has_data()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+      this->data().data(), this->data().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        10, this->data(), target);
+  }
+
+  // repeated int32 ids_allocated = 11;
+  for (int i = 0; i < this->ids_allocated_size(); i++) {
     target = ::google::protobuf::internal::WireFormatLite::
-      WriteBoolToArray(10, this->cells(i), target);
+      WriteInt32ToArray(11, this->ids_allocated(i), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -550,7 +600,7 @@ void GridData::SerializeWithCachedSizes(
   return target;
 }
 
-int GridData::ByteSize() const {
+int ProtobufGrid::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
@@ -566,6 +616,15 @@ int GridData::ByteSize() const {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::Int32Size(
           this->nc());
+    }
+
+  }
+  if (_has_bits_[9 / 32] & (0xffu << (9 % 32))) {
+    // required string data = 10;
+    if (has_data()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->data());
     }
 
   }
@@ -624,11 +683,14 @@ int GridData::ByteSize() const {
     total_size += 1 * this->wd_size() + data_size;
   }
 
-  // repeated bool cells = 10;
+  // repeated int32 ids_allocated = 11;
   {
     int data_size = 0;
-    data_size = 1 * this->cells_size();
-    total_size += 1 * this->cells_size() + data_size;
+    for (int i = 0; i < this->ids_allocated_size(); i++) {
+      data_size += ::google::protobuf::internal::WireFormatLite::
+        Int32Size(this->ids_allocated(i));
+    }
+    total_size += 1 * this->ids_allocated_size() + data_size;
   }
 
   if (!unknown_fields().empty()) {
@@ -642,10 +704,10 @@ int GridData::ByteSize() const {
   return total_size;
 }
 
-void GridData::MergeFrom(const ::google::protobuf::Message& from) {
+void ProtobufGrid::MergeFrom(const ::google::protobuf::Message& from) {
   GOOGLE_CHECK_NE(&from, this);
-  const GridData* source =
-    ::google::protobuf::internal::dynamic_cast_if_available<const GridData*>(
+  const ProtobufGrid* source =
+    ::google::protobuf::internal::dynamic_cast_if_available<const ProtobufGrid*>(
       &from);
   if (source == NULL) {
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
@@ -654,7 +716,7 @@ void GridData::MergeFrom(const ::google::protobuf::Message& from) {
   }
 }
 
-void GridData::MergeFrom(const GridData& from) {
+void ProtobufGrid::MergeFrom(const ProtobufGrid& from) {
   GOOGLE_CHECK_NE(&from, this);
   xlb_.MergeFrom(from.xlb_);
   xub_.MergeFrom(from.xub_);
@@ -663,7 +725,7 @@ void GridData::MergeFrom(const GridData& from) {
   gs_.MergeFrom(from.gs_);
   cgs_.MergeFrom(from.cgs_);
   wd_.MergeFrom(from.wd_);
-  cells_.MergeFrom(from.cells_);
+  ids_allocated_.MergeFrom(from.ids_allocated_);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     if (from.has_n()) {
       set_n(from.n());
@@ -672,28 +734,33 @@ void GridData::MergeFrom(const GridData& from) {
       set_nc(from.nc());
     }
   }
+  if (from._has_bits_[9 / 32] & (0xffu << (9 % 32))) {
+    if (from.has_data()) {
+      set_data(from.data());
+    }
+  }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
 
-void GridData::CopyFrom(const ::google::protobuf::Message& from) {
+void ProtobufGrid::CopyFrom(const ::google::protobuf::Message& from) {
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-void GridData::CopyFrom(const GridData& from) {
+void ProtobufGrid::CopyFrom(const ProtobufGrid& from) {
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool GridData::IsInitialized() const {
-  if ((_has_bits_[0] & 0x00000003) != 0x00000003) return false;
+bool ProtobufGrid::IsInitialized() const {
+  if ((_has_bits_[0] & 0x00000203) != 0x00000203) return false;
 
   return true;
 }
 
-void GridData::Swap(GridData* other) {
+void ProtobufGrid::Swap(ProtobufGrid* other) {
   if (other != this) {
     std::swap(n_, other->n_);
     std::swap(nc_, other->nc_);
@@ -704,18 +771,19 @@ void GridData::Swap(GridData* other) {
     gs_.Swap(&other->gs_);
     cgs_.Swap(&other->cgs_);
     wd_.Swap(&other->wd_);
-    cells_.Swap(&other->cells_);
+    std::swap(data_, other->data_);
+    ids_allocated_.Swap(&other->ids_allocated_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);
   }
 }
 
-::google::protobuf::Metadata GridData::GetMetadata() const {
+::google::protobuf::Metadata ProtobufGrid::GetMetadata() const {
   protobuf_AssignDescriptorsOnce();
   ::google::protobuf::Metadata metadata;
-  metadata.descriptor = GridData_descriptor_;
-  metadata.reflection = GridData_reflection_;
+  metadata.descriptor = ProtobufGrid_descriptor_;
+  metadata.reflection = ProtobufGrid_reflection_;
   return metadata;
 }
 

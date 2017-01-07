@@ -51,7 +51,7 @@ int main(int argc, char** argv){
   int dim(0);
   int id(0);
   while (idxe[n]==0) {
-    Vector3i idx = idxe.head<3>();
+//    Vector3i idx = idxe.head<3>();
     id++; idxe[0]++;
     while(idxe[dim]==max[dim]) {
       idxe[dim]=0;

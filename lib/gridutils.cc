@@ -654,7 +654,7 @@ Map<bool, 3>::Ptr MakeCmap(const Map<bool, 2>& omap, double csa, const CarGeom& 
   }else{
     std::vector<std::thread> threads(nthreads);
 
-    for(size_t t = 0;t<nthreads;t++){
+    for(int t = 0;t<nthreads;t++){
       threads[t] = std::thread(std::bind(
           [&](const int idx_a_start, const int idx_a_end, const int t)
           {            // loop over all items
