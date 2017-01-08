@@ -1016,11 +1016,17 @@ public:
   inline const Vectornd& xub(void) const {
     return xub_;
   }
+  inline const Vectornd& ds(void) const {
+    return ds_;
+  }
   inline const Vectornd& cs(void)  const {
     return cs_;
   }
   inline const Vectorni& gs(void)  const {
     return gs_;
+  }
+  inline const Vectorni& cgs(void)  const {
+    return cgs_;
   }
   inline const Vectornb& wd(void)  const {
     return wd_;
@@ -1054,12 +1060,12 @@ private:
    * @param false_type
    */
   void CellsToPb(dsl::ProtobufGrid& pb, std::false_type){
-    int n_bytes = sizeof(CellContent);
+    int n_bytes = sizeof(ValType);
     int data_size = nc_*n_bytes;
     std::string& data = *pb.mutable_data();
     data.resize(data_size);
     for(int id=0; id < nc_; id++){
-      CellContent val = cells_[id]; //bools are saved in bits in vec<bool>
+      ValType val = cells_[id]; //bools are saved in bits in vec<bool>
       data.replace(id*n_bytes, n_bytes, (char*)&val, n_bytes);
     }
   }
@@ -1094,9 +1100,9 @@ private:
    * @param
    */
   static void PbToCells(GridCore& grid, dsl::ProtobufGrid& pb, std::false_type){
-    int n_bytes = sizeof(CellContent);
+    int n_bytes = sizeof(ValType);
     for(int id=0; id < grid.nc_; id++){
-      CellContent val;
+      ValType val;
       std::memcpy(&val,pb.data().c_str()+id*n_bytes, n_bytes);
       grid.cells_[id] = val;
     }

@@ -96,24 +96,24 @@ int main(int argc, char** argv)
   //**********************************************************************************/
   cout<<"\nconfiguration space occupancy map(cmap)"<<endl;
   // get filename+ path for .cmap file that stores representing our occupancy map
-  string cmapfile;
-  bool cmapValid = params.GetString("cmap", cmapfile);
+  string cmap_filename;
+  bool load_cmap = params.GetString("cmap", cmap_filename);
 
   // get geometry information
-  Vector5d lboxoysb;
-  bool use_geom = params.GetVector5d("geom", lboxoysb);
+  Vector5d l_b_ox_oy_sb;
+  bool use_geom = params.GetVector5d("geom", l_b_ox_oy_sb);
   CarGeom geom;
   if(use_geom)
-    geom.set(lboxoysb);
+    geom.set(l_b_ox_oy_sb);
 
   // configuration-space map
-  shared_ptr<dsl::Map<bool, 3> > cmap;
+  dsl::Map<bool, 3>::Ptr cmap;
 
-  if(params.GetString("cmap", cmapfile)){ //load cmap from file
-    cmap = dsl::Map<bool,3>::Load(cmapfile);
+  if(params.GetString("cmap", cmap_filename)){ //load cmap from file
+    cmap = dsl::Map<bool,3>::Load(cmap_filename);
     if(!cmap)
       return -1;
-    cout << "  Loaded cmap from "<<cmapfile<<" with"<<endl;
+    cout << "  Loaded cmap from "<<cmap_filename<<" with"<<endl;
     cout << "    xlb=" << cmap->xlb().transpose().format(eigformat)<<endl;
     cout << "    xub=" << cmap->xub().transpose().format(eigformat)<<endl;
     cout << "    gs="  << cmap->gs().transpose().format(eigformat)<<endl;
@@ -133,10 +133,10 @@ int main(int argc, char** argv)
     long time = timer_us(&timer);
     printf("  cmap construction time= %ld  us\n", time);
 
-    cmapfile = tmapfile;
-    ReplaceExtension(cmapfile, string("cmap"));
-    cmap->Save(cmapfile);
-    cout << "  Saved cmap in "<<cmapfile <<" with"<<endl;
+    cmap_filename = tmapfile;
+    ReplaceExtension(cmap_filename, string("cmap"));
+    cmap->Save(cmap_filename);
+    cout << "  Saved cmap in "<<cmap_filename <<" with"<<endl;
     cout << "    xlb=" << cmap->xlb().transpose().format(eigformat)<<endl;
     cout << "    xub=" << cmap->xub().transpose().format(eigformat)<<endl;
     cout << "    gs="  << cmap->gs().transpose().format(eigformat)<<endl;
@@ -166,7 +166,7 @@ int main(int argc, char** argv)
   cost_config.eps = 1e-6;
   if( !params.GetVector3d("wt", cost_config.twist_weight))
     cout<<"param wt missing. Using default values "<<endl;
-  shared_ptr<TerrainSE2GridCost> cost(new TerrainSE2GridCost(grid, cost_config));
+  TerrainSE2GridCost::Ptr cost(new TerrainSE2GridCost(grid, cost_config));
 
   //**********************************************************************************/
   //*************************************connectivity*********************************/

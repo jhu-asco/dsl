@@ -38,6 +38,7 @@ struct SE2GridCostConfig{
  */
 class TerrainSE2GridCost : public GridCost< TerrainCell::PointType, TerrainCell::DataType > {
 public:
+  using Ptr = std::shared_ptr<TerrainSE2GridCost>;
   /**
    * Initialize the cost(twistnorm_metric)
    * @param config configuration for the cost interface

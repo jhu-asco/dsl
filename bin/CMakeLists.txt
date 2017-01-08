@@ -19,6 +19,10 @@ target_link_libraries(test_cargrid dsl)
 add_executable(gridcoretest gridcoretest.cc)
 target_link_libraries(gridcoretest dsl)
 
+# Testing saving and loading grid for various CellContent(bools, struct, shared_ptr)
+add_executable(grid_save_load grid_save_load.cc)
+target_link_libraries(grid_save_load dsl)
+
 # Testing id to index conversion time for different methods
 add_executable(idtoindexspeedtest idtoindexspeedtest.cc)
 target_link_libraries(idtoindexspeedtest dsl)

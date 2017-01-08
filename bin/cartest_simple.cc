@@ -67,8 +67,8 @@ int main(int argc, char** argv)
   //**********************************************************************************/
 
   // get filename+ path for the image file(.ppm) representing our occupancy map
-  string mapName;
-  if(!params.GetString("map", mapName)){
+  string map_img_filename;
+  if(!params.GetString("map", map_img_filename)){
     cout<<"There is no string parameter named map. Exiting."<<endl;
     return -1;
   }
@@ -77,37 +77,38 @@ int main(int argc, char** argv)
   params.GetVector3d("ocs", ocs);
 
   // load an occupancy map from ppm file
-  dsl::Map<bool, 2>::Ptr omap = LoadPpm(mapName, ocs.tail<2>());
+  dsl::Map<bool, 2>::Ptr omap = LoadPpm(map_img_filename, ocs.tail<2>());
 
   //**********************************************************************************/
   //************************************cmap******************************************/
   //**********************************************************************************/
 
   // get filename+ path for .cmap file that stores representing our occupancy map
-  string cmapName;
-  bool cmapValid = params.GetString("cmap", cmapName);
+  string cmap_filename;
+  bool load_cmap = params.GetString("cmap", cmap_filename);
 
   // get geometry information
-  Vector5d lboxoysb;
-  bool use_geom = params.GetVector5d("geom", lboxoysb);
+  Vector5d l_b_ox_oy_sb;
+  bool use_geom = params.GetVector5d("geom", l_b_ox_oy_sb);
   CarGeom geom;
   if(use_geom)
-    geom.set(lboxoysb);
+    geom.set(l_b_ox_oy_sb);
 
   // dimensions are determined from occupancy map
   Vector3d xlb(-M_PI + ocs[0]/2, omap->xlb()[0], omap->xlb()[1]);
   Vector3d xub(M_PI + ocs[0]/2, omap->xub()[0], omap->xub()[1]);
 
   // configuration-space map
-  shared_ptr<dsl::Map<bool, 3> > cmap;
+  dsl::Map<bool, 3>::Ptr cmap;
 
   struct timeval timer;
-  if(!cmapValid){
+  if(!load_cmap){ //load cmap
     cmap.reset(new dsl::Map<bool, 3>(xlb, xub, ocs));
     std::cout << "Making cmap... " << std::endl;
     timer_start(&timer);
     if (use_geom) {
-      int nthreads; params.GetInt("nthreads", nthreads);
+      int nthreads;
+      params.GetInt("nthreads", nthreads);
       cmap = MakeCmap(*omap, ocs(0), geom, nthreads);
     } else {
       cmap = MakeCmap(*omap, ocs(0));
@@ -115,16 +116,17 @@ int main(int argc, char** argv)
     long time = timer_us(&timer);
     printf("cmap construction time= %ld  us\n", time);
 
-    cmapName = mapName;
-    ReplaceExtension(cmapName, string("cmap"));
-    cmap->Save(cmapName);
-    std::cout << "Saved cmap " << cmapName << " with xlb=" << cmap->xlb().transpose() << " xub=" << cmap->xub().transpose() << " gs=" << cmap->gs().transpose() << std::endl;
+    cmap_filename = map_img_filename;
+    ReplaceExtension(cmap_filename, string("cmap"));
+    cmap->Save(cmap_filename);
+    std::cout << "Saved cmap " << cmap_filename << " with xlb=" << cmap->xlb().transpose() << " xub=" << cmap->xub().transpose() << " gs=" << cmap->gs().transpose() << std::endl;
 
-  }else{
-    cmap = dsl::Map<bool,3>::Load(cmapName);
+  }else{ //create cmap
+    cmap = dsl::Map<bool,3>::Load(cmap_filename);
     std::cout << "Loaded map with xlb=" << cmap->xlb().transpose() << " xub=" << cmap->xub().transpose() << " gs=" << cmap->gs().transpose() << std::endl;
   }
 
+  //save all slices of cmap in "cmap_slices" folder
   SavePpm(*cmap, "cmap_slices");
 
   //**********************************************************************************/
@@ -140,7 +142,7 @@ int main(int argc, char** argv)
   //**********************************************************************************/
 
   Vector3d wt; //weights for twist element
-  shared_ptr<CarCost> cost;
+  CarCost::Ptr cost;
   if( params.GetVector3d("wt", wt))
     cost.reset(new CarCost(grid, wt));
   else

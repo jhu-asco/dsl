@@ -28,6 +28,8 @@ namespace dsl {
   class CarCost : public GridCost< SE2Cell::PointType, SE2Cell::DataType > {
 public:
 
+    using Ptr = std::shared_ptr<CarCost>;
+
   /**
    * Initialize the cost(twistnorm_metric)
    * @param wt weight for weighted norm of the twist between two SE2 cells

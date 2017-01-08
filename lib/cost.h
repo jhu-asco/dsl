@@ -8,6 +8,7 @@
 
 #ifndef DSL_LIB_COST_H_
 #define DSL_LIB_COST_H_
+#include <memory>
 
 namespace dsl {
 /**
@@ -28,6 +29,7 @@ namespace dsl {
  */
 template < class VertexData >
 class Cost {
+
 public:
   /**
    * Heuristic distance
