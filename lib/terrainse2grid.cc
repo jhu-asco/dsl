@@ -20,6 +20,27 @@ using Eigen::Vector2d;
 using Eigen::Matrix3d;
 using std::vector;
 
+bool TerrainData::SerializeToOstream(std::ostream* output) const{
+
+  int double_size = sizeof(double);
+  std::string str_h(double_size,'o'), str_t(double_size,'o');
+  str_h.replace(0,double_size,(char*)&height, double_size);
+  str_t.replace(0,double_size,(char*)&traversibility, double_size);
+
+  *output << str_h+str_t;
+  return true;
+}
+
+bool TerrainData::ParseFromIstream(std::istream* input){
+  int n_bytes = sizeof(double);
+  std::stringstream ss;
+  ss << input->rdbuf();
+  std::memcpy(&height,ss.str().c_str(), n_bytes);
+  std::memcpy(&traversibility,ss.str().c_str()+n_bytes, n_bytes);
+
+  return true;
+}
+
 TerrainData::TerrainData(double height, double traversibility)
 :height(height),traversibility(traversibility){
 

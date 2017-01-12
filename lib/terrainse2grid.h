@@ -20,6 +20,7 @@ namespace dsl {
  * to move than say concrete etc.
  */
 struct TerrainData{
+  using Ptr = std::shared_ptr<TerrainData>;
   TerrainData(double height=std::numeric_limits<double>::quiet_NaN(),
               double traversibility=std::numeric_limits<double>::quiet_NaN());
 
@@ -27,6 +28,9 @@ struct TerrainData{
   double traversibility;///<Traversibility is nan if cell is occupied. Distance*Traversibility is friction loss.
   //double pitch; ///< pitch
   //double roll;  ///< roll
+
+  bool SerializeToOstream(std::ostream* output) const;
+  bool ParseFromIstream(std::istream* input);
 };
 
 // a cell that stores terrain data along with axy representaion of SE2 pose

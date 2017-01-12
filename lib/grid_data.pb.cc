@@ -92,7 +92,7 @@ void protobuf_AddDesc_grid_5fdata_2eproto() {
     "\t\n\001n\030\001 \002(\005\022\n\n\002nc\030\002 \002(\005\022\013\n\003xlb\030\003 \003(\001\022\013\n\003x"
     "ub\030\004 \003(\001\022\n\n\002ds\030\005 \003(\001\022\n\n\002cs\030\006 \003(\001\022\n\n\002gs\030\007"
     " \003(\005\022\013\n\003cgs\030\010 \003(\005\022\n\n\002wd\030\t \003(\010\022\014\n\004data\030\n "
-    "\002(\t\022\025\n\rids_allocated\030\013 \003(\005", 186);
+    "\003(\t\022\025\n\rids_allocated\030\013 \003(\005", 186);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "grid_data.proto", &protobuf_RegisterTypes);
   ProtobufGrid::default_instance_ = new ProtobufGrid();
@@ -141,7 +141,6 @@ void ProtobufGrid::SharedCtor() {
   _cached_size_ = 0;
   n_ = 0;
   nc_ = 0;
-  data_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -150,9 +149,6 @@ ProtobufGrid::~ProtobufGrid() {
 }
 
 void ProtobufGrid::SharedDtor() {
-  if (data_ != &::google::protobuf::internal::kEmptyString) {
-    delete data_;
-  }
   if (this != default_instance_) {
   }
 }
@@ -183,13 +179,6 @@ void ProtobufGrid::Clear() {
     n_ = 0;
     nc_ = 0;
   }
-  if (_has_bits_[9 / 32] & (0xffu << (9 % 32))) {
-    if (has_data()) {
-      if (data_ != &::google::protobuf::internal::kEmptyString) {
-        data_->clear();
-      }
-    }
-  }
   xlb_.Clear();
   xub_.Clear();
   ds_.Clear();
@@ -197,6 +186,7 @@ void ProtobufGrid::Clear() {
   gs_.Clear();
   cgs_.Clear();
   wd_.Clear();
+  data_.Clear();
   ids_allocated_.Clear();
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
@@ -393,19 +383,21 @@ bool ProtobufGrid::MergePartialFromCodedStream(
         break;
       }
 
-      // required string data = 10;
+      // repeated string data = 10;
       case 10: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_data:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
-                input, this->mutable_data()));
+                input, this->add_data()));
           ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-            this->data().data(), this->data().length(),
+            this->data(this->data_size() - 1).data(),
+            this->data(this->data_size() - 1).length(),
             ::google::protobuf::internal::WireFormat::PARSE);
         } else {
           goto handle_uninterpreted;
         }
+        if (input->ExpectTag(82)) goto parse_data;
         if (input->ExpectTag(88)) goto parse_ids_allocated;
         break;
       }
@@ -502,13 +494,13 @@ void ProtobufGrid::SerializeWithCachedSizes(
       9, this->wd(i), output);
   }
 
-  // required string data = 10;
-  if (has_data()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-      this->data().data(), this->data().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
+  // repeated string data = 10;
+  for (int i = 0; i < this->data_size(); i++) {
+  ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+    this->data(i).data(), this->data(i).length(),
+    ::google::protobuf::internal::WireFormat::SERIALIZE);
     ::google::protobuf::internal::WireFormatLite::WriteString(
-      10, this->data(), output);
+      10, this->data(i), output);
   }
 
   // repeated int32 ids_allocated = 11;
@@ -577,14 +569,13 @@ void ProtobufGrid::SerializeWithCachedSizes(
       WriteBoolToArray(9, this->wd(i), target);
   }
 
-  // required string data = 10;
-  if (has_data()) {
+  // repeated string data = 10;
+  for (int i = 0; i < this->data_size(); i++) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-      this->data().data(), this->data().length(),
+      this->data(i).data(), this->data(i).length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE);
-    target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        10, this->data(), target);
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteStringToArray(10, this->data(i), target);
   }
 
   // repeated int32 ids_allocated = 11;
@@ -616,15 +607,6 @@ int ProtobufGrid::ByteSize() const {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::Int32Size(
           this->nc());
-    }
-
-  }
-  if (_has_bits_[9 / 32] & (0xffu << (9 % 32))) {
-    // required string data = 10;
-    if (has_data()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::StringSize(
-          this->data());
     }
 
   }
@@ -683,6 +665,13 @@ int ProtobufGrid::ByteSize() const {
     total_size += 1 * this->wd_size() + data_size;
   }
 
+  // repeated string data = 10;
+  total_size += 1 * this->data_size();
+  for (int i = 0; i < this->data_size(); i++) {
+    total_size += ::google::protobuf::internal::WireFormatLite::StringSize(
+      this->data(i));
+  }
+
   // repeated int32 ids_allocated = 11;
   {
     int data_size = 0;
@@ -725,6 +714,7 @@ void ProtobufGrid::MergeFrom(const ProtobufGrid& from) {
   gs_.MergeFrom(from.gs_);
   cgs_.MergeFrom(from.cgs_);
   wd_.MergeFrom(from.wd_);
+  data_.MergeFrom(from.data_);
   ids_allocated_.MergeFrom(from.ids_allocated_);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     if (from.has_n()) {
@@ -732,11 +722,6 @@ void ProtobufGrid::MergeFrom(const ProtobufGrid& from) {
     }
     if (from.has_nc()) {
       set_nc(from.nc());
-    }
-  }
-  if (from._has_bits_[9 / 32] & (0xffu << (9 % 32))) {
-    if (from.has_data()) {
-      set_data(from.data());
     }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
@@ -755,7 +740,7 @@ void ProtobufGrid::CopyFrom(const ProtobufGrid& from) {
 }
 
 bool ProtobufGrid::IsInitialized() const {
-  if ((_has_bits_[0] & 0x00000203) != 0x00000203) return false;
+  if ((_has_bits_[0] & 0x00000003) != 0x00000003) return false;
 
   return true;
 }
@@ -771,7 +756,7 @@ void ProtobufGrid::Swap(ProtobufGrid* other) {
     gs_.Swap(&other->gs_);
     cgs_.Swap(&other->cgs_);
     wd_.Swap(&other->wd_);
-    std::swap(data_, other->data_);
+    data_.Swap(&other->data_);
     ids_allocated_.Swap(&other->ids_allocated_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);

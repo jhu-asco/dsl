@@ -189,17 +189,21 @@ class ProtobufGrid : public ::google::protobuf::Message {
   inline ::google::protobuf::RepeatedField< bool >*
       mutable_wd();
 
-  // required string data = 10;
-  inline bool has_data() const;
+  // repeated string data = 10;
+  inline int data_size() const;
   inline void clear_data();
   static const int kDataFieldNumber = 10;
-  inline const ::std::string& data() const;
-  inline void set_data(const ::std::string& value);
-  inline void set_data(const char* value);
-  inline void set_data(const char* value, size_t size);
-  inline ::std::string* mutable_data();
-  inline ::std::string* release_data();
-  inline void set_allocated_data(::std::string* data);
+  inline const ::std::string& data(int index) const;
+  inline ::std::string* mutable_data(int index);
+  inline void set_data(int index, const ::std::string& value);
+  inline void set_data(int index, const char* value);
+  inline void set_data(int index, const char* value, size_t size);
+  inline ::std::string* add_data();
+  inline void add_data(const ::std::string& value);
+  inline void add_data(const char* value);
+  inline void add_data(const char* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& data() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_data();
 
   // repeated int32 ids_allocated = 11;
   inline int ids_allocated_size() const;
@@ -219,8 +223,6 @@ class ProtobufGrid : public ::google::protobuf::Message {
   inline void clear_has_n();
   inline void set_has_nc();
   inline void clear_has_nc();
-  inline void set_has_data();
-  inline void clear_has_data();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -233,7 +235,7 @@ class ProtobufGrid : public ::google::protobuf::Message {
   ::google::protobuf::RepeatedField< ::google::protobuf::int32 > gs_;
   ::google::protobuf::RepeatedField< ::google::protobuf::int32 > cgs_;
   ::google::protobuf::RepeatedField< bool > wd_;
-  ::std::string* data_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> data_;
   ::google::protobuf::RepeatedField< ::google::protobuf::int32 > ids_allocated_;
 
   mutable int _cached_size_;
@@ -472,74 +474,48 @@ ProtobufGrid::mutable_wd() {
   return &wd_;
 }
 
-// required string data = 10;
-inline bool ProtobufGrid::has_data() const {
-  return (_has_bits_[0] & 0x00000200u) != 0;
-}
-inline void ProtobufGrid::set_has_data() {
-  _has_bits_[0] |= 0x00000200u;
-}
-inline void ProtobufGrid::clear_has_data() {
-  _has_bits_[0] &= ~0x00000200u;
+// repeated string data = 10;
+inline int ProtobufGrid::data_size() const {
+  return data_.size();
 }
 inline void ProtobufGrid::clear_data() {
-  if (data_ != &::google::protobuf::internal::kEmptyString) {
-    data_->clear();
-  }
-  clear_has_data();
+  data_.Clear();
 }
-inline const ::std::string& ProtobufGrid::data() const {
-  return *data_;
+inline const ::std::string& ProtobufGrid::data(int index) const {
+  return data_.Get(index);
 }
-inline void ProtobufGrid::set_data(const ::std::string& value) {
-  set_has_data();
-  if (data_ == &::google::protobuf::internal::kEmptyString) {
-    data_ = new ::std::string;
-  }
-  data_->assign(value);
+inline ::std::string* ProtobufGrid::mutable_data(int index) {
+  return data_.Mutable(index);
 }
-inline void ProtobufGrid::set_data(const char* value) {
-  set_has_data();
-  if (data_ == &::google::protobuf::internal::kEmptyString) {
-    data_ = new ::std::string;
-  }
-  data_->assign(value);
+inline void ProtobufGrid::set_data(int index, const ::std::string& value) {
+  data_.Mutable(index)->assign(value);
 }
-inline void ProtobufGrid::set_data(const char* value, size_t size) {
-  set_has_data();
-  if (data_ == &::google::protobuf::internal::kEmptyString) {
-    data_ = new ::std::string;
-  }
-  data_->assign(reinterpret_cast<const char*>(value), size);
+inline void ProtobufGrid::set_data(int index, const char* value) {
+  data_.Mutable(index)->assign(value);
 }
-inline ::std::string* ProtobufGrid::mutable_data() {
-  set_has_data();
-  if (data_ == &::google::protobuf::internal::kEmptyString) {
-    data_ = new ::std::string;
-  }
+inline void ProtobufGrid::set_data(int index, const char* value, size_t size) {
+  data_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+}
+inline ::std::string* ProtobufGrid::add_data() {
+  return data_.Add();
+}
+inline void ProtobufGrid::add_data(const ::std::string& value) {
+  data_.Add()->assign(value);
+}
+inline void ProtobufGrid::add_data(const char* value) {
+  data_.Add()->assign(value);
+}
+inline void ProtobufGrid::add_data(const char* value, size_t size) {
+  data_.Add()->assign(reinterpret_cast<const char*>(value), size);
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+ProtobufGrid::data() const {
   return data_;
 }
-inline ::std::string* ProtobufGrid::release_data() {
-  clear_has_data();
-  if (data_ == &::google::protobuf::internal::kEmptyString) {
-    return NULL;
-  } else {
-    ::std::string* temp = data_;
-    data_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-    return temp;
-  }
-}
-inline void ProtobufGrid::set_allocated_data(::std::string* data) {
-  if (data_ != &::google::protobuf::internal::kEmptyString) {
-    delete data_;
-  }
-  if (data) {
-    set_has_data();
-    data_ = data;
-  } else {
-    clear_has_data();
-    data_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-  }
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+ProtobufGrid::mutable_data() {
+  return &data_;
 }
 
 // repeated int32 ids_allocated = 11;

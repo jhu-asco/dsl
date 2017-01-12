@@ -25,7 +25,26 @@ struct HT{
 
   double h;
   double t;
+  bool SerializeToOstream(ostream* output) const{
 
+    int double_size = sizeof(double);
+    string str_h(double_size,'o'), str_t(double_size,'o');
+    str_h.replace(0,double_size,(char*)&h, double_size);
+    str_t.replace(0,double_size,(char*)&t, double_size);
+
+    *output << str_h+str_t;
+    return true;
+  }
+
+  bool ParseFromIstream(istream* input){
+    int n_bytes = sizeof(double);
+    std::stringstream ss;
+    ss << input->rdbuf();
+    std::memcpy(&h,ss.str().c_str(), n_bytes);
+    std::memcpy(&t,ss.str().c_str()+n_bytes, n_bytes);
+
+    return true;
+  }
 };
 
 

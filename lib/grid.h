@@ -97,6 +97,9 @@ public:
 
   using ValType = typename remove_shared_ptr<CellContent>::type;
 
+  static has_template_type<CellContent,std::shared_ptr> cells_store_ptr_type; //std::false_type or true_type
+  static const bool cells_store_ptr = has_template_type<CellContent,std::shared_ptr>::value; //true or false
+
   /**
    * Initialize the grid using state lower bound, state upper bound, the number of grid cells
    * @param xlb state lower bound
@@ -213,7 +216,7 @@ public:
     cells_.resize(nc_);
 
     //copy data if not shared_ptr
-    if(!has_template_type<CellContent, std::shared_ptr>::value)
+    if(!cells_store_ptr)
       cells_ = gridcore.cells_;
   }
 
@@ -235,7 +238,7 @@ public:
     cells_.resize(nc_);
 
     //copy data if not shared_ptr
-    if(!has_template_type<CellContent, std::shared_ptr>::value)
+    if(!cells_store_ptr)
       cells_ = gridcore.cells_;
     return *this;
   }
@@ -267,7 +270,7 @@ public:
 
     StackPtr pstack(new Stack(xlb_stack,xub_stack, gs_stack, wd_stack));
 
-    if(!init || has_template_type<CellContent, std::shared_ptr>::value)
+    if(!init || cells_store_ptr)
       return pstack;
 
     //Iterate over all cells
@@ -310,7 +313,7 @@ public:
     StackPtr pstack(new Stack(xlb_stack,xub_stack, scs_stack, wd_stack));
 
     //copy data if not shared_ptr
-    if(!init || has_template_type<CellContent, std::shared_ptr>::value)
+    if(!init || cells_store_ptr)
       return pstack;
 
     for(int id=0; id < nc_; id++){
@@ -344,7 +347,7 @@ public:
 
     SlicePtr pslice(new Slice(xlb_slice,xub_slice, gs_slice, wd_slice));
 
-    if(!init || has_template_type<CellContent, std::shared_ptr>::value)
+    if(!init || cells_store_ptr)
       return pslice;
 
     for(int id_slice=0; id_slice < pslice->nc_; id_slice++){
@@ -390,7 +393,7 @@ public:
        }
        slice.cells_.resize(slice.nc());//if data is already allocated resize does nothing
 
-       if(!init || has_template_type<CellContent, std::shared_ptr>::value)
+       if(!init || cells_store_ptr)
          return;
 
        for(int id_slice=0; id_slice < slice.nc(); id_slice++){
@@ -422,7 +425,7 @@ public:
     Vectorni gs_scaled = gs_*scale;
     pscaled.reset(new GridCore<PointType, CellContent>(xlb_,xub_, gs_scaled, wd_));
 
-    if(!init || has_template_type<CellContent, std::shared_ptr>::value)
+    if(!init || cells_store_ptr)
       return pscaled;
 
     for(int id_scaled = 0; id_scaled <pscaled->nc(); id_scaled++){
@@ -922,7 +925,7 @@ public:
         pb.mutable_wd()->AddAlreadyReserved(wd_[i]);
       }
 
-      CellsToPb(pb, has_template_type<CellContent,std::shared_ptr>());
+      CellsToPb(pb, cells_store_ptr_type);
 
       pb.SerializeToOstream(&fs);
 
@@ -992,7 +995,7 @@ public:
         grid->cgs_[i] = pb.cgs(i);
         grid->wd_[i]  = pb.wd(i);
       }
-      PbToCells(*grid,pb,has_template_type<CellContent,std::shared_ptr>());
+      PbToCells(*grid,pb,cells_store_ptr_type);
 
 
     }else{
@@ -1055,18 +1058,16 @@ private:
   GridCore(){}
 
   /**
-   * Loads data from cells to protocol buffer non shared_ptr CellContent
+   * Loads data from cells to protocol buffer for non shared_ptr CellContent
    * @param pb
    * @param false_type
    */
   void CellsToPb(dsl::ProtobufGrid& pb, std::false_type){
-    int n_bytes = sizeof(ValType);
-    int data_size = nc_*n_bytes;
-    std::string& data = *pb.mutable_data();
-    data.resize(data_size);
+    //pb.mutable_data()->Reserve(nc_);
     for(int id=0; id < nc_; id++){
-      ValType val = cells_[id]; //bools are saved in bits in vec<bool>
-      data.replace(id*n_bytes, n_bytes, (char*)&val, n_bytes);
+      std::string str;
+      ValToString(cells_[id], &str, std::is_pod<ValType>());
+      pb.add_data(str);
     }
   }
 
@@ -1076,54 +1077,99 @@ private:
    * @param true_type
    */
   void CellsToPb(dsl::ProtobufGrid& pb, std::true_type){
-    pb.mutable_ids_allocated()->Reserve(nc_);
-    for(int id = 0; id < nc_; id++)
-      if(cells_[id])
-        pb.mutable_ids_allocated()->AddAlreadyReserved(id);
+    if(!nc_)
+      return;
 
-    int n_bytes = sizeof(ValType);
-    int data_size = pb.ids_allocated_size()*n_bytes;
-    std::string& data = *pb.mutable_data();
-    data.resize(data_size);
+    //pb.mutable_ids_allocated()->Reserve(nc_); //reserve max
+    //pb.mutable_data()->Reserve(nc_); //reserve max
+    for(int id=0; id < nc_; id++){
+      if(cells_[id]){
+        pb.add_ids_allocated(id);
 
-    for(int i=0; i < pb.ids_allocated_size(); i++){
-      int id = pb.ids_allocated(i);
-      auto val = *cells_[id];
-      data.replace(i*n_bytes, n_bytes, (char*)&val, n_bytes);
+        std::string str;
+        ValToString(*cells_[id], &str, std::is_pod<ValType>());
+        pb.add_data(str);
+      }
     }
   }
 
   /**
-   * Loads data from protocol buffer to cells for non shared_ptr CellContent
-   * @param grid
-   * @param pb
+   * converts a ValType to string for pod type
+   * @param val
+   * @param ss
    * @param
    */
-  static void PbToCells(GridCore& grid, dsl::ProtobufGrid& pb, std::false_type){
+  void ValToString(const ValType& val, std::string* str, std::true_type){
     int n_bytes = sizeof(ValType);
-    for(int id=0; id < grid.nc_; id++){
-      ValType val;
-      std::memcpy(&val,pb.data().c_str()+id*n_bytes, n_bytes);
-      grid.cells_[id] = val;
-    }
+    str->resize(n_bytes);
+    str->replace(0,n_bytes,(char*)&val, n_bytes);
   }
 
   /**
-   * Loads data from protocol buffer to cells for shared_ptr CellContent
-   * @param grid
-   * @param pb
+   * converts a ValType to string for non-pod type
+   * @param val
+   * @param ss
    * @param
    */
-  static void PbToCells(GridCore& grid, dsl::ProtobufGrid& pb, std::true_type){
-    int n_bytes = sizeof(ValType);
-    for(int i=0; i < pb.ids_allocated_size(); i++){
-      ValType val;
-      std::memcpy(&val,pb.data().c_str()+i*n_bytes, n_bytes);
-      int id = pb.ids_allocated(i);
-      grid.cells_[id].reset(new ValType);
-      *grid.cells_[id] = val;
-    }
+  void ValToString(const ValType& val, std::string* str, std::false_type){
+    std::stringstream ss;
+    val.SerializeToOstream(&ss);
+    *str = ss.str();
   }
+
+
+  /**
+    * Update cells_ from Protobuf for cell directly holding ValType
+    * @param grid
+    * @param pb
+    * @param
+    */
+   static void PbToCells(GridCore& grid, dsl::ProtobufGrid& pb, std::false_type){
+     for(int id=0; id < grid.nc_; id++){
+       ValType val;
+       StringToVal(pb.data(id),&val, std::is_pod<ValType>());
+       grid.cells_[id] = val;
+     }
+   }
+   /**
+    * Update cells_ from Protobuf for cell holding shared_ptr to ValType
+    * @param grid
+    * @param pb
+    * @param
+    */
+   static void PbToCells(GridCore& grid, dsl::ProtobufGrid& pb, std::true_type){
+     for(int i=0; i < pb.ids_allocated_size(); i++){
+       int id = pb.ids_allocated(i);
+       ValType val;
+       StringToVal(pb.data(i),&val, std::is_pod<ValType>());
+       grid.cells_[id].reset(new ValType);
+       *grid.cells_[id] = val;
+     }
+   }
+
+
+   /**
+    * Converts a ValType data to string for pod type
+    * @param ss
+    * @param val
+    * @param
+    */
+   static void StringToVal(const std::string& str, ValType* val, std::true_type){
+     int n_bytes = sizeof(ValType);
+     std::memcpy(val,str.c_str(), n_bytes);
+   }
+
+   /**
+    * Converts a ValType data to string for non-pod type
+    * @param ss
+    * @param val
+    * @param
+    */
+   static void StringToVal(const std::string& str, ValType* val, std::false_type){
+     std::stringstream ss;
+     ss<<str;
+     val->ParseFromIstream(&ss);
+   }
 
   const int n_ = PointType::SizeAtCompileTime; ///< grid dimension
   int nc_ = 0;   ///< number of cells in grid
