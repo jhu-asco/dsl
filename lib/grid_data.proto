@@ -11,5 +11,5 @@ message ProtobufGrid{
   repeated int32  cgs = 8;
   repeated bool wd = 9;
   repeated string data = 10;         // Each string element holds a value as byte array
-  repeated int32 ids_allocated = 11; // ids of cells that have been allocated
+  repeated int32 ids_allocated = 12; // ids of cells that have been allocated
 }

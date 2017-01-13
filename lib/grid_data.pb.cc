@@ -92,7 +92,7 @@ void protobuf_AddDesc_grid_5fdata_2eproto() {
     "\t\n\001n\030\001 \002(\005\022\n\n\002nc\030\002 \002(\005\022\013\n\003xlb\030\003 \003(\001\022\013\n\003x"
     "ub\030\004 \003(\001\022\n\n\002ds\030\005 \003(\001\022\n\n\002cs\030\006 \003(\001\022\n\n\002gs\030\007"
     " \003(\005\022\013\n\003cgs\030\010 \003(\005\022\n\n\002wd\030\t \003(\010\022\014\n\004data\030\n "
-    "\003(\t\022\025\n\rids_allocated\030\013 \003(\005", 186);
+    "\003(\t\022\025\n\rids_allocated\030\014 \003(\005", 186);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "grid_data.proto", &protobuf_RegisterTypes);
   ProtobufGrid::default_instance_ = new ProtobufGrid();
@@ -398,18 +398,18 @@ bool ProtobufGrid::MergePartialFromCodedStream(
           goto handle_uninterpreted;
         }
         if (input->ExpectTag(82)) goto parse_data;
-        if (input->ExpectTag(88)) goto parse_ids_allocated;
+        if (input->ExpectTag(96)) goto parse_ids_allocated;
         break;
       }
 
-      // repeated int32 ids_allocated = 11;
-      case 11: {
+      // repeated int32 ids_allocated = 12;
+      case 12: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_ids_allocated:
           DO_((::google::protobuf::internal::WireFormatLite::ReadRepeatedPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
-                 1, 88, input, this->mutable_ids_allocated())));
+                 1, 96, input, this->mutable_ids_allocated())));
         } else if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag)
                    == ::google::protobuf::internal::WireFormatLite::
                       WIRETYPE_LENGTH_DELIMITED) {
@@ -419,7 +419,7 @@ bool ProtobufGrid::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(88)) goto parse_ids_allocated;
+        if (input->ExpectTag(96)) goto parse_ids_allocated;
         if (input->ExpectAtEnd()) return true;
         break;
       }
@@ -503,10 +503,10 @@ void ProtobufGrid::SerializeWithCachedSizes(
       10, this->data(i), output);
   }
 
-  // repeated int32 ids_allocated = 11;
+  // repeated int32 ids_allocated = 12;
   for (int i = 0; i < this->ids_allocated_size(); i++) {
     ::google::protobuf::internal::WireFormatLite::WriteInt32(
-      11, this->ids_allocated(i), output);
+      12, this->ids_allocated(i), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -578,10 +578,10 @@ void ProtobufGrid::SerializeWithCachedSizes(
       WriteStringToArray(10, this->data(i), target);
   }
 
-  // repeated int32 ids_allocated = 11;
+  // repeated int32 ids_allocated = 12;
   for (int i = 0; i < this->ids_allocated_size(); i++) {
     target = ::google::protobuf::internal::WireFormatLite::
-      WriteInt32ToArray(11, this->ids_allocated(i), target);
+      WriteInt32ToArray(12, this->ids_allocated(i), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -672,7 +672,7 @@ int ProtobufGrid::ByteSize() const {
       this->data(i));
   }
 
-  // repeated int32 ids_allocated = 11;
+  // repeated int32 ids_allocated = 12;
   {
     int data_size = 0;
     for (int i = 0; i < this->ids_allocated_size(); i++) {

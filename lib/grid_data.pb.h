@@ -205,10 +205,10 @@ class ProtobufGrid : public ::google::protobuf::Message {
   inline const ::google::protobuf::RepeatedPtrField< ::std::string>& data() const;
   inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_data();
 
-  // repeated int32 ids_allocated = 11;
+  // repeated int32 ids_allocated = 12;
   inline int ids_allocated_size() const;
   inline void clear_ids_allocated();
-  static const int kIdsAllocatedFieldNumber = 11;
+  static const int kIdsAllocatedFieldNumber = 12;
   inline ::google::protobuf::int32 ids_allocated(int index) const;
   inline void set_ids_allocated(int index, ::google::protobuf::int32 value);
   inline void add_ids_allocated(::google::protobuf::int32 value);
@@ -518,7 +518,7 @@ ProtobufGrid::mutable_data() {
   return &data_;
 }
 
-// repeated int32 ids_allocated = 11;
+// repeated int32 ids_allocated = 12;
 inline int ProtobufGrid::ids_allocated_size() const {
   return ids_allocated_.size();
 }

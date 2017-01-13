@@ -29,8 +29,8 @@ struct TerrainData{
   //double pitch; ///< pitch
   //double roll;  ///< roll
 
-  bool SerializeToOstream(std::ostream* output) const;
-  bool ParseFromIstream(std::istream* input);
+  bool SerializeToString(std::string* str) const;
+  bool ParseFromString(const std::string& str);
 };
 
 // a cell that stores terrain data along with axy representaion of SE2 pose

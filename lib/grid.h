@@ -19,6 +19,7 @@
 #include <exception>
 #include <type_traits>
 #include "grid_data.pb.h"
+#include "google/protobuf/io/coded_stream.h"
 
 namespace dsl {
 
@@ -946,6 +947,7 @@ public:
    */
   static Ptr Load(const std::string& filename){
     GOOGLE_PROTOBUF_VERIFY_VERSION;
+    //google::protobuf::io::CodedInputStream::SetTotalBytesLimit(500000000,250000000);
     Ptr grid;
     std::ifstream fs (filename, std::fstream::in | std::ios::binary);
     if(fs.is_open()){
@@ -956,22 +958,22 @@ public:
 
 
       // size checks
-      int data_size, n_bytes;
-      n_bytes = sizeof(ValType);
-      if(has_template_type<CellContent,std::shared_ptr>::value)
-        data_size = pb.ids_allocated_size()*n_bytes;
+      int n_allocated_cells;
+      if(cells_store_ptr)
+        n_allocated_cells = pb.ids_allocated_size();
       else
-        data_size = pb.nc()*n_bytes;
+        n_allocated_cells = pb.nc();
+
+      if( pb.data_size()  != n_allocated_cells){
+        throw std::length_error("data field is of wrong size");
+        return nullptr;
+      }
 
       if(pb.xlb_size() != pb.n() || pb.xub_size()   != pb.n() ||
           pb.ds_size()  != pb.n() || pb.cs_size()    != pb.n() ||
           pb.gs_size()  != pb.n() || pb.cgs_size()   != pb.n() ||
           pb.wd_size()  != pb.n() ){
         throw std::length_error("All or one of xlb, xub, ds, cs, gs, cgs and wd is of wrong size");
-        return nullptr;
-      }
-      if( pb.data().size()!= data_size){
-        throw std::length_error("data field is of wrong size");
         return nullptr;
       }
 
@@ -1063,7 +1065,7 @@ private:
    * @param false_type
    */
   void CellsToPb(dsl::ProtobufGrid& pb, std::false_type){
-    //pb.mutable_data()->Reserve(nc_);
+    pb.mutable_data()->Reserve(nc_);
     for(int id=0; id < nc_; id++){
       std::string str;
       ValToString(cells_[id], &str, std::is_pod<ValType>());
@@ -1080,8 +1082,8 @@ private:
     if(!nc_)
       return;
 
-    //pb.mutable_ids_allocated()->Reserve(nc_); //reserve max
-    //pb.mutable_data()->Reserve(nc_); //reserve max
+    pb.mutable_ids_allocated()->Reserve(nc_); //reserve max
+    pb.mutable_data()->Reserve(nc_); //reserve max
     for(int id=0; id < nc_; id++){
       if(cells_[id]){
         pb.add_ids_allocated(id);
@@ -1112,9 +1114,7 @@ private:
    * @param
    */
   void ValToString(const ValType& val, std::string* str, std::false_type){
-    std::stringstream ss;
-    val.SerializeToOstream(&ss);
-    *str = ss.str();
+    val.SerializeToString(str);
   }
 
 
@@ -1166,9 +1166,7 @@ private:
     * @param
     */
    static void StringToVal(const std::string& str, ValType* val, std::false_type){
-     std::stringstream ss;
-     ss<<str;
-     val->ParseFromIstream(&ss);
+     val->ParseFromString(str);
    }
 
   const int n_ = PointType::SizeAtCompileTime; ///< grid dimension
