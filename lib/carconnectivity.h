@@ -129,10 +129,10 @@ public:
         if(apert > cfg.amax || lpert > 1.5*cfg.lmax || lpert < 0.6*cfg.lmin)
           continue;
 
-        Vector3d vfp(w*tpert, u*tpert,0);  //forward vel positive angular vel
-        Vector3d vfn(-w*tpert, u*tpert,0); //forward vel negative angular vel
-        Vector3d vbp(w*tpert, -u*tpert,0); //reverse vel positive angular vel
-        Vector3d vbn(-w*tpert, -u*tpert,0);//reverse vel negative angular vel
+        Eigen::Vector3d vfp(w*tpert, u*tpert,0);  //forward vel positive angular vel
+        Eigen::Vector3d vfn(-w*tpert, u*tpert,0); //forward vel negative angular vel
+        Eigen::Vector3d vbp(w*tpert, -u*tpert,0); //reverse vel positive angular vel
+        Eigen::Vector3d vbn(-w*tpert, -u*tpert,0);//reverse vel negative angular vel
 
         if(std::abs(w)<1e-16){
           vbs_.push_back(vfp);
@@ -185,11 +185,11 @@ public:
     for (int i = 0; i <= kseg; i++) {
       double k = i*kmax/kseg;
       double w = vx*k;
-      vbs_.push_back(Vector3d(w, vx, 0));
-      vbs_.push_back(Vector3d(-w, vx, 0));
+      vbs_.push_back(Eigen::Vector3d(w, vx, 0));
+      vbs_.push_back(Eigen::Vector3d(-w, vx, 0));
       if (!onlyfwd) {
-        vbs_.push_back(Vector3d(w, -vx, 0));
-        vbs_.push_back(Vector3d(-w, -vx, 0));
+        vbs_.push_back(Eigen::Vector3d(w, -vx, 0));
+        vbs_.push_back(Eigen::Vector3d(-w, -vx, 0));
       }
     }
 
@@ -209,38 +209,47 @@ public:
    * positions along the path. This is particularly useful for plotting the primitives.
    * @param prims A single point along a primitive is xy pos
    */
-  bool GetPrims(const Vector3d pos, vector<vector<Vector2d>>& prims ){
+  bool GetPrims(const Eigen::Vector3d& pos, std::vector<std::vector<Eigen::Vector2d>>& prims ){
     //Display the primitive at start
     std::shared_ptr<Cell<PointType,DataType> > cell_start = grid_.Get(pos);
     if(!cell_start){
       prims.clear();
       return false;
     }
-    vector<std::tuple< std::shared_ptr<Cell<PointType,DataType> >, ConnectionType, double> > paths;
+    std::vector<std::tuple< std::shared_ptr<Cell<PointType,DataType> >, ConnectionType, double> > paths;
     if(cell_start){
       (*this)(*cell_start,paths,true);
 
-      Matrix3d g0; se2_q2g(g0, cell_start->c);
+      Eigen::Matrix3d g0;
+      se2_q2g(g0, cell_start->c);
+
       prims.reserve(paths.size());
       for(auto& path:paths){
         std::shared_ptr<Cell<PointType,DataType> > cell_to = std::get<0>(path);
         if(!cell_to)
           continue;
-        Matrix3d gto; se2_q2g(gto, cell_to->c);
+        Eigen::Matrix3d gto;
+        se2_q2g(gto, cell_to->c);
 
-        Matrix3d gi,dg; se2_inv(gi,g0); dg = gi*gto; //relative of from.data to to->data
-        Vector3d v; se2_log(v,dg);//twist that take you exactly to successor
+        Eigen::Matrix3d gi,dg;
+        se2_inv(gi,g0);
+        dg = gi*gto; //relative of from.data to to->data
+
+        Eigen::Vector3d v;
+        se2_log(v,dg);//twist that take you exactly to successor
+
         double d = std::abs(v[1]); // total distance along curve
         int n_seg = ceil(d/ (2 * grid_.cs()[1])); // 2 * grid.cs[1] is to improve efficiency
         double s = d/n_seg;
-        vector<Vector2d> prim(0); prim.reserve(n_seg+1);
-        prim.push_back(Vector2d(g0(0,2),g0(1,2)));
+        std::vector<Eigen::Vector2d> prim(0);
+        prim.reserve(n_seg+1);
+        prim.push_back(Eigen::Vector2d(g0(0,2),g0(1,2)));
         for (int i_seg=1; i_seg<=n_seg; i_seg++) {
-          Vector3d axy;
-          Matrix3d g, dg;
+          Eigen::Vector3d axy;
+          Eigen::Matrix3d g, dg;
           se2_exp(dg, (s*i_seg / d) * v);
           g = g0 * dg;
-          prim.push_back(Vector2d(g(0,2),g(1,2)));
+          prim.push_back(Eigen::Vector2d(g(0,2),g(1,2)));
         }
         prims.push_back(prim);
       }

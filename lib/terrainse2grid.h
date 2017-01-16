@@ -35,7 +35,7 @@ struct TerrainData{
 
 // a cell that stores terrain data along with axy representaion of SE2 pose
 using TerrainCell = Cell< Eigen::Vector3d, TerrainData >;
-using TerrainCellPtr = shared_ptr<TerrainCell>;
+using TerrainCellPtr = std::shared_ptr<TerrainCell>;
 using TerrainSE2GridBase = Grid< TerrainCell::PointType, TerrainCell::DataType >;
 
 

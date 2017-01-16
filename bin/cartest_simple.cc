@@ -197,9 +197,8 @@ int main(int argc, char** argv)
 
   if(start_set && goal_set){
     cout << "Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges." << endl;
-
-    cout << "Planning a path..." << endl;
     // plan
+    cout << "Planning a path..." << endl;
     timer_start(&timer);
     search.Plan(path);
     time = timer_us(&timer);
@@ -218,7 +217,8 @@ int main(int argc, char** argv)
     path3d = ToVector3dPath(path);
     cout << "Map and path saved to path.ppm" << endl;
   }else{
-     path3d.push_back(start); path3d.push_back(goal);
+     path3d.push_back(start);
+     path3d.push_back(goal);
     cout << "Map, start and goal (no path available) saved to path.ppm" << endl;
   }
 

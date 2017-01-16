@@ -15,10 +15,8 @@
 #include <vector>
 
 namespace dsl {
-using std::shared_ptr;
-
 using SE2Cell =  Cell< Eigen::Vector3d, Eigen::Matrix3d >; // a cell that stores an SE(2) transformation  matrix
-using SE2CellPtr = shared_ptr<SE2Cell>;
+using SE2CellPtr = std::shared_ptr<SE2Cell>;
 using SE2CellGrid = Grid<SE2Cell::PointType, SE2Cell::DataType>;
 
 /**

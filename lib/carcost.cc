@@ -4,6 +4,7 @@
 
 namespace dsl {
 using namespace std;
+using namespace Eigen;
 
 CarCost::CarCost(const CarGrid& grid, const Vector3d& wt, double eps )
 :grid_(grid), use_twistnorm_metric_(true), wt_(wt),eps_(eps){
@@ -38,14 +39,14 @@ double CarCost::Real(const SE2Cell& a, const SE2Cell& b) const{
   for (int i_seg=1; i_seg<n_seg; i_seg++) {
     se2_exp(dg, (d_seg*i_seg / d) * twist);
     Matrix3d g = ga * dg;
-    Vector3d axy; se2_g2q(axy, g);
+    Vector3d axy;
+    se2_g2q(axy, g);
     wp = grid_.Get(axy); //waypoint
     if (!wp)
       return numeric_limits<double>::quiet_NaN();
   }
-
+  //double wl = sqrt(twist.dot(wt_)); //weighted length
   double wl = (twist.array()* wt_.array()).matrix().norm();//weighted length
-
   return wl;
 }
 
@@ -57,7 +58,7 @@ double CarCost::Heur(const SE2Cell& a, const SE2Cell& b) const {
   Matrix3d dg = gai*gb;
   Vector3d twist; se2_log(twist,dg);
   double wl = (twist.array()* wt_.array()).matrix().norm();//weighted length
-
+  //double wl = sqrt(twist.dot(wt_)); //weighted length
   return (1 - eps_)*wl;
 }
 }

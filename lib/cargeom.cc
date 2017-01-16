@@ -7,8 +7,12 @@
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "cargeom.h"
-
+#include <Eigen/Geometry>
 namespace dsl {
+
+using namespace Eigen;
+using Matrix2x4d = Matrix<double,2,4>;
+using Transform2d = Eigen::Transform< double, 2, Eigen::Affine >;
 
 CarGeom::CarGeom (double l, double b, double ox, double oy, double sb){
   set(l,b,ox,oy,sb);
@@ -45,14 +49,6 @@ void CarGeom::Raster(const Eigen::Vector2d &cs, std::vector<Eigen::Vector2d> &po
     for (double y = -be_/2; y < be_/2; y += cs[1])
       points.push_back(Eigen::Vector2d(x + ox_, y + oy_));
 }
-
-double CarGeom::l() const {return l_;}
-double CarGeom::b() const {return b_;}
-double CarGeom::ox() const {return ox_;}
-double CarGeom::oy() const {return oy_;}
-double CarGeom::sb() const {return sb_;}
-double CarGeom::le() const {return le_;}
-double CarGeom::be() const {return be_;}
 
 void CarGeom::GetTrueCorners(std::vector<Eigen::Vector2d>& vertices, double theta) const{
 

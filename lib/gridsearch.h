@@ -74,7 +74,7 @@ public:
   using CellEdge = Edge< GridVertexData, GridEdgeData>;
 
   using TypedCell = Cell<PointType, DataType>;
-  using TypedCellPtr = shared_ptr<TypedCell>;
+  using TypedCellPtr = std::shared_ptr<TypedCell>;
 
   using TypedGrid = Grid<PointType, DataType>;
     

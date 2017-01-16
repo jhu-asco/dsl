@@ -20,7 +20,7 @@ namespace dsl {
  * Configuration for any cost interface on a SE2 grid i.e. a grid of yaw, x and y values
  */
 struct SE2GridCostConfig{
-  Vector3d twist_weight = Vector3d(0.1,1,2); ///< weight for weighted norm of the twist between two SE2 cells.
+  Eigen::Vector3d twist_weight = Eigen::Vector3d(0.1,1,2); ///< weight for weighted norm of the twist between two SE2 cells.
   double eps = 1e-6; ///< for Heur cost a factor of (1-eps) is multiplied to final cost to ensure admissability.
   bool subpixel = false; ///< Enable subpixel interpolation of grid data like height/traversibility. However, subpixel interpolation is not used for occupancy.
 };

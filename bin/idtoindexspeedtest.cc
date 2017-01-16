@@ -11,8 +11,9 @@ int main(int argc, char** argv){
 
   GridCore<Vector3d,Vector3i> grid(Vector3d(-0.5,-0.5,-0.5), Vector3d(99.5,99.5,9.5), Vector3d::Ones().eval());
   for(int id=0; id < grid.nc(); id++){
-    Vector3i idx; grid.Index(idx,id);
-    grid.set_cells(id, idx);
+    Vector3i gidx;
+    grid.Index(id, &gidx);
+    grid.set_cells(id, gidx);
   }
 
   cout<<"grid.gs():"<<grid.gs().transpose()<<endl;
@@ -27,7 +28,8 @@ int main(int argc, char** argv){
   cout<<"iterating over all cells using Index()"<<endl;
   t_start = chrono::system_clock::now();
   for(int id=0; id < grid.nc(); id++){
-    Vector3i idx; grid.Index(idx,id);
+    Vector3i gidx;
+    grid.Index(id, &gidx);
   }
   t_end = chrono::system_clock::now();
   elapsed = t_end - t_start;

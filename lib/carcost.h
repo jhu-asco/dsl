@@ -34,7 +34,7 @@ public:
    * Initialize the cost(twistnorm_metric)
    * @param wt weight for weighted norm of the twist between two SE2 cells
    */
-  CarCost(const CarGrid& grid, const Vector3d& wt = Vector3d(0.1,1,2), double eps = 1e-6);
+  CarCost(const CarGrid& grid, const Eigen::Vector3d& wt = Eigen::Vector3d(0.1,1,2), double eps = 1e-6);
 
   /**
    * True cost(given a metric) of moving from cell "a" to a cell "b" along a twist element that connects them.
@@ -62,7 +62,7 @@ public:
 
   bool use_twistnorm_metric_; ///< if true uses twistnorm_metric else distance_metric
 
-  Vector3d wt_; ///< weight for weighted norm of the twist between two SE2 cells used by twistnorm_metric
+  Eigen::Vector3d wt_; ///< weight for weighted norm of the twist between two SE2 cells used by twistnorm_metric
   double eps_ = 1e-6; ///< for Heur cost a factor of (1-eps) is multiplied to final cost to ensure admissability
 };
 }

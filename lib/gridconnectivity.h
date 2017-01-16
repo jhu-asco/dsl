@@ -14,13 +14,12 @@
 #include <memory>
 
 namespace dsl {
-using std::shared_ptr;
 
   template < class PointType, class DataType, class ConnectionType>
 class GridConnectivity {
 public:
     using TypedCell = Cell<PointType, DataType>;
-    using TypedCellPtr = shared_ptr<Cell<PointType, DataType>>;
+    using TypedCellPtr = std::shared_ptr<Cell<PointType, DataType> >;
 
   /**
    * Connectivity operator providing primitive paths from a given vertex. This

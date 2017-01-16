@@ -1,6 +1,6 @@
 // This file is part of libdsl, a library for heuristic graph search
 //
-// Copyright (C) 2004 Marin Kobilarov <marin@jhu.edu>
+// Copyright (C) 2004 Marin Kobilarov <marin@jhu.edu> and Subhransu Mishra <subhransu.kumar.mishra@gmail.com>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -9,10 +9,7 @@
 #ifndef DSL_LIB_CARGEOM_H_
 #define DSL_LIB_CARGEOM_H_
 
-#include "grid.h"
-#include <Eigen/Dense>
-#include <Eigen/Geometry>
-#include <vector>
+#include "geom.h"
 
 namespace dsl {
 
@@ -56,13 +53,13 @@ public:
    */
   void GetSafeCorners(std::vector<Eigen::Vector2d>& vertices, double theta) const;
 
-  double l() const;
-  double b() const;
-  double ox() const;
-  double oy() const;
-  double sb() const;
-  double le() const;
-  double be() const;
+  inline double l() const {return l_;}
+  inline double b() const {return b_;}
+  inline double ox() const {return ox_;}
+  inline double oy() const {return oy_;}
+  inline double sb() const {return sb_;}
+  inline double le() const {return le_;}
+  inline double be() const {return be_;}
 
 private:
   double l_;  ///< dim of the rectangle bounding the car along the x direction (from back to front)

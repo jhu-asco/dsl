@@ -15,10 +15,8 @@
 
 namespace dsl {
 
-using Eigen::Vector3d;
-using Eigen::Vector2d;
-using Eigen::Matrix3d;
-using std::vector;
+using namespace std;
+using namespace Eigen;
 
 bool TerrainData::SerializeToString(std::string* str) const{
   int double_size = sizeof(double);
@@ -51,7 +49,8 @@ TerrainSE2Grid::TerrainSE2Grid(const Map<bool, 3> &cmap, const Map<TerrainData,2
   auto fun = [&](int id, const Vector3i& gidx){
     Vector3d cc; //CellCenter
     Vector2i gidx2d = gidx.tail<2>();
-    bool gotcenter = CellCenter(cc,gidx);assert(gotcenter);
+    bool gotcenter = CellCenter(gidx, &cc);
+    assert(gotcenter);
     bool occ = cmap.Get(cc, false);
     if (!occ) {  //Allocate memory for grid cells if it is not occupied
       cells_[id].reset(new TerrainCell(id, cc));

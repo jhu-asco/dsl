@@ -4,6 +4,7 @@
 
 namespace dsl {
 using namespace std;
+using namespace Eigen;
 TerrainSE2GridCost::TerrainSE2GridCost(const TerrainSE2Grid& grid, const SE2GridCostConfig& config)
   :grid_(grid),config_(config), trav_min_(numeric_limits<double>::max()){
 

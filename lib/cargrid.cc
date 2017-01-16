@@ -14,11 +14,8 @@
 #include <thread>
 
 namespace dsl {
-
-using Eigen::Vector3d;
-using Eigen::Vector2d;
-using Eigen::Matrix3d;
-using std::vector;
+using namespace Eigen;
+using namespace std;
 
 //SE2CellGrid::Vectornb(true,false,false) says which dimensions are wrapped
 CarGrid::CarGrid(const Map<bool, 3> &cmap, const Vector3d& cs)
@@ -27,7 +24,8 @@ CarGrid::CarGrid(const Map<bool, 3> &cmap, const Vector3d& cs)
   //Iterate over all cells
   auto fun = [&](int id, const Vector3i& gidx){
     Vector3d cc; //CellCenter
-    bool gotcenter = CellCenter(cc,gidx);assert(gotcenter);
+    bool gotcenter = CellCenter(gidx, &cc);
+    assert(gotcenter);
     bool occ = cmap.Get(cc, false);
     if (!occ) {  //Allocate memory for grid cells if it is not occupied
       cells_[id].reset(new SE2Cell(id, cc));
@@ -35,6 +33,5 @@ CarGrid::CarGrid(const Map<bool, 3> &cmap, const Vector3d& cs)
     }
   };
   LoopOver(fun);
-
 }
-} //namespace dsl
+} /* namespace dsl */

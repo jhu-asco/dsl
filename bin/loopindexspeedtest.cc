@@ -34,7 +34,8 @@ int main(int argc, char** argv){
     cout<<"iterating over all cells using Index()"<<endl;
     t_start = chrono::system_clock::now();
     for(int id=0; id < grid.nc(); id++){
-      Vector2i gidx; grid.Index(gidx,id);
+      Vector2i gidx;
+      grid.Index(id, &gidx);
       gidx_mod  = 2* gidx; //do something with gidx
       cellval = grid.cells()[id]; //do something with id
     }
@@ -91,7 +92,8 @@ int main(int argc, char** argv){
     cout<<"iterating over all cells using Index()"<<endl;
     t_start = chrono::system_clock::now();
     for(int id=0; id < grid.nc(); id++){
-      Vector3i gidx; grid.Index(gidx,id);
+      Vector3i gidx;
+      grid.Index(id, &gidx);
       gidx_mod  = 2* gidx; //do something with gidx
       cellval = grid.cells()[id]; //do something with id
     }
@@ -151,7 +153,8 @@ int main(int argc, char** argv){
     cout<<"iterating over all cells using Index()"<<endl;
     t_start = chrono::system_clock::now();
     for(int id=0; id < grid.nc(); id++){
-      Vector4i gidx; grid.Index(gidx,id);
+      Vector4i gidx;
+      grid.Index(id, &gidx);
       gidx_mod  = 2* gidx; //do something with gidx
       cellval = grid.cells()[id]; //do something with id
     }

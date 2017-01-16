@@ -24,10 +24,6 @@
 namespace dsl {
 
 struct EmptyData {};
-using std::shared_ptr;
-using std::vector;
-using namespace Eigen;
-
 
 //To check if a template parameter is shared_ptr
 //  usage: if(has_template_type<T, std::shared_ptr>::value)
@@ -47,10 +43,10 @@ struct remove_shared_ptr<std::shared_ptr<T> > { typedef T type; };
 /**
  * An n-dimenensional grid consisting of abstract "cells", or elements
  * identified by a set of coordinates of type PointType, each cell
- * containing data of type CellContent. The CellContent can directly be
+ * containing data of type CellType. The CellType can directly be
  * the intended data or shared_ptr to intended data. Using the shared_ptr
  * is useful to avoid memory allocation until it's actually needed.
- * CellContent=bool/double can be used to make a grid of occupancy or
+ * CellType=bool/double can be used to make a grid of occupancy or
  * traversibility of a cell.
  *
  * Explanation of certain important variables:
@@ -68,38 +64,38 @@ struct remove_shared_ptr<std::shared_ptr<T> > { typedef T type; };
  *       4. Add clone methods to deep copy data
  *
  */
-template < class PointType, class CellContent>
+template < class PointType, class CellType>
 class GridCore {
 public:
 
 
-  //n-dimensional vectors
+  //n-dimensional std::vectors
   using Vectornd   =  Eigen::Matrix< double,  PointType::SizeAtCompileTime,   1 >;
   using Vectorni   =  Eigen::Matrix< int,     PointType::SizeAtCompileTime,   1 >;
   using Vectornb   =  Eigen::Matrix< bool,    PointType::SizeAtCompileTime,   1 >;
 
-  //n-1 dimensional vectors
+  //n-1 dimensional std::vectors
   using Vectornm1d =  Eigen::Matrix< double,  PointType::SizeAtCompileTime-1, 1 >;
   using Vectornm1i =  Eigen::Matrix< int,     PointType::SizeAtCompileTime-1, 1 >;
   using Vectornm1b =  Eigen::Matrix< bool,    PointType::SizeAtCompileTime-1, 1 >;
 
-  //n+1 dimensional vectors
+  //n+1 dimensional std::vectors
   using Vectornp1d =  Eigen::Matrix< double,  PointType::SizeAtCompileTime+1, 1 >;
   using Vectornp1i =  Eigen::Matrix< int,     PointType::SizeAtCompileTime+1, 1 >;
   using Vectornp1b =  Eigen::Matrix< bool,    PointType::SizeAtCompileTime+1, 1 >;
 
   using Ptr = std::shared_ptr<GridCore>;
 
-  using Slice = GridCore<Vectornm1d,CellContent>;
-  using SlicePtr = shared_ptr<Slice>;
+  using Slice = GridCore<Vectornm1d,CellType>;
+  using SlicePtr = std::shared_ptr<Slice>;
 
-  using Stack = GridCore<Vectornp1d,CellContent>;
-  using StackPtr = shared_ptr<Stack>;
+  using Stack = GridCore<Vectornp1d,CellType>;
+  using StackPtr = std::shared_ptr<Stack>;
 
-  using ValType = typename remove_shared_ptr<CellContent>::type;
+  using ValType = typename remove_shared_ptr<CellType>::type;
 
-  static has_template_type<CellContent,std::shared_ptr> cells_store_ptr_type; //std::false_type or true_type
-  static const bool cells_store_ptr = has_template_type<CellContent,std::shared_ptr>::value; //true or false
+  static has_template_type<CellType,std::shared_ptr> cells_store_ptr_type; //std::false_type or true_type
+  static const bool cells_store_ptr = has_template_type<CellType,std::shared_ptr>::value; //true or false
 
   /**
    * Initialize the grid using state lower bound, state upper bound, the number of grid cells
@@ -109,7 +105,7 @@ public:
    * @param wd indicates if a dimension if wrapped or not. wd[i]=false(flat dim) wd[i]=1(wrapped dim).
    * For wrapped dimension i, the ds[i],i.e. dimension size, is given by xub[i]-xlb[i] (e.g. for angles it ds[i]=2*M_PI)
    */
-  GridCore(const Vectornd& xlb, const Vectornd& xub, const Vectorni& gs, const Vectornb wd = Vectornb::Zero())
+  GridCore(const Vectornd& xlb, const Vectornd& xub, const Vectorni& gs, const Vectornb& wd = Vectornb::Zero())
   : xlb_(xlb), xub_(xub), gs_(gs), wd_(wd), cells_(0){
     ds_ = xub - xlb;
     nc_ = 1;
@@ -168,7 +164,7 @@ public:
    * contained in the grid)
    */
   GridCore(const Vectornd& sxlb, const Vectornd& sxub, const Vectornd& scs,
-           const Vectornb wd = Vectornb::Zero(), const Vectornb ss = Vectornb::Zero())
+           const Vectornb& wd = Vectornb::Zero(), const Vectornb& ss = Vectornb::Zero())
   : wd_(wd), cells_(0){
     nc_ = 1;
     cgs_[0] = 1;
@@ -208,7 +204,7 @@ public:
   }
 
   /**
-   * Copies the grid structure and allocates memory for all but assigns only for arithmetic CellContent
+   * Copies the grid structure and allocates memory for all but assigns only for arithmetic CellType
    * @param gridcore
    */
   GridCore(const GridCore &gridcore)
@@ -224,7 +220,7 @@ public:
   virtual ~GridCore() {}
 
   /**
-   * Copies the grid structure and allocates memory for all but assigns only for arithmetic CellContent
+   * Copies the grid structure and allocates memory for all but assigns only for arithmetic CellType
    * @param The grid to copy the structure from
    * @return
    */
@@ -318,8 +314,9 @@ public:
       return pstack;
 
     for(int id=0; id < nc_; id++){
-      Vectorni gidx; Index(gidx,id);
-      CellContent val = cells_[id];
+      Vectorni gidx;
+      Index(id,&gidx);
+      CellType val = cells_[id];
       for( int idx=0; idx < pstack->gs()[i] ; idx++ ){
         Vectornp1i gidx_stack = InsertDimension(gidx,i,idx);
         pstack->cells_[pstack->Id(gidx_stack)] = val;
@@ -352,7 +349,8 @@ public:
       return pslice;
 
     for(int id_slice=0; id_slice < pslice->nc_; id_slice++){
-      Vectornm1i gidx_slice; pslice->Index(gidx_slice,id_slice);
+      Vectornm1i gidx_slice;
+      pslice->Index(id_slice, &gidx_slice);
       Vectorni gidx = InsertDimension(gidx_slice,i,idx);
       pslice->cells_[id_slice] = Get(Id(gidx));
     }
@@ -373,11 +371,12 @@ public:
 
     /**
       * Create a slice of the current grid along dimension at particular index
-      * @param slice reference to the slice
+      * @param pslice pointer to the slice
       * @param idx index in a grid along the dim coordinate/dimension
       * @param dim coordinated index/ dimension
       */
-     void GetSlice(Slice& slice, int idx, int dim, bool init = true) const {
+     void GetSlice(Slice* pslice, int idx, int dim, bool init = true) const {
+       Slice& slice = *pslice;
        //Get the new dimension
        slice.xlb_ = RemoveDimension(xlb_,dim);
        slice.xub_ = RemoveDimension(xub_,dim);
@@ -387,7 +386,7 @@ public:
        slice.ds_  = RemoveDimension(ds_,dim);
        slice.nc_=1;
        slice.cgs_[0]=1;
-       for(int i = 0; i < n_-1; i++){
+       for(int i = 0; i < n_- 1; i++){
          slice.nc_ *=slice.gs_[i];
          if(i>0)
            slice.cgs_[i] = slice.cgs_[i-1]*slice.gs_[i-1];
@@ -398,7 +397,8 @@ public:
          return;
 
        for(int id_slice=0; id_slice < slice.nc(); id_slice++){
-         Vectornm1i midx_slice; slice.Index(midx_slice,id_slice);
+         Vectornm1i midx_slice;
+         slice.Index(id_slice, &midx_slice);
          Vectorni midx = InsertDimension(midx_slice,dim,idx); //midx is multidim index
          slice.cells_[id_slice] = Get(Id(midx));
        }
@@ -419,18 +419,19 @@ public:
       return pscaled;
 
     if(scale==1){
-      pscaled.reset(new GridCore<PointType, CellContent>(*this));
+      pscaled.reset(new GridCore<PointType, CellType>(*this));
       return pscaled;
     }
 
     Vectorni gs_scaled = gs_*scale;
-    pscaled.reset(new GridCore<PointType, CellContent>(xlb_,xub_, gs_scaled, wd_));
+    pscaled.reset(new GridCore<PointType, CellType>(xlb_,xub_, gs_scaled, wd_));
 
     if(!init || cells_store_ptr)
       return pscaled;
 
     for(int id_scaled = 0; id_scaled <pscaled->nc(); id_scaled++){
-      Vectornd cc; pscaled->CellCenter(cc,id_scaled);
+      Vectornd cc;
+      pscaled->CellCenter(id_scaled, &cc);
       pscaled->cells_[id_scaled] = Get(cc,false);
     }
     return pscaled;
@@ -444,17 +445,17 @@ public:
 //   * @param valin value inside the area marked by the vertices
 //   * @param valout value outside the area marked by the vertices
 //   */
-//  GridCore::Ptr GetKernel(const vector<Vectornd>& vertices,CellContent valin, CellContent valout) const{
+//  GridCore::Ptr GetKernel(const std::vector<Vectornd>& vertices,CellType valin, CellType valout) const{
 //
 //    //convert vertices to grid coordinates
-//    vector<Vectornd> verts_grid; ToGridCoordinates(verts_grid,vertices);
+//    std::vector<Vectornd> verts_grid; ToGridCoordinates(verts_grid,vertices);
 //
 //    //Get center of points and convert to grid coords
 //    Vectornd center = std::accumulate(vertices.begin(),vertices.end(),Vectornd::Zero().eval())/vertices.size();
 //    Vectornd center_grid; ToGridCoordinates(center_grid,center);
 //
 //    //Snap the vertices to cell centers while making sure it is expanded outwards
-//    vector<Vectorni> verts_snapped;
+//    std::vector<Vectorni> verts_snapped;
 //    for(size_t i=0; i<vertices.size(); i++){
 //      Vectornd verts_grid_centered = verts_grid[i] - center_grid;
 //      for(int dim=0; dim < n; dim++){
@@ -511,29 +512,81 @@ public:
 
   /**
    * Finds the CellCenter corresponding to the input idx
-   * @param x The center point (meaningful even when gidx outside bounds)
    * @param gidx Multidimensional index (can extend outside the grid)
-   * @return true if cell center inside grid bounds
+   * @param x The center point (meaningful even when gidx outside bounds)
+   * @return true if cell center is inside grid bounds
    */
-  bool CellCenter(Vectornd& x,const Vectorni& gidx) const{
-    x = xlb_.array() +  (gidx.template cast<double>() + Vectornd::Constant(0.5)).array()*cs_.array() ;
+  bool CellCenter(const Vectorni& gidx, Vectornd* x) const{
+    *x = xlb_.array() +  (gidx.template cast<double>() + Vectornd::Constant(0.5)).array()*cs_.array() ;
     return Valid(gidx);
   }
 
   /**
    * Finds the CellCenter corresponding to the input idx
-   * @param x The updated center ( set to a vector of NANs when id not valid)
+   * @param gidx Multidimensional index (can extend outside the grid)
+   * @return The center point (meaningful even when gidx outside bounds)
+   */
+  Vectornd CellCenter(const Vectorni& gidx) const{
+    Vectornd x;
+    x = xlb_.array() +  (gidx.template cast<double>() + Vectornd::Constant(0.5)).array()*cs_.array() ;
+    return x;
+  }
+
+  /**
+   * Finds the CellCenter corresponding to a point x_in
+   * @param x_in a point for which a snapped-in cell center is needed
+   * @param x The center point (meaningful even when gidx outside bounds)
+   * @return true if cell center inside grid bounds
+   */
+  bool CellCenter(const Vectornd& x_in, Vectornd* x) const{
+    Vectorni gidx;
+    Index(x_in, &gidx);
+    *x = xlb_.array() +  (gidx.template cast<double>() + Vectornd::Constant(0.5)).array()*cs_.array() ;
+    return Valid(gidx);
+  }
+
+  /**
+   * Finds the CellCenter corresponding to a point x_in
+   * @param x_in a point for which a snapped-in cell center is needed
+   * @return The center point (meaningful even when gidx outside bounds)
+   */
+  Vectornd CellCenter(const Vectornd& x_in) const{
+    Vectorni gidx;
+    Index(x_in, &gidx);
+    Vectornd x = xlb_.array() +  (gidx.template cast<double>() + Vectornd::Constant(0.5)).array()*cs_.array() ;
+    return x;
+  }
+
+  /**
+   * Finds the CellCenter corresponding to the input idx
    * @param id fast access id in the cell array
+   * @param x The updated center ( set to a std::vector of NANs when id not valid)
    * @return true if id is valid else false
    */
-  bool CellCenter(Vectornd& x, int id) const{
+  bool CellCenter(int id, Vectornd* x) const{
+    Vectorni gidx;
+    if(!Index(id, &gidx)){
+      *x = Vectornd::Constant(std::numeric_limits<double>::quiet_NaN());
+      return false;
+    }
+    *x = xlb_.array() +  (gidx.template cast<double>()+Vectornd::Constant(0.5)).array()*cs_.array() ;
+    return true;
+  }
+
+  /**
+   * Finds the CellCenter corresponding to the input idx
+   * @param id fast access id in the cell array
+   * @return x The updated center ( set to a std::vector of NANs when id not valid)
+   */
+  Vectornd CellCenter(int id) const{
+    Vectornd x;
     Vectorni gidx;
     if(!Index(gidx,id)){
       x = Vectornd::Constant(std::numeric_limits<double>::quiet_NaN());
       return false;
     }
     x = xlb_.array() +  (gidx.template cast<double>()+Vectornd::Constant(0.5)).array()*cs_.array() ;
-    return true;
+    return x;
   }
 
   /**
@@ -552,7 +605,8 @@ public:
    * @return the cell array id. -1 if point x is not in grid
    */
   int Id(const Vectornd& x) const {
-    Vectorni gidx; Index(gidx,x);
+    Vectorni gidx;
+    Index(x, &gidx);
     if(Valid(gidx))
       return gidx.transpose()*cgs_;
     else
@@ -602,10 +656,27 @@ public:
 
   /**
    * Get the grid index along all the dimensions
-   * @param gidx grid index. Meaningful even if x is not inside grid
    * @param x point
+   * @param gidx grid index. Meaningful even if x is not inside grid
    */
-  void Index(Vectorni& gidx, const Vectornd& x) const {
+  void Index(const Vectornd& x, Vectorni* gidx) const {
+    for(size_t i=0;i<n_;i++){
+      double xi = x[i];
+      if(wd_[i]){ //dimension is wrapped
+        while(xi < xlb_[i]){xi += ds_[i];}
+        while(xi > xub_[i]){xi -= ds_[i];}
+      }
+      (*gidx)[i] = floor((xi - xlb_[i]) / ds_[i] * gs_[i]);
+    }
+  }
+
+  /**
+   * Get the grid index along all the dimensions, for a given point
+   * @param x point
+   * @return grid index. Meaningful even if x is not inside grid
+   */
+  Vectorni Index(const Vectornd& x) const {
+    Vectorni& gidx;
     for(size_t i=0;i<n_;i++){
       double xi = x[i];
       if(wd_[i]){ //dimension is wrapped
@@ -614,50 +685,51 @@ public:
       }
       gidx[i] = floor((xi - xlb_[i]) / ds_[i] * gs_[i]);
     }
+    return gidx;
   }
 
   /**
    * Get the grid index along all the dimensions from the direct lookup id
-   * @param gidx updated grid index. Set to NANs if id out of range
    * @param id id for direct lookup in the grid array
+   * @param gidx updated grid index. Set to NANs if id out of range
    * @return false if index is out of range
    */
-  bool Index(Vectorni& gidx, int id) const {
+  bool Index(int id, Vectorni* gidx) const {
+    Vectorni& gidx2 = *gidx;
     if(id>=nc_ || id<0){
-      gidx = Vectorni::Constant(std::numeric_limits<double>::quiet_NaN());
+      gidx2 = Vectorni::Constant(std::numeric_limits<double>::quiet_NaN());
       return false;
     }
-
     switch(n_){
       case 1:
-        gidx[0] = id;
+        gidx2[0] = id;
         break;
       case 2:
-        gidx[1] = int(id/cgs_[1]);
-        gidx[0] = int(id - gidx[1]*cgs_[1]);
+        gidx2[1] = int(id/cgs_[1]);
+        gidx2[0] = int(id - gidx2[1]*cgs_[1]);
         break;
       case 3:
-        gidx[2] = int(id/cgs_[2]);
-        gidx[1] = int(id/cgs_[1] - gidx[2]*cgs_[2]/cgs_[1]);
-        gidx[0] = int(id - gidx[2]*cgs_[2] - gidx[1]*cgs_[1]);
+        gidx2[2] = int(id/cgs_[2]);
+        gidx2[1] = int(id/cgs_[1] - gidx2[2]*cgs_[2]/cgs_[1]);
+        gidx2[0] = int(id - gidx2[2]*cgs_[2] - gidx2[1]*cgs_[1]);
         break;
       case 4:
-        gidx[3] = int( id/cgs_[3]);
-        gidx[2] = int((id - gidx[3]*cgs_[3])/cgs_[2]);
-        gidx[1] = int((id - gidx[3]*cgs_[3] - gidx[2]*cgs_[2])/cgs_[1]);
-        gidx[0] = int( id - gidx[3]*cgs_[3] - gidx[2]*cgs_[2] - gidx[1]*cgs_[1]);
+        gidx2[3] = int( id/cgs_[3]);
+        gidx2[2] = int((id - gidx2[3]*cgs_[3])/cgs_[2]);
+        gidx2[1] = int((id - gidx2[3]*cgs_[3] - gidx2[2]*cgs_[2])/cgs_[1]);
+        gidx2[0] = int( id - gidx2[3]*cgs_[3] - gidx2[2]*cgs_[2] - gidx2[1]*cgs_[1]);
         break;
       case 5:
-        gidx[4] = int( id/cgs_[4]);
-        gidx[3] = int((id - gidx[4]*cgs_[4])/cgs_[3]);
-        gidx[2] = int((id - gidx[4]*cgs_[4] - gidx[3]*cgs_[3])/cgs_[2]);
-        gidx[1] = int((id - gidx[4]*cgs_[4] - gidx[3]*cgs_[3] - gidx[2]*cgs_[2])/cgs_[1]);
-        gidx[0] = int( id - gidx[4]*cgs_[4] - gidx[3]*cgs_[3] - gidx[2]*cgs_[2] - gidx[1]*cgs_[1]);
+        gidx2[4] = int( id/cgs_[4]);
+        gidx2[3] = int((id - gidx2[4]*cgs_[4])/cgs_[3]);
+        gidx2[2] = int((id - gidx2[4]*cgs_[4] - gidx2[3]*cgs_[3])/cgs_[2]);
+        gidx2[1] = int((id - gidx2[4]*cgs_[4] - gidx2[3]*cgs_[3] - gidx2[2]*cgs_[2])/cgs_[1]);
+        gidx2[0] = int( id - gidx2[4]*cgs_[4] - gidx2[3]*cgs_[3] - gidx2[2]*cgs_[2] - gidx2[1]*cgs_[1]);
         break;
       default:
         for(int i=n_-1; i>=0; i--){
-          gidx[i] = int(id/cgs_[i]);
-          id -= gidx[i]*cgs_[i];
+          gidx2[i] = int(id/cgs_[i]);
+          id -= gidx2[i]*cgs_[i];
         }
     }
     return true;
@@ -671,10 +743,10 @@ public:
    * @return Copy of contents of cell, could be shared_ptr or bool etc.
    * If cell doesn't exist default object is returned, which in case of a pointer is a nullptr.
    */
-  CellContent Get(const Vectornd& x, bool checkValid = true) const {
+  CellType Get(const Vectornd& x, bool checkValid = true) const {
     if (checkValid)
       if (!Valid(x))
-        return CellContent();//nullptr for shared_ptr
+        return CellType();//nullptr for shared_ptr
 
         return Get(Id(x));
   }
@@ -685,9 +757,9 @@ public:
    * @return Copy of contents of cell, could be shared_ptr or bool etc.
    * If cell doesn't exist default object is returned, which in case of a pointer is a nullptr.
    */
-  CellContent Get(int id) const {
+  CellType Get(int id) const {
     if (id<0 || id >= nc_)
-      return CellContent();//nullptr for shared_ptr
+      return CellType();//nullptr for shared_ptr
 
     return cells_[id];
   }
@@ -698,9 +770,9 @@ public:
    * @return Copy of contents of cell, could be shared_ptr or bool etc.
    * If cell doesn't exist default object is returned, which in case of a pointer is a nullptr.
    */
-  CellContent Get(const Vectorni& gidx) const {
+  CellType Get(const Vectorni& gidx) const {
     if (!Valid(gidx))
-      return CellContent();//nullptr for shared_ptr
+      return CellType();//nullptr for shared_ptr
 
     return cells_[Id(gidx)];
   }
@@ -711,7 +783,7 @@ public:
    * @param data
    * @return was able to set data or not
    */
-  bool Set(const Vectornd& x, const CellContent& data)  {
+  bool Set(const Vectornd& x, const CellType& data)  {
     int id = Id(x);
     if(id<0)
       return false;
@@ -725,7 +797,7 @@ public:
    * @param data
    * @return was able to set data or not
    */
-  bool Set(const Vectorni& gidx, const CellContent& data)  {
+  bool Set(const Vectorni& gidx, const CellType& data)  {
     int id = Id(gidx);
     if(id<0)
       return false;
@@ -739,7 +811,7 @@ public:
    * @param data the content of a cell
    * @return true if it was able to set the data
    */
-  bool Set(int id, const CellContent& data) {
+  bool Set(int id, const CellType& data) {
     if (id<0 || id >= nc_)
       return false;
     cells_[id] = data;
@@ -831,67 +903,74 @@ public:
 
   /**
    * Converts a set of points in metric coordinates to grid coordinates
-   * @param grid_coordinates For 2D grid, the Grid coordinates are (0,0) for cell with id=0
    * @param metric_coordinates metric coordinates
+   * @param grid_coordinates For 2D grid, the Grid coordinates are (0,0) for cell with id=0
    */
-  void ToGridCoordinates(vector<Vectornd>& grid_coord, const vector<Vectornd>& metric_coord) const{
-    grid_coord.resize(metric_coord.size());
-    Vectornd point0; CellCenter(point0,Vectorni::Zero());
+  void ToGridCoordinates(const std::vector<Vectornd>& metric_coord, std::vector<Vectornd>* grid_coord ) const{
+    grid_coord->resize(metric_coord.size());
+    Vectornd point0;
+    CellCenter(point0,Vectorni::Zero());
     for(size_t i=0; i <metric_coord.size(); i++)
-      grid_coord[i] = (metric_coord[i] - point0).array()/cs_.array();
+      (*grid_coord)[i] = (metric_coord[i] - point0).array()/cs_.array();
   }
 
   /**
    * Converts a set of points in metric coordinate to grid coordinates in place
    * @param coord In metric coordinates. After update they are in grid coordinates
    */
-  void ToGridCoordinates(vector<Vectornd>& coord) const{
+  void ToGridCoordinates(std::vector<Vectornd>* coord) const{
 
-    Vectornd point0; CellCenter(point0,Vectorni::Zero());
-    for(size_t i=0; i <coord.size(); i++)
-      coord[i] = (coord[i] - point0).array()/cs_.array();
+    Vectornd point0;
+    Vectorni gidx0 = Vectorni::Zero();
+    CellCenter(gidx0, &point0);
+    for(size_t i=0; i <coord->size(); i++)
+      (*coord)[i] = ((*coord)[i] - point0).array()/cs_.array();
   }
 
   /**
    * Converts a point in metric coordinate to grid coordinates
-   * @param grid_coord grid coordinate
    * @param metric_coord metric coordinate
+   * @param grid_coord grid coordinate
    */
-  void ToGridCoordinates(Vectornd& grid_coord, const Vectornd& metric_coord) const{
-    Vectornd point0; CellCenter(point0,Vectorni::Zero());
-    grid_coord = (metric_coord - point0).array()/cs_.array();
+  void ToGridCoordinates(const Vectornd& metric_coord, Vectornd* grid_coord) const{
+    Vectornd point0;
+    CellCenter(point0,Vectorni::Zero());
+    *grid_coord = (metric_coord - point0).array()/cs_.array();
   }
 
   /**
    * Converts grid coordinates to metric coordinate
-   * @param metric_coord
-   * @param grid_coord
+   * @param grid_coord grid coordinate
+   * @param metric_coord metric coordinate
    */
-  void FromGridCoordinates(vector<Vectornd>& metric_coord, const vector<Vectornd>& grid_coord) const{
-    metric_coord.resize(grid_coord.size());
-    Vectornd point0; CellCenter(point0,Vectorni::Zero());
-    for(size_t i=0; i <metric_coord.size(); i++)
-      metric_coord[i] = grid_coord[i].array()*cs_.array() + point0;
+  void FromGridCoordinates(const std::vector<Vectornd>& grid_coord, std::vector<Vectornd>* metric_coord) const{
+    metric_coord->resize(grid_coord.size());
+    Vectornd point0;
+    CellCenter(point0,Vectorni::Zero());
+    for(size_t i=0; i <metric_coord->size(); i++)
+      (*metric_coord)[i] = grid_coord[i].array()*cs_.array() + point0;
   }
 
   /**
    * Convert grid coordinate to metric coordinate in place
    * @param coord In grid coordinates and after update they are in metric
    */
-  void FromGridCoordinates(vector<Vectornd>& coord) const{
-    Vectornd point0; CellCenter(point0,Vectorni::Zero());
-    for(size_t i=0; i <coord.size(); i++)
-      coord[i] = coord[i].array()*cs_.array() + point0;
+  void FromGridCoordinates(std::vector<Vectornd>* coord) const{
+    Vectornd point0;
+    CellCenter(point0,Vectorni::Zero());
+    for(size_t i=0; i <coord->size(); i++)
+      (*coord)[i] = (*coord)[i].array()*cs_.array() + point0;
   }
 
   /**
    * Convert a grid coordinate to metric coordinate
-   * @param metric_coord
    * @param grid_coord
+   * @param metric_coord
    */
-  void FromGridCoordinates(Vectornd& metric_coord, const Vectornd& grid_coord) const{
-    Vectornd point0; CellCenter(point0,Vectorni::Zero());
-    metric_coord = grid_coord.array()*cs_.array() + point0;
+  void FromGridCoordinates(const Vectornd& grid_coord, Vectornd* metric_coord) const{
+    Vectornd point0;
+    CellCenter(point0,Vectorni::Zero());
+    *metric_coord = grid_coord.array()*cs_.array() + point0;
   }
 
 
@@ -899,7 +978,7 @@ public:
    * Serialize data of the map class and save it in a binary file
    * @param filename
    */
-  void Save(const std::string& filename){
+  void Save(const std::string& filename) const{
     GOOGLE_PROTOBUF_VERIFY_VERSION;
     std::ofstream fs(filename, std::fstream::out | std::ios::binary);
     if(fs.is_open()){
@@ -978,7 +1057,7 @@ public:
       }
 
       // Data probably is valid, so initilize the grid and load data into it
-      grid.reset(new GridCore<Vectornd,CellContent>());
+      grid.reset(new GridCore<Vectornd,CellType>());
 
       if(grid->n_ !=  pb.n()){ //one last check
         throw std::length_error("pb's n doesn't match with grid.h");
@@ -1036,15 +1115,15 @@ public:
   inline const Vectornb& wd(void)  const {
     return wd_;
   }
-  inline const std::vector<CellContent>& cells(void)  const {
+  inline const std::vector<CellType>& cells(void)  const {
     return cells_;
   }
 
   // Mutators
-  inline void set_cells(int id, CellContent content){
+  inline void set_cells(int id, CellType content){
     cells_.at(id) = content;
   }
-  inline void set_cells(const std::vector<CellContent>& cells){
+  inline void set_cells(const std::vector<CellType>& cells){
     if(nc_ != cells.size())
       throw std::length_error(" cells don't have the same length as nc.");
     cells_ = cells;
@@ -1060,11 +1139,11 @@ private:
   GridCore(){}
 
   /**
-   * Loads data from cells to protocol buffer for non shared_ptr CellContent
+   * Loads data from cells to protocol buffer for non shared_ptr CellType
    * @param pb
    * @param false_type
    */
-  void CellsToPb(dsl::ProtobufGrid& pb, std::false_type){
+  void CellsToPb(dsl::ProtobufGrid& pb, std::false_type) const {
     pb.mutable_data()->Reserve(nc_);
     for(int id=0; id < nc_; id++){
       std::string str;
@@ -1074,11 +1153,11 @@ private:
   }
 
   /**
-   * Loads data from cells to protocol buffer shared_ptr CellContent
+   * Loads data from cells to protocol buffer shared_ptr CellType
    * @param pb
    * @param true_type
    */
-  void CellsToPb(dsl::ProtobufGrid& pb, std::true_type){
+  void CellsToPb(dsl::ProtobufGrid& pb, std::true_type) const {
     if(!nc_)
       return;
 
@@ -1101,7 +1180,7 @@ private:
    * @param ss
    * @param
    */
-  void ValToString(const ValType& val, std::string* str, std::true_type){
+  void ValToString(const ValType& val, std::string* str, std::true_type) const {
     int n_bytes = sizeof(ValType);
     str->resize(n_bytes);
     str->replace(0,n_bytes,(char*)&val, n_bytes);
@@ -1113,7 +1192,7 @@ private:
    * @param ss
    * @param
    */
-  void ValToString(const ValType& val, std::string* str, std::false_type){
+  void ValToString(const ValType& val, std::string* str, std::false_type) const{
     val.SerializeToString(str);
   }
 
@@ -1180,7 +1259,7 @@ private:
   Vectornb wd_;  ///< which dimensions are wrapped
 
 protected:
-  std::vector<CellContent> cells_; ///< grid cells
+  std::vector<CellType> cells_; ///< grid cells
 };
 
 /**
@@ -1195,7 +1274,7 @@ protected:
  * e.g. dim=5 or 6.
  */
 template < class PointType, class DataType = EmptyData>
-using Grid = GridCore< PointType,shared_ptr< Cell<PointType, DataType> > >;
+using Grid = GridCore< PointType,std::shared_ptr< Cell<PointType, DataType> > >;
 
 
 /**
@@ -1203,9 +1282,7 @@ using Grid = GridCore< PointType,shared_ptr< Cell<PointType, DataType> > >;
  * is works well to represent the occupancy
  */
 template <typename T, int n>
-using Map = GridCore< Matrix<double,n,1>, T >;
-
-
+using Map = GridCore< Eigen::Matrix<double,n,1>, T >;
 
 }
 

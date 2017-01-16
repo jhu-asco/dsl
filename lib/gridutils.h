@@ -15,7 +15,7 @@ namespace dsl {
  * @param cs cell size
  * @return The loaded map. Nullptr if unsuccesful.
  */
-Map<bool, 2>::Ptr LoadPpm(const std::string& filename, const Vector2d &cs);
+Map<bool, 2>::Ptr LoadPpm(const std::string& filename, const Eigen::Vector2d &cs);
 
 /**
  * Save a 2D occupancy map to a .ppm file
@@ -68,7 +68,7 @@ Map<TerrainData, 2>::Ptr LoadTmap(const std::string& tmapfile);
  * @param filename .ppm filename to save the image to
  * @param path 2D path(x and y)
  */
-void SavePpmWithPath(const dsl::Map<bool, 2> &map, const std::string& filename, const std::vector<Vector2d>& path);
+void SavePpmWithPath(const dsl::Map<bool, 2> &map, const std::string& filename, const std::vector<Eigen::Vector2d>& path);
 
 /**
  * Save an occupancy map as .ppm image with a start(green), goal(red) and the waypoints(blue) as points.
@@ -80,7 +80,7 @@ void SavePpmWithPath(const dsl::Map<bool, 2> &map, const std::string& filename, 
  * @param geom pointer to optional geometry of the car
  */
 bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename, int scale,
-                      const std::vector<Vector3d>& path, const CarGeom* geom = 0);
+                      const std::vector<Eigen::Vector3d>& path, const CarGeom* geom = 0);
 
 /**
  * Save an terrain map as .ppm image with a start(green), goal(red) and the waypoints(blue) as points.
@@ -92,7 +92,7 @@ bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename, int sc
  * @param geom pointer to optional geometry of the car
  */
 bool SavePpmWithPath(const dsl::Map<TerrainData, 2>& tmap, std::string filename, int scale,
-                     const std::vector<Vector3d>& path, const CarGeom* geom = 0);
+                     const std::vector<Eigen::Vector3d>& path, const CarGeom* geom = 0);
 
 /**
  * Save an occupancy map as .ppm image with a set of motion primitives at start location
@@ -102,7 +102,7 @@ bool SavePpmWithPath(const dsl::Map<TerrainData, 2>& tmap, std::string filename,
  * @param prims primitives
  */
 bool SavePpmWithPrimitives(const dsl::Map<bool, 2>& omap, std::string filename, int scale,
-                      const std::vector<vector<Vector2d>>& prims);
+                      const std::vector<std::vector<Eigen::Vector2d>>& prims);
 
 /**
  * Saves the terrain map as .ppm image with a set of motion primitives at start location
@@ -112,7 +112,7 @@ bool SavePpmWithPrimitives(const dsl::Map<bool, 2>& omap, std::string filename, 
  * @param prims primitives
  */
 bool SavePpmWithPrimitives(const dsl::Map<TerrainData, 2>& tmap, std::string filename,int scale,
-                      const std::vector<vector<Vector2d>>& prims);
+                      const std::vector<std::vector<Eigen::Vector2d>>& prims);
 
 /**
  * Takes a 2-dimensional occupancy map and repeats that for all angles to create configuration
@@ -159,7 +159,7 @@ bool SavePpmWithPrimitives(const dsl::Map<TerrainData, 2>& tmap, std::string fil
   * @param geom geometry of car
   * @param theta angle of car
   */
- void DilateMap(vector<bool>& dilated, const Map<bool,2>& omap, const CarGeom& geom, double theta);
+ void DilateMap(std::vector<bool>& dilated, const Map<bool,2>& omap, const CarGeom& geom, double theta);
 
 // /**
 //  * Takes points that make up a kernel and dilates the occupancy grid

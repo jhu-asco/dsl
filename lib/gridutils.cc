@@ -90,7 +90,7 @@ bool SavePpm(const dsl::Map<bool, 3> &cmap, string folder) {
   }
   fs.close();
 
-  dsl::Map<bool, 3>::SlicePtr pomap;
+  dsl::Map<bool, 3>::SlicePtr omap;
 
   for( int idx_a = 0; idx_a < slices; idx_a++){
     filename = folder+file+to_string(idx_a)+ext;
@@ -99,15 +99,15 @@ bool SavePpm(const dsl::Map<bool, 3> &cmap, string folder) {
     if(!fs.is_open())
       continue;
 
-    if(!pomap)
-      pomap = cmap.GetSlice(idx_a,0);
+    if(!omap)
+      omap = cmap.GetSlice(idx_a, 0);
     else
-      cmap.GetSlice(*pomap,idx_a,0); //no reallocation of memory
+      cmap.GetSlice(omap.get(), idx_a, 0); //no reallocation of memory
 
     fs << "P6" << std::endl << width << " " << height << std::endl << "255" << std::endl;
     int ind = 0;
     for (int i = 0; i < width * height; i++, ind += 3) {
-      data[ind] = data[ind + 1] = data[ind + 2] = (char)(pomap->cells()[i] * 100);
+      data[ind] = data[ind + 1] = data[ind + 2] = (char)(omap->cells()[i] * 100);
     }
     assert(ind == 3*width*height);
     fs.write(data, ind);
@@ -280,7 +280,7 @@ bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename, int sc
       vector<Vector2d> vs; geom->GetTrueCorners(vs,axy(0));//Get corners of car relative to it's origin
       for_each(vs.begin(),vs.end(),[&](Vector2d& v){v +=axy.tail<2>();}); //corners relative to world origin
 
-      smap->ToGridCoordinates(vs); //convert to grid coordinates
+      smap->ToGridCoordinates(&vs); //convert to grid coordinates
       int seq[]={3,0,1,2};
       double lwm = 0.05; //line width meters
       int lw = ceil(lwm/smap->cs()[0]);//line width in pixels
@@ -385,7 +385,7 @@ bool SavePpmWithPath(const dsl::Map<TerrainData, 2>& tmap, std::string filename,
       vector<Vector2d> vs; geom->GetTrueCorners(vs,axy(0));//Get corners of car relative to it's origin
       for_each(vs.begin(),vs.end(),[&](Vector2d& v){v +=axy.tail<2>();}); //corners relative to world origin
 
-      smap->ToGridCoordinates(vs); //convert to grid coordinates
+      smap->ToGridCoordinates(&vs); //convert to grid coordinates
       int seq[]={3,0,1,2};
       double lwm = 0.05; //meters
       int lw = ceil(lwm/smap->cs()[0]);//line width in pixels
