@@ -219,10 +219,10 @@ int main(int argc, char** argv)
     path3d = ToVector3dPath(path,grid.cs()[1]);
     cout << "Map and path saved to path.ppm" << endl;
   }else{
-    path3d.push_back(start);
-    path3d.push_back(goal);
-//    path3d.push_back(grid.CellCenter(start));
-//    path3d.push_back(grid.CellCenter(goal));
+//    path3d.push_back(start);
+//    path3d.push_back(goal);
+    path3d.push_back(grid.CellCenter(start));
+    path3d.push_back(grid.CellCenter(goal));
     cout << "Map, start and goal (no path available ) saved to path.ppm" << endl;
   }
 

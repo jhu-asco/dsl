@@ -45,7 +45,6 @@ double CarCost::Real(const SE2Cell& a, const SE2Cell& b) const{
     if (!wp)
       return numeric_limits<double>::quiet_NaN();
   }
-  //double wl = sqrt(twist.dot(wt_)); //weighted length
   double wl = (twist.array()* wt_.array()).matrix().norm();//weighted length
   return wl;
 }
@@ -58,7 +57,6 @@ double CarCost::Heur(const SE2Cell& a, const SE2Cell& b) const {
   Matrix3d dg = gai*gb;
   Vector3d twist; se2_log(twist,dg);
   double wl = (twist.array()* wt_.array()).matrix().norm();//weighted length
-  //double wl = sqrt(twist.dot(wt_)); //weighted length
   return (1 - eps_)*wl;
 }
 }
