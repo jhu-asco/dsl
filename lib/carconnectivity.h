@@ -201,7 +201,7 @@ public:
     return true;
   }
 
-  bool operator()(const TypedCellPtr& from,
+  bool operator()(const Cell<PointType,DataType>& from,
                   std::vector<TypedCellConnectionCostTuple>& paths,
                   bool fwd = true) const override;
 
