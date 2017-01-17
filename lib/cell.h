@@ -20,10 +20,10 @@ namespace dsl {
  */
 template < class PT, class DT >
 struct Cell {
+
+using Ptr = std::shared_ptr< Cell<PT,DT> >;
 using PointType = PT;
 using DataType = DT;
-
-public:
  Cell(int id, const PointType& c) : id(id), c(c) {}
   
   /**

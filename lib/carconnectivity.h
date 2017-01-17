@@ -45,12 +45,17 @@ template<typename PointType, typename DataType, typename ConnectionType>
 class SE2GridConnectivity: public GridConnectivity< PointType, DataType, ConnectionType > {
 public:
 
+  using TypedCell = Cell<PointType, DataType>;
+  using TypedCellPtr = typename TypedCell::Ptr;
+  using TypedCellConnectionCostTuple = std::tuple<TypedCellPtr, ConnectionType, double>;
+  using TypedGrid = Grid<PointType,DataType>;
+  using TypedGridCost = GridCost<PointType, DataType>;
   /**
    * Initialize cargrid connectivity
    * @param grid The car grid
    * @param cfg The configuration for generating primitives
    */
-  SE2GridConnectivity(const Grid<PointType,DataType>& grid,const GridCost<PointType, DataType>& cost, CarPrimitiveConfig& cfg, bool allow_slip = true)
+  SE2GridConnectivity(const TypedGrid& grid,const TypedGridCost& cost, CarPrimitiveConfig& cfg, bool allow_slip = true)
 :grid_(grid),cost_(cost), allow_slip_(allow_slip){
     SetPrimitives(1, cfg);
   }
@@ -62,7 +67,7 @@ public:
    * @param vbs body-fixed velocities (each v=(vw,vx,vy))
    * @param dt time duration
    */
-  SE2GridConnectivity(const Grid<PointType,DataType>& grid,const GridCost<PointType, DataType>& cost,
+  SE2GridConnectivity(const TypedGrid& grid,const TypedGridCost& cost,
                   const std::vector<Eigen::Vector3d>& vbs,
                   double dt = .25, bool allow_slip = true) : grid_(grid),cost_(cost), vbs_(vbs), dt_(dt), allow_slip_(allow_slip)
   {
@@ -78,7 +83,7 @@ public:
    * making the motion primitives
    * @param onlyfwd If true, then only +ve forward velocity is used
    */
-  SE2GridConnectivity(const Grid<PointType,DataType>& grid,const GridCost<PointType, DataType>& cost,
+  SE2GridConnectivity(const TypedGrid& grid,const TypedGridCost& cost,
                   double dt = .25,
                   double vx = 5,
                   double kmax = 0.577,
@@ -196,8 +201,8 @@ public:
     return true;
   }
 
-  bool operator()(const Cell<PointType,DataType>& from,
-                  std::vector< std::tuple<std::shared_ptr<Cell<PointType,DataType> >, ConnectionType, double> >& paths,
+  bool operator()(const TypedCellPtr& from,
+                  std::vector<TypedCellConnectionCostTuple>& paths,
                   bool fwd = true) const override;
 
   bool Free(const DataType &g) const override {
@@ -259,8 +264,8 @@ public:
     }
   }
 
-  const Grid<PointType,DataType>& grid_; ///< the grid
-  const GridCost<PointType, DataType>& cost_; ///< cost interface that gives you cost of taking primitive and if path is blocked
+  const TypedGrid& grid_; ///< the grid
+  const TypedGridCost& cost_; ///< cost interface that gives you cost of taking primitive and if path is blocked
   std::vector< Eigen::Vector3d > vbs_; ///< primitives defined using motions with constant body-fixed velocities (w,vx,vy)
   double dt_ = .5; ///< how long are the primitives
   bool allow_slip_; ///< to use primitive with slip or the no_slip counterpart? slip is accurate but not suitable for car

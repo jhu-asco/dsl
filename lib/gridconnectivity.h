@@ -10,17 +10,19 @@
 #define DSL_LIB_GRIDCONNECTIVITY_H_
 
 #include "gridpath.h"
+#include "cell.h"
 #include <tuple>
 #include <memory>
 
+
 namespace dsl {
 
-  template < class PointType, class DataType, class ConnectionType>
+template < class PointType, class DataType, class ConnectionType>
 class GridConnectivity {
 public:
     using TypedCell = Cell<PointType, DataType>;
-    using TypedCellPtr = std::shared_ptr<Cell<PointType, DataType> >;
-
+    using TypedCellPtr = typename TypedCell::Ptr;
+    using TypedCellConnectionCostTuple = std::tuple<TypedCellPtr, ConnectionType, double>;
   /**
    * Connectivity operator providing primitive paths from a given vertex. This
    * function should generate connections from the given vertex and store them
@@ -32,7 +34,7 @@ public:
    * @return true on success
    */
   virtual bool operator()(const TypedCell& from,
-                          std::vector< std::tuple<TypedCellPtr, ConnectionType, double> >& toCells,
+                          std::vector<TypedCellConnectionCostTuple>& toCells,
                           bool fwd = true) const = 0;
 
   virtual bool Free(const DataType &data) const = 0;
