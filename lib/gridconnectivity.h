@@ -34,7 +34,7 @@ public:
    * @return true on success
    */
   virtual bool operator()(const TypedCell& from,
-                          std::vector<TypedCellConnectionCostTuple>& toCells,
+                          std::vector<TypedCellConnectionCostTuple>& paths,
                           bool fwd = true) const = 0;
 
   virtual bool Free(const DataType &data) const = 0;

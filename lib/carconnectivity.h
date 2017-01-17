@@ -201,7 +201,7 @@ public:
     return true;
   }
 
-  bool operator()(const Cell<PointType,DataType>& from,
+  bool operator()(const TypedCell& from,
                   std::vector<TypedCellConnectionCostTuple>& paths,
                   bool fwd = true) const override;
 
@@ -216,12 +216,12 @@ public:
    */
   bool GetPrims(const Eigen::Vector3d& pos, std::vector<std::vector<Eigen::Vector2d>>& prims ){
     //Display the primitive at start
-    std::shared_ptr<Cell<PointType,DataType> > cell_start = grid_.Get(pos);
+    TypedCellPtr cell_start = grid_.Get(pos);
     if(!cell_start){
       prims.clear();
       return false;
     }
-    std::vector<std::tuple< std::shared_ptr<Cell<PointType,DataType> >, ConnectionType, double> > paths;
+    std::vector<TypedCellConnectionCostTuple> paths;
     if(cell_start){
       (*this)(*cell_start,paths,true);
 
@@ -230,7 +230,7 @@ public:
 
       prims.reserve(paths.size());
       for(auto& path:paths){
-        std::shared_ptr<Cell<PointType,DataType> > cell_to = std::get<0>(path);
+        TypedCellPtr cell_to = std::get<0>(path);
         if(!cell_to)
           continue;
         Eigen::Matrix3d gto;
