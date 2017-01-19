@@ -131,7 +131,7 @@ void se2_inv(Matrix3d& mi, const Matrix3d& m) {
 void se2_exp(Matrix3d& m, const Vector3d& v, double tol) {
   const double& w = v[0];
 
-  if (std::abs(w) < tol) {
+  if (std::fabs(w) < tol) {
     m(0, 0) = 1;
     m(0, 1) = 0;
     m(0, 2) = v[1];
@@ -166,7 +166,7 @@ void se2_log(Vector3d &v, const Matrix3d &m, double tol){
   v(0) = th;
   const double& x = m(0,2);
   const double& y = m(1,2);
-  if (std::abs(th) < tol) {
+  if (std::fabs(th) < tol) {
     v(1) = x;
     v(2) = y;
     return;
@@ -179,7 +179,7 @@ void se2_log(Vector3d &v, const Matrix3d &m, double tol){
 
 Vector2d se2_get_wvx( double xf,double yf){
   double w, t;
-  if(std::abs(yf)<1e-12){
+  if(std::fabs(yf)<1e-12){
     w=0;
     t=xf;
   }else{
@@ -189,11 +189,12 @@ Vector2d se2_get_wvx( double xf,double yf){
   return Vector2d(w*t,t);
 }
 
-void ReplaceExtension(std::string& s, const std::string& new_extension) {
-  std::string::size_type i = s.rfind('.', s.length());
-  if (i != std::string::npos) {
-    s.replace(i+1, new_extension.length(), new_extension);
-  }
+std::string ReplaceExtension(const std::string& filename, const std::string& new_extension) {
+  string filename_new = filename;
+  std::string::size_type i = filename.rfind('.', filename.length());
+  if (i != std::string::npos)
+    filename_new.replace(i+1, new_extension.length(), new_extension);
+  return filename_new;
 }
 
 }

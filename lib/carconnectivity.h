@@ -139,7 +139,7 @@ public:
         Eigen::Vector3d vbp(w*tpert, -u*tpert,0); //reverse vel positive angular vel
         Eigen::Vector3d vbn(-w*tpert, -u*tpert,0);//reverse vel negative angular vel
 
-        if(std::abs(w)<1e-16){
+        if(std::fabs(w)<1e-16){
           vbs_.push_back(vfp);
           if(!cfg.fwdonly)
             vbs_.push_back(vbp);
@@ -243,7 +243,7 @@ public:
         Eigen::Vector3d v;
         se2_log(v,dg);//twist that take you exactly to successor
 
-        double d = std::abs(v[1]); // total distance along curve
+        double d = std::fabs(v[1]); // total distance along curve
         int n_seg = ceil(d/ (2 * grid_.cs()[1])); // 2 * grid.cs[1] is to improve efficiency
         double s = d/n_seg;
         std::vector<Eigen::Vector2d> prim(0);

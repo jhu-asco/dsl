@@ -27,15 +27,15 @@ int main(int argc, char** argv)
 
 
   // get map
-  string mapName;
-  if(!params.GetString("map", mapName)){
+  string map_img_filename;
+  if(!params.GetString("map", map_img_filename)){
     cout<<"There is no string parameter named map. Exiting."<<endl;
     return -1;
   }
 
   // get map
-  string cmapName;
-  bool cmapValid = params.GetString("cmap", cmapName);
+  string cmap_filename;
+  bool cmapValid = params.GetString("cmap", cmap_filename);
   
   // occupancy cell size
   Vector3d ocs;
@@ -52,7 +52,7 @@ int main(int argc, char** argv)
     geom.set(whxy(0),whxy(1),whxy(2),whxy(3),whxy(4));
   
   // load an occupancy map from ppm file
-  dsl::Map<bool, 2>::Ptr omap = LoadPpm(mapName, ocs.tail<2>());
+  dsl::Map<bool, 2>::Ptr omap = LoadPpm(map_img_filename, ocs.tail<2>());
 
   // dimensions are determined from occupancy map
   Vector3d xlb(-M_PI + gcs[0]/2, omap->xlb()[0], omap->xlb()[1]);
@@ -75,13 +75,12 @@ int main(int argc, char** argv)
     long time = timer_us(&timer);
     printf("cmap construction time= %ld  us\n", time);
 
-    cmapName = mapName;
-    ReplaceExtension(cmapName, string("cmap"));
-    cmap->Save(cmapName);
-    std::cout << "Saved cmap " << cmapName << " with xlb=" << cmap->xlb().transpose() << " xub=" << cmap->xub().transpose() << " gs=" << cmap->gs().transpose() << std::endl;
+    cmap_filename = ReplaceExtension(map_img_filename, string("cmap"));
+    cmap->Save(cmap_filename);
+    std::cout << "Saved cmap " << cmap_filename << " with xlb=" << cmap->xlb().transpose() << " xub=" << cmap->xub().transpose() << " gs=" << cmap->gs().transpose() << std::endl;
 
   } else {
-    cmap = dsl::Map<bool,3>::Load(cmapName);
+    cmap = dsl::Map<bool,3>::Load(cmap_filename);
     std::cout << "Loaded map with xlb=" << cmap->xlb().transpose() << " xub=" << cmap->xub().transpose() << " gs=" << cmap->gs().transpose() << std::endl;
   }
 

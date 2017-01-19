@@ -38,7 +38,6 @@ Map<bool, 2>::Ptr LoadPpm(const string& filename, const Vector2d &cs) {
   return omap;
 }
 
-//TODO: requires testing
 bool SavePpm(const dsl::Map<bool, 2> &map, const string& filename) {
   if(filename.compare(filename.size() - 4, 4, ".ppm")){
     cout<<"File doesn't have .ppm extension"<<endl;
@@ -67,6 +66,43 @@ bool SavePpm(const dsl::Map<bool, 2> &map, const string& filename) {
   return true;
 }
 
+bool SavePpm(const dsl::Map<TerrainData, 2> &tmap, const string& filename) {
+  if(filename.compare(filename.size() - 4, 4, ".ppm")){
+    cout<<"File doesn't have .ppm extension"<<endl;
+    return false;
+  }
+
+  //save the image file
+  ImageRGB img;
+  img.w = tmap.gs()[0];
+  img.h = tmap.gs()[1];
+  img.bitdepth = ImageRGB::BD16;
+  img.rdata.resize(img.w*img.h);
+  img.gdata.resize(img.w*img.h);
+  img.bdata.resize(img.w*img.h);
+
+  double maxh = numeric_limits<double_t>::lowest(); //max height
+  double maxt = numeric_limits<double_t>::lowest(); //max traversibility
+  for (int id = 0; id < tmap.nc(); id++){
+    maxh = tmap.cells()[id].height > maxh ? tmap.cells()[id].height: maxh;
+    maxt = tmap.cells()[id].traversibility > maxt ? tmap.cells()[id].traversibility: maxt;
+  }
+  double hscale = img.bitdepth/maxh;
+  double tscale = img.bitdepth/maxt;
+
+  for (int id = 0; id < tmap.nc(); id++){
+    img.rdata[id] = 0.5*tmap.cells()[id].height*hscale;
+    img.gdata[id] = 0.5*tmap.cells()[id].traversibility*tscale;
+    img.bdata[id] = 0;
+  }
+
+  if(!SavePpm(img,filename)){
+    cout<<"Had problems saving the image file"<<endl;
+    return false;
+  }
+
+  return true;
+}
 
 bool SavePpm(const dsl::Map<bool, 3> &cmap, string folder) {
 
@@ -102,7 +138,7 @@ bool SavePpm(const dsl::Map<bool, 3> &cmap, string folder) {
     if(!omap)
       omap = cmap.GetSlice(idx_a, 0);
     else
-      cmap.GetSlice(omap.get(), idx_a, 0); //no reallocation of memory
+      cmap.GetSlice(omap.get( ), idx_a, 0); //no reallocation of memory
 
     fs << "P6" << std::endl << width << " " << height << std::endl << "255" << std::endl;
     int ind = 0;
@@ -203,49 +239,79 @@ Map<TerrainData, 2>::Ptr LoadTmap(const string& tmapfile){
    return tmap;
 }
 
-//bool saveOmap(Map<bool, 2>& omap, const string& omapfile, ){
-//  return saveOmapWithPath(omap, omapfile, int scale,
-//                        const std::vector<Vector3d>* path, const CarGeom* geom){
-//}
-//
-//bool saveTmap(Map<TerrainData, 2>::Ptr& tmap, const string& tmapfile){
-//
-//}
-
-void SavePpmWithPath(const dsl::Map<bool, 2> &map, const string& filename, const std::vector<Vector2d>& path) {
-  const int &width = map.gs()[0];
-  const int &height = map.gs()[1];
-
-  char data[width*height*3];
-  std::fstream fs(filename, std::fstream::out);
-  assert(fs.is_open());
-  fs << "P6" << std::endl << width << " " << height << std::endl << "255" << std::endl;
-
-  int ind = 0;
-  for (int i = 0; i < width * height; i++, ind += 3) {
-    data[ind] = data[ind + 1] = data[ind + 2] = (char)(map.cells()[i] * 100);
-  }
-  assert(ind == 3*width*height);
-
-  for (size_t i=0 ; i< path.size(); i++) {
-    int id = map.Id(path.at(i));
-    int id3 = 3*id;
-
-    if(i==0){
-      data[id3] = 255; data[id3+1] = 0; data[id3 + 2] = 0; // Start in green
-    }else if(i==path.size()-1){
-      data[id3] = 255; data[id3+1] = 0; data[id3 + 2] = 0; // Stop in red
-    }else{
-      data[id3] = 255; data[id3+1] = 0; data[id3 + 2] = 0; // All other path in blue
-    }
+bool saveOmap(Map<bool, 2>& omap, const string& omapfile){
+  if(omapfile.compare(omapfile.size() - 5, 5, ".omap")){
+    cout<<"extention doesn't match .omap. The file name is: "<<omapfile<<endl;
+    return false;
   }
 
-  fs.write(data, ind);
-  fs.close();
+  //save the image file
+  std::string map_img_filename = ReplaceExtension(omapfile, ".ppm");
+  if(!SavePpm(omap, map_img_filename))
+    return false;
+
+  //save the text file
+  ofstream file(omapfile, std::ofstream::out);
+  if(!file.is_open())
+    return false;
+  file << "image= "<<map_img_filename<<endl;
+  file << "cellsize= "<<omap.cs()[0]<<", "<<omap.cs()[1]<<endl;
+  file.close();
+
+  return true;
 }
 
-bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename, int scale,
-                      const std::vector<Vector3d>& path, const CarGeom* geom){
+bool saveTmap(Map<TerrainData, 2>& tmap, const string& tmapfile){
+  if(tmapfile.compare(tmapfile.size() - 5, 5, ".tmap")){
+    cout<<"extention doesn't match .tmap. The file name is: "<<tmapfile<<endl;
+    return false;
+  }
+
+  //save the image file
+  std::string map_img_filename = ReplaceExtension(tmapfile, ".ppm");
+  ImageRGB img;
+  img.w = tmap.gs()[0];
+  img.h = tmap.gs()[1];
+  img.bitdepth = ImageRGB::BD16;
+  img.rdata.resize(img.w*img.h);
+  img.gdata.resize(img.w*img.h);
+  img.bdata.resize(img.w*img.h);
+
+  double maxh = numeric_limits<double_t>::lowest(); //max height
+  double maxt = numeric_limits<double_t>::lowest(); //max traversibility
+  for (int id = 0; id < tmap.nc(); id++){
+    maxh = tmap.cells()[id].height > maxh ? tmap.cells()[id].height: maxh;
+    maxt = tmap.cells()[id].traversibility > maxt ? tmap.cells()[id].traversibility: maxt;
+  }
+  double hscale = img.bitdepth/maxh;
+  double tscale = img.bitdepth/maxt;
+
+  for (int id = 0; id < tmap.nc(); id++){
+    img.rdata[id] = 0.5*tmap.cells()[id].height*hscale;
+    img.gdata[id] = 0.5*tmap.cells()[id].traversibility*tscale;
+    img.bdata[id] = 0;
+  }
+
+  if(!SavePpm(img,map_img_filename)){
+    cout<<"Had problems saving the image file"<<endl;
+    return false;
+  }
+
+  //save the text file
+  ofstream file(tmapfile, std::ofstream::out);
+  if(!file.is_open())
+    return false;
+  file << "image= "<<map_img_filename<<endl;
+  file << "cellsize= "<<tmap.cs()[0]<<", "<<tmap.cs()[1]<<endl;
+  file << "hscale= "<<hscale<<endl;
+  file << "tscale= "<<tscale<<endl;
+  file.close();
+
+  return true;
+}
+
+bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename,
+                      const std::vector<Vector3d>& path, int scale, const CarGeom* geom){
   //checks
   if(scale<1){
     cout<<"Scale should be >=1"<<endl;
@@ -340,8 +406,8 @@ bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename, int sc
 }
 
 //TODO: requires testing
-bool SavePpmWithPath(const dsl::Map<TerrainData, 2>& tmap, std::string filename, int scale,
-                     const std::vector<Vector3d>& path, const CarGeom* geom){
+bool SavePpmWithPath(const dsl::Map<TerrainData, 2>& tmap, std::string filename,
+                     const std::vector<Vector3d>& path, int scale, const CarGeom* geom){
   //checks
   if(scale<1){
     cout<<"Scale should be >=1"<<endl;
@@ -444,8 +510,8 @@ bool SavePpmWithPath(const dsl::Map<TerrainData, 2>& tmap, std::string filename,
 }
 
 //TODO: requires testing
-bool SavePpmWithPrimitives(const dsl::Map<bool, 2>& omap, std::string filename, int scale,
-                      const std::vector<vector<Vector2d>>& prims){
+bool SavePpmWithPrimitives(const dsl::Map<bool, 2>& omap, std::string filename,
+                      const std::vector<vector<Vector2d>>& prims, int scale){
   //checks
   if(scale<1){
     cout<<"Scale should be >=1"<<endl;
@@ -500,8 +566,8 @@ bool SavePpmWithPrimitives(const dsl::Map<bool, 2>& omap, std::string filename, 
   return true;
 }
 
-bool SavePpmWithPrimitives(const dsl::Map<TerrainData, 2>& tmap, std::string filename,int scale,
-                      const std::vector<vector<Vector2d>>& prims){
+bool SavePpmWithPrimitives(const dsl::Map<TerrainData, 2>& tmap, std::string filename,
+                      const std::vector<vector<Vector2d>>& prims, int scale){
   //checks
   if(scale<1){
     cout<<"Scale should be >=1"<<endl;
@@ -750,10 +816,5 @@ void DilateMap(vector<bool>& dilated, const Map<bool,2>& omap, const CarGeom& ge
                org2i_rotd_pospix(0),
                org2i_rotd_pospix(1));
 }
-
-//void DilateMap(Map<bool,2>& dmap, const Map<bool,2> omap, const vector<Vector2d>& vertices){
-//
-//}
-
 
 }

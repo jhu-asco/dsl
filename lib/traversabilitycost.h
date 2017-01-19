@@ -34,8 +34,8 @@ public:
 
   double Heur(const TypedCell& a, const TypedCell& b) const {
     /*
-    double dx = std::abs(a.c[0] - b.c[0]);
-    double dy = std::abs(a.c[1] - b.c[1]);
+    double dx = std::fabs(a.c[0] - b.c[0]);
+    double dy = std::fabs(a.c[1] - b.c[1]);
     if (dx > dy)
       return dx;
     else

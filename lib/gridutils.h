@@ -25,6 +25,13 @@ Map<bool, 2>::Ptr LoadPpm(const std::string& filename, const Eigen::Vector2d &cs
 bool SavePpm(const dsl::Map<bool, 2> &map, const std::string& filename);
 
 /**
+ * Save a 2D terrain map to a .ppm file
+ * @param map The 2D TerrainData map
+ * @param filename filename to save the image to
+ */
+bool SavePpm(const dsl::Map<TerrainData, 2> &map, const std::string& filename);
+
+/**
  * Save all the slices of an 3D occupancy grid as a series of .ppm file, one for each angle
  * @param cmap Occupancy grid in angle x and y
  * @param folder folder in which to put the images
@@ -46,73 +53,65 @@ Map<bool, 2>::Ptr LoadOmap(const std::string& omapfile);
  */
 Map<TerrainData, 2>::Ptr LoadTmap(const std::string& tmapfile);
 
-///**
-// * Save an occupancy map to .omap file
-// * @param omap The occupancy map to be saved
-// * @param omapfile filename with .omap extension
-// * @return True if saving was successful
-// */
-//bool saveMap(Map<bool, 2>::Ptr& omap, const string& omapfile);
-//
-///**
-// * Save a terrain map to .tmap file
-// * @param tmap The terrain map to be saved
-// * @param tmapfile filename with .tmap extension
-// * @return True if saving was successful
-// */
-//bool saveMap(Map<TerrainData, 2>::Ptr& tmap, const string& tmapfile);
+/**
+ * Save an occupancy map to .omap file
+ * @param omap The occupancy map to be saved
+ * @param omapfile filename with .omap extension
+ * @return True if saving was successful
+ */
+bool saveMap(Map<bool, 2>::Ptr& omap, const std::string& omapfile);
 
 /**
- * Save an occupancy map as .ppm image with a start(green), goal(red) and the waypoints(blue) as points.
- * @param omap 2D occupancy map
- * @param filename .ppm filename to save the image to
- * @param path 2D path(x and y)
+ * Save a terrain map to .tmap file
+ * @param tmap The terrain map to be saved
+ * @param tmapfile filename with .tmap extension
+ * @return True if saving was successful
  */
-void SavePpmWithPath(const dsl::Map<bool, 2> &map, const std::string& filename, const std::vector<Eigen::Vector2d>& path);
+bool saveMap(Map<TerrainData, 2>::Ptr& tmap, const std::string& tmapfile);
 
 /**
  * Save an occupancy map as .ppm image with a start(green), goal(red) and the waypoints(blue) as points.
  * If geometry is available then it plots rectangles instead.
  * @param omap 2D occupancy map
  * @param filename .ppm filename to save the image to
- * @param scale scale to increase resolution of output image for clarity.
  * @param path 3D path(angle, x and y)
+ * @param scale scale to increase resolution of output image for clarity.
  * @param geom pointer to optional geometry of the car
  */
-bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename, int scale,
-                      const std::vector<Eigen::Vector3d>& path, const CarGeom* geom = 0);
+bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename,
+                      const std::vector<Eigen::Vector3d>& path, int scale = 1, const CarGeom* geom = 0);
 
 /**
  * Save an terrain map as .ppm image with a start(green), goal(red) and the waypoints(blue) as points.
  * If geometry is available then it plots rectangles instead.
  * @param tmap 2D map with terrain data
  * @param filename .ppm filename to save the image to
- * @param scale scale to increase resolution of output image for clarity.
  * @param path path
+ * @param scale scale to increase resolution of output image for clarity.
  * @param geom pointer to optional geometry of the car
  */
-bool SavePpmWithPath(const dsl::Map<TerrainData, 2>& tmap, std::string filename, int scale,
-                     const std::vector<Eigen::Vector3d>& path, const CarGeom* geom = 0);
+bool SavePpmWithPath(const dsl::Map<TerrainData, 2>& tmap, std::string filename,
+                     const std::vector<Eigen::Vector3d>& path, int scale = 1, const CarGeom* geom = 0);
 
 /**
  * Save an occupancy map as .ppm image with a set of motion primitives at start location
  * @param omap 2D occupancy map
  * @param filename .ppm filename to save the image to
- * @param scale scale to increase resolution of output image for clarity.
  * @param prims primitives
+ * @param scale scale to increase resolution of output image for clarity.
  */
-bool SavePpmWithPrimitives(const dsl::Map<bool, 2>& omap, std::string filename, int scale,
-                      const std::vector<std::vector<Eigen::Vector2d>>& prims);
+bool SavePpmWithPrimitives(const dsl::Map<bool, 2>& omap, std::string filename,
+                      const std::vector<std::vector<Eigen::Vector2d>>& prims, int scale = 1);
 
 /**
  * Saves the terrain map as .ppm image with a set of motion primitives at start location
  * @param tmap terrain map
  * @param filename filename to save the image to
- * @param scale scale to increase resolution of output image for clarity
  * @param prims primitives
+ * @param scale scale to increase resolution of output image for clarity
  */
-bool SavePpmWithPrimitives(const dsl::Map<TerrainData, 2>& tmap, std::string filename,int scale,
-                      const std::vector<std::vector<Eigen::Vector2d>>& prims);
+bool SavePpmWithPrimitives(const dsl::Map<TerrainData, 2>& tmap, std::string filename,
+                      const std::vector<std::vector<Eigen::Vector2d>>& prims, int scale = 1);
 
 /**
  * Takes a 2-dimensional occupancy map and repeats that for all angles to create configuration
@@ -160,14 +159,6 @@ bool SavePpmWithPrimitives(const dsl::Map<TerrainData, 2>& tmap, std::string fil
   * @param theta angle of car
   */
  void DilateMap(std::vector<bool>& dilated, const Map<bool,2>& omap, const CarGeom& geom, double theta);
-
-// /**
-//  * Takes points that make up a kernel and dilates the occupancy grid
-//  * @param dmap The dilated map
-//  * @param omap The occupancy grid
-//  * @param corners Set of points that indicates the bounding rectange of a car
-//  */
-// void DilateMap(Map<bool,2>& dmap, const Map<bool,2> omap, const vector<Vector2d>& vertices);
 
 }
 

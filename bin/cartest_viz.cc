@@ -22,7 +22,7 @@ vector<Vector3d> ToVector3dPath(const CarTwistPath &path, double gridcs) {
     Vector3d axy = path.cells[i].c;
     Matrix3d g_from;
     se2_q2g(g_from, axy);
-    double d = std::abs(v(1));
+    double d = std::fabs(v(1));
     int n_seg = ceil(d/ (2 * gridcs));
     double s = d/n_seg;
     for (int i_seg=0; i_seg<=n_seg; i_seg++){
@@ -73,8 +73,8 @@ int main(int argc, char** argv)
   //**********************************************************************************/
 
   // get filename+ path for the image file(.ppm) representing our occupancy map
-  string mapName;
-  if(!params.GetString("map", mapName)){
+  string map_img_filename;
+  if(!params.GetString("map", map_img_filename)){
     cout<<"There is no string parameter named map. Exiting."<<endl;
     return -1;
   }
@@ -83,15 +83,15 @@ int main(int argc, char** argv)
   params.GetVector3d("ocs", ocs);
 
   // load an occupancy map from ppm file
-  dsl::Map<bool, 2>::Ptr omap = LoadPpm(mapName, ocs.tail<2>());
+  dsl::Map<bool, 2>::Ptr omap = LoadPpm(map_img_filename, ocs.tail<2>());
 
   //**********************************************************************************/
   //************************************cmap******************************************/
   //**********************************************************************************/
 
   // get filename+ path for .cmap file that stores representing our occupancy map
-  string cmapName;
-  bool cmapValid = params.GetString("cmap", cmapName);
+  string cmap_filename;
+  bool cmapValid = params.GetString("cmap", cmap_filename);
 
   // get geometry information
   Vector5d lboxoysb;
@@ -120,13 +120,12 @@ int main(int argc, char** argv)
     long time = timer_us(&timer);
     printf("cmap construction time= %ld  us\n", time);
 
-    cmapName = mapName;
-    ReplaceExtension(cmapName, string("cmap"));
-    cmap->Save(cmapName);
-    std::cout << "Saved cmap " << cmapName << " with xlb=" << cmap->xlb().transpose() << " xub=" << cmap->xub().transpose() << " gs=" << cmap->gs().transpose() << std::endl;
+    cmap_filename = ReplaceExtension(map_img_filename, string("cmap"));
+    cmap->Save(cmap_filename);
+    std::cout << "Saved cmap " << cmap_filename << " with xlb=" << cmap->xlb().transpose() << " xub=" << cmap->xub().transpose() << " gs=" << cmap->gs().transpose() << std::endl;
 
   }else{
-    cmap = dsl::Map<bool,3>::Load(cmapName);
+    cmap = dsl::Map<bool,3>::Load(cmap_filename);
     std::cout << "Loaded map with xlb=" << cmap->xlb().transpose() << " xub=" << cmap->xub().transpose() << " gs=" << cmap->gs().transpose() << std::endl;
   }
 
@@ -228,16 +227,16 @@ int main(int argc, char** argv)
   params.GetBool("plot_car", plot_car);
   // save it to image for viewing
   if(plot_car){
-    SavePpmWithPath(*omap, "path.ppm", 3, path3d, &geom);
+    SavePpmWithPath(*omap, "path.ppm", path3d, 3, &geom);
   }else{
-    SavePpmWithPath(*omap, "path.ppm", 3, path3d);
+    SavePpmWithPath(*omap, "path.ppm", path3d, 3);
   }
 
   //Display the primitive at start
   vector<vector<Vector2d>> prims(0);
   bool gotprims = connectivity.GetPrims(start,prims);
   if(gotprims){
-    SavePpmWithPrimitives(*omap, "prim.ppm",3, prims);
+    SavePpmWithPrimitives(*omap, "prim.ppm", prims, 3);
     cout << "Map, with primitives from start saved to prim.ppm" << endl;
   }
 

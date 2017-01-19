@@ -204,7 +204,7 @@ public:
   }
 
   /**
-   * Copies the grid structure and allocates memory for all but assigns only for arithmetic CellType
+   * Copies the grid structure and allocates memory for all but assigns only if cell doesn't store shared_ptr
    * @param gridcore
    */
   GridCore(const GridCore &gridcore)
@@ -527,8 +527,7 @@ public:
    * @return The center point (meaningful even when gidx outside bounds)
    */
   Vectornd CellCenter(const Vectorni& gidx) const{
-    Vectornd x;
-    x = xlb_.array() +  (gidx.template cast<double>() + Vectornd::Constant(0.5)).array()*cs_.array() ;
+    Vectornd x = xlb_.array() +  (gidx.template cast<double>() + Vectornd::Constant(0.5)).array()*cs_.array() ;
     return x;
   }
 
@@ -607,11 +606,38 @@ public:
   int Id(const Vectornd& x) const {
     Vectorni gidx;
     Index(x, &gidx);
+
     if(Valid(gidx))
       return gidx.transpose()*cgs_;
     else
        return -1;
   }
+
+  /**
+   * Get an id of point x useful for direct lookup in the grid array
+   * @param x point
+   * @return a computed id
+   */
+  int IdOld(const Vectornd& x) const {
+    int cum = 1; // cumulative offset for next dimension
+    int id = 0;
+    for (int i = 0; i < n_; ++i) {
+      // index of i-th dimension
+      double xi = x[i];
+      if(wd_[i]){ //dimension is wrapped
+        while(xi < xlb_[i]){xi += ds_[i];}
+        while(xi > xub_[i]){xi -= ds_[i];}
+      }
+      int ind = floor((xi - xlb_[i]) / ds_[i] * gs_[i]);
+      if(ind < 0 || ind >= gs_[i])
+        return -1;
+      id += cum * ind;
+      if (i < n_ - 1)
+        cum *= gs_[i];
+    }
+    return id;
+  }
+
 
   /**
    * Get the id of a point corresponding to the grid index
@@ -620,7 +646,7 @@ public:
    */
   int Id(const Vectorni& gidx) const {
     if(Valid(gidx))
-      return gidx.transpose()*cgs_;
+      return gidx.dot(cgs_);
     else
       return -1;
   }
@@ -634,8 +660,10 @@ public:
   int Index(const Vectornd& x, int i) const {
     double xi = x[i];
     if(wd_[i]){ //dimension is wrapped
-      while(xi < xlb_[i]){xi += ds_[i];}
-      while(xi > xub_[i]){xi -= ds_[i];}
+      if(xi - xlb_[i] >= 0)
+        xi =  fmod(xi - xlb_[i], ds_[i]) + xlb_[i];
+      else
+        xi = -fmod(xlb_[i] - xi, ds_[i]) - xlb_[i];
     }
     return floor((xi - xlb_[i]) / ds_[i] * gs_[i]);
   }
@@ -648,8 +676,10 @@ public:
    */
   int Index(double xi, int i) const {
     if(wd_[i]){ //dimension is wrapped
-      while(xi < xlb_[i]){xi += ds_[i];}
-      while(xi > xub_[i]){xi -= ds_[i];}
+      if(xi - xlb_[i] >= 0)
+        xi =  fmod(xi - xlb_[i], ds_[i]) + xlb_[i];
+      else
+        xi = -fmod(xlb_[i] - xi, ds_[i]) - xlb_[i];
     }
     return floor((xi - xlb_[i]) / ds_[i] * gs_[i]);
   }
@@ -660,11 +690,13 @@ public:
    * @param gidx grid index. Meaningful even if x is not inside grid
    */
   void Index(const Vectornd& x, Vectorni* gidx) const {
-    for(size_t i=0;i<n_;i++){
+    for(size_t i = 0; i < n_; i++){
       double xi = x[i];
       if(wd_[i]){ //dimension is wrapped
-        while(xi < xlb_[i]){xi += ds_[i];}
-        while(xi > xub_[i]){xi -= ds_[i];}
+        if(xi - xlb_[i] >= 0)
+          xi =  fmod(xi - xlb_[i], ds_[i]) + xlb_[i];
+        else
+          xi = -fmod(xlb_[i] - xi, ds_[i]) - xlb_[i];
       }
       (*gidx)[i] = floor((xi - xlb_[i]) / ds_[i] * gs_[i]);
     }
@@ -680,8 +712,10 @@ public:
     for(size_t i=0;i<n_;i++){
       double xi = x[i];
       if(wd_[i]){ //dimension is wrapped
-        while(xi < xlb_[i]){xi += ds_[i];}
-        while(xi > xub_[i]){xi -= ds_[i];}
+        if(xi - xlb_[i] >= 0)
+          xi =  fmod(xi - xlb_[i], ds_[i]) + xlb_[i];
+        else
+          xi = -fmod(xlb_[i] - xi, ds_[i]) - xlb_[i];
       }
       gidx[i] = floor((xi - xlb_[i]) / ds_[i] * gs_[i]);
     }
@@ -1274,7 +1308,7 @@ protected:
  * e.g. dim=5 or 6.
  */
 template < class PointType, class DataType = EmptyData>
-using Grid = GridCore< PointType,std::shared_ptr< Cell<PointType, DataType> > >;
+using Grid = GridCore< PointType,typename Cell<PointType, DataType>::Ptr >;
 
 
 /**

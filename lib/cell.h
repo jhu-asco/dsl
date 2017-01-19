@@ -18,12 +18,13 @@ namespace dsl {
  * The cell can also contain a generic data of type T, which by default is just
  * a point in the cell.
  */
-template < class PT, class DT >
+template < class PointType_, class DataType_ >
 struct Cell {
+  using PointType = PointType_;
+  using DataType = DataType_;
+//using Ptr = std::unique_ptr< Cell<PointType,DataType> >;
+using Ptr = std::shared_ptr< Cell<PointType,DataType> >;
 
-using Ptr = std::shared_ptr< Cell<PT,DT> >;
-using PointType = PT;
-using DataType = DT;
  Cell(int id, const PointType& c) : id(id), c(c) {}
   
   /**

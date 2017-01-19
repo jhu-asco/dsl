@@ -116,8 +116,7 @@ int main(int argc, char** argv)
     long time = timer_us(&timer);
     printf("cmap construction time= %ld  us\n", time);
 
-    cmap_filename = map_img_filename;
-    ReplaceExtension(cmap_filename, string("cmap"));
+    cmap_filename = ReplaceExtension(map_img_filename, string("cmap"));
     cmap->Save(cmap_filename);
     std::cout << "Saved cmap " << cmap_filename << " with xlb=" << cmap->xlb().transpose() << " xub=" << cmap->xub().transpose() << " gs=" << cmap->gs().transpose() << std::endl;
 
@@ -225,16 +224,16 @@ int main(int argc, char** argv)
   bool plot_car; //To plot the path as rectanges or just points
   params.GetBool("plot_car", plot_car);
   if(plot_car)
-    SavePpmWithPath(*omap, "path.ppm", 3, path3d, &geom);
+    SavePpmWithPath(*omap, "path.ppm", path3d, 3, &geom);
   else
-    SavePpmWithPath(*omap, "path.ppm", 3, path3d);
+    SavePpmWithPath(*omap, "path.ppm", path3d, 3);
 
 
   //Display the primitive at start
   vector<vector<Vector2d>> prims(0);
   bool gotprims = connectivity.GetPrims(start,prims);
   if(gotprims){
-    SavePpmWithPrimitives(*omap, "prim.ppm",3, prims);
+    SavePpmWithPrimitives(*omap, "prim.ppm", prims, 3);
     cout << "Map, with primitives from start saved to prim.ppm" << endl;
   }
 

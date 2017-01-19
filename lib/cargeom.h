@@ -9,7 +9,8 @@
 #ifndef DSL_LIB_CARGEOM_H_
 #define DSL_LIB_CARGEOM_H_
 
-#include "geom.h"
+#include <Eigen/Dense>
+#include <vector>
 
 namespace dsl {
 

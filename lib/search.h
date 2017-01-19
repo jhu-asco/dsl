@@ -260,7 +260,7 @@ private:
    * @return \f$|a-b| < eps\f$
    */
   bool Eq(double a, double b) const {
-    return std::abs(a - b) < eps;
+    return std::fabs(a - b) < eps;
   }
 
   Graph< Tv, Te >& graph; ///< graph

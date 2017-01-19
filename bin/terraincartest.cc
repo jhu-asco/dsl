@@ -21,7 +21,7 @@ vector<Vector3d> ToVector3dPath(const CarTwistPath &path, double gridcs) {
     Vector3d axy = path.cells[i].c;
     Matrix3d g_from;
     se2_q2g(g_from, axy);
-    double d = std::abs(v(1));
+    double d = std::fabs(v(1));
     int n_seg = ceil(d/ (2 * gridcs));
     double s = d/n_seg;
     for (int i_seg=0; i_seg<=n_seg; i_seg++){
@@ -248,12 +248,12 @@ int main(int argc, char** argv)
     path3d.push_back(start); path3d.push_back(goal);
     cout<<"  No planning done so plotting just the start and goal cars to terrain_car_path.ppm"<<endl;
   }
-  SavePpmWithPath(*tmap, "terrain_car_path.ppm", 3, path3d, &geom);
+  SavePpmWithPath(*tmap, "terrain_car_path.ppm", path3d, 3, &geom);
 
   //Plot the primitive at start position
   vector<vector<Vector2d>> prims(0);
   bool gotprims = connectivity.GetPrims(start,prims);
-  SavePpmWithPrimitives(*tmap, "terrain_car_prim.ppm", 3, prims);
+  SavePpmWithPrimitives(*tmap, "terrain_car_prim.ppm", prims, 3);
   cout << "  Map, with primitives from start saved to terrain_car_prim.ppm" << endl;
 
   return 0;

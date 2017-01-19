@@ -120,10 +120,11 @@ int sgn(T val) {
 
 /**
  * Change the extension of a std::string.
- * @param s
- * @param newExt
+ * @param filename The filename whose extension we want to change
+ * @param new_extension new extension
+ * @return filename with new extension
  */
-void ReplaceExtension(std::string& s, const std::string& new_extension);
+std::string ReplaceExtension(const std::string& filename, const std::string& new_extension);
 
 }
 
