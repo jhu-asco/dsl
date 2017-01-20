@@ -31,7 +31,7 @@ template < class PointType, class DataType = EmptyData>
 
 public:
   using TypedCell = Cell<PointType, DataType>;
-  using TypedCellPtr = shared_ptr<TypedCell>;
+  using TypedCellPtr = typename TypedCell::Ptr;
   /**
    * Initialize connectivity using a grid
    * @param grid the grid
