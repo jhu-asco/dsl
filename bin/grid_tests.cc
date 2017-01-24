@@ -13,7 +13,7 @@ int main(int argc, char** argv){
   Vector3d xub = Vector3d::Constant( 2.5);
   Vector3d cs  = Vector3d::Ones();
 
-  GridCore<Vector3d,double> grid(xlb,xub,cs);
+  Grid<Vector3d,double> grid(xlb,xub,cs);
   for(int id = 0; id < grid.nc() ; id++){
     grid.set_cells(id, id);
   }
@@ -29,7 +29,7 @@ int main(int argc, char** argv){
   int dim = 0;
   int idx = 1;
 
-  GridCore<Vector3d,double>::SlicePtr pslice = grid.GetSlice(1,dim);
+  Grid<Vector3d,double>::SlicePtr pslice = grid.GetSlice(1,dim);
   cout<<"Slicing along dimension:"<<dim<<" at index:"<<idx<<" from grid"<<endl;
   cout<<"contents of the cell of slice"<<endl;
   for(int id = 0; id < pslice->nc() ; id++){
@@ -37,7 +37,7 @@ int main(int argc, char** argv){
   }
   cout<<endl<<endl;
 
-  GridCore<Vector3d,double>::Slice::StackPtr pstack = pslice->GetStack(dim,0,10,3);
+  Grid<Vector3d,double>::Slice::StackPtr pstack = pslice->GetStack(dim,0,10,3);
   cout<<"Stacked up slices along dim:"<<dim<<" to create stack"<<endl;
   cout<<"contents of the cell of stack"<<endl;
   for(int id = 0; id < pstack->nc() ; id++){

@@ -76,7 +76,7 @@ public:
   using TypedCell = Cell<PointType, DataType>;
   using TypedCellPtr = typename TypedCell::Ptr;
 
-  using TypedGrid = GridCore<PointType, TypedCellPtr>;
+  using TypedGrid = Grid<PointType, TypedCellPtr>;
 
 
   using TypedGridConnectivity = GridConnectivity< PointType, DataType, ConnectionType >;

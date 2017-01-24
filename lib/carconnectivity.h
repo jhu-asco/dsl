@@ -48,7 +48,7 @@ public:
   using TypedCell = Cell<PointType, DataType>;
   using TypedCellPtr = typename TypedCell::Ptr;
   using TypedCellConnectionCostTuple = std::tuple<TypedCellPtr, ConnectionType, double>;
-  using TypedGrid = GridCore<PointType, TypedCellPtr>;
+  using TypedGrid = Grid<PointType, TypedCellPtr>;
   using TypedGridCost = GridCost<PointType, DataType>;
   /**
    * Initialize cargrid connectivity

@@ -71,7 +71,7 @@ struct remove_unique_ptr<std::shared_ptr<T> > { typedef T type; };
  *
  */
 template < class PointType, class CellType>
-class GridCore {
+class Grid {
 public:
 
 
@@ -90,12 +90,12 @@ public:
   using Vectornp1i =  Eigen::Matrix< int,     PointType::SizeAtCompileTime+1, 1 >;
   using Vectornp1b =  Eigen::Matrix< bool,    PointType::SizeAtCompileTime+1, 1 >;
 
-  using Ptr = std::shared_ptr<GridCore>;
+  using Ptr = std::shared_ptr<Grid>;
 
-  using Slice = GridCore<Vectornm1d,CellType>;
+  using Slice = Grid<Vectornm1d,CellType>;
   using SlicePtr = std::shared_ptr<Slice>;
 
-  using Stack = GridCore<Vectornp1d,CellType>;
+  using Stack = Grid<Vectornp1d,CellType>;
   using StackPtr = std::shared_ptr<Stack>;
 
 //  using ValType = typename std::remove_pointer<CellType>::type;
@@ -120,7 +120,7 @@ public:
    * @param wd indicates if a dimension if wrapped or not. wd[i]=false(flat dim) wd[i]=1(wrapped dim).
    * For wrapped dimension i, the ds[i],i.e. dimension size, is given by xub[i]-xlb[i] (e.g. for angles it ds[i]=2*M_PI)
    */
-  GridCore(const Vectornd& xlb, const Vectornd& xub, const Vectorni& gs, const Vectornb& wd = Vectornb::Zero())
+  Grid(const Vectornd& xlb, const Vectornd& xub, const Vectorni& gs, const Vectornb& wd = Vectornb::Zero())
   : xlb_(xlb), xub_(xub), gs_(gs), wd_(wd), cells_(0){
     ds_ = xub - xlb;
     nc_ = 1;
@@ -146,7 +146,7 @@ public:
 //   * @param wd indicates if a dimension if wrapped or not. wd[i]=false(flat dim) wd[i]=1(wrapped dim).
 //   * For wrapped dimension i, the ds[i],i.e. dimension size, is given by xub[i]-xlb[i] (e.g. for angles it ds[i]=2*M_PI)
 //   */
-//  GridCore(const Vectornd& xlb, const Vectornd& xub, const Vectornd& scs, const Vectornb wd = Vectornb::Zero())
+//  Grid(const Vectornd& xlb, const Vectornd& xub, const Vectornd& scs, const Vectornb wd = Vectornb::Zero())
 //  : n(xlb.size()), xlb(xlb), xub(xub), wd(wd), cells(0){
 //    ds = xub - xlb;
 //    nc = 1;
@@ -178,7 +178,7 @@ public:
    * flat dimensions it makes sure that 0 lies at a cell center of a cell in the grid( or extrapolated grid if center is not
    * contained in the grid)
    */
-  GridCore(const Vectornd& sxlb, const Vectornd& sxub, const Vectornd& scs,
+  Grid(const Vectornd& sxlb, const Vectornd& sxub, const Vectornd& scs,
            const Vectornb& wd = Vectornb::Zero(), const Vectornb& ss = Vectornb::Zero())
   : wd_(wd), cells_(0){
     nc_ = 1;
@@ -222,7 +222,7 @@ public:
    * Copies the grid structure and allocates memory for all but assigns only if cell doesn't store shared_ptr
    * @param gridcore
    */
-  GridCore(const GridCore &gridcore)
+  Grid(const Grid &gridcore)
   : nc_(gridcore.nc_), xlb_(gridcore.xlb_), xub_(gridcore.xub_), ds_(gridcore.ds_),
     cs_(gridcore.cs_), gs_(gridcore.gs_), cgs_(gridcore.cgs_), wd_(gridcore.wd_){
     cells_.resize(nc_);
@@ -232,14 +232,14 @@ public:
       cells_ = gridcore.cells_;
   }
 
-  virtual ~GridCore() {}
+  virtual ~Grid() {}
 
   /**
    * Copies the grid structure and allocates memory for all but assigns only for arithmetic CellType
    * @param The grid to copy the structure from
    * @return
    */
-  GridCore& operator=(const GridCore& gridcore){
+  Grid& operator=(const Grid& gridcore){
     nc_  = gridcore.nc_;
     xlb_ = gridcore.xlb_;
     xub_ = gridcore.xub_;
@@ -421,7 +421,7 @@ public:
 
 
   /**
-   * Create new GridCore object whose cell resolution is scale times higher.
+   * Create new Grid object whose cell resolution is scale times higher.
    * Useful for increasing resolution of a map for display
    * @param scale
    * @param init initialize the scaled map from grid
@@ -434,12 +434,12 @@ public:
       return pscaled;
 
     if(scale==1){
-      pscaled.reset(new GridCore<PointType, CellType>(*this));
+      pscaled.reset(new Grid<PointType, CellType>(*this));
       return pscaled;
     }
 
     Vectorni gs_scaled = gs_*scale;
-    pscaled.reset(new GridCore<PointType, CellType>(xlb_,xub_, gs_scaled, wd_));
+    pscaled.reset(new Grid<PointType, CellType>(xlb_,xub_, gs_scaled, wd_));
 
     if(!init || cells_store_ptr)
       return pscaled;
@@ -460,7 +460,7 @@ public:
 //   * @param valin value inside the area marked by the vertices
 //   * @param valout value outside the area marked by the vertices
 //   */
-//  GridCore::Ptr GetKernel(const std::vector<Vectornd>& vertices,CellType valin, CellType valout) const{
+//  Grid::Ptr GetKernel(const std::vector<Vectornd>& vertices,CellType valin, CellType valout) const{
 //
 //    //convert vertices to grid coordinates
 //    std::vector<Vectornd> verts_grid; ToGridCoordinates(verts_grid,vertices);
@@ -481,7 +481,7 @@ public:
 //
 //
 //
-//    GridCore::Ptr kernel;
+//    Grid::Ptr kernel;
 //    return kernel;
 //  }
 
@@ -1032,7 +1032,7 @@ public:
     std::ofstream fs(filename, std::fstream::out | std::ios::binary);
     if(fs.is_open()){
 
-      //Copy the GridCore data into the protobuff class
+      //Copy the Grid data into the protobuff class
       dsl::ProtobufGrid pb;
       pb.set_n(n_);
       pb.set_nc(nc_);
@@ -1106,7 +1106,7 @@ public:
       }
 
       // Data probably is valid, so initilize the grid and load data into it
-      grid.reset(new GridCore<Vectornd,CellType>());
+      grid.reset(new Grid<Vectornd,CellType>());
 
       if(grid->n_ !=  pb.n()){ //one last check
         throw std::length_error("pb's n doesn't match with grid.h");
@@ -1179,13 +1179,13 @@ public:
   }
 
   // To give data access to Slice and Stack
-  template < class PT, class CT> friend class GridCore;
+  template < class PT, class CT> friend class Grid;
 
 private:
   /**
    * Private constructor only to be used by the Load method
    */
-  GridCore(){}
+  Grid(){}
 
   /**
    * Loads data from cells to protocol buffer for non shared_ptr CellType
@@ -1252,7 +1252,7 @@ private:
     * @param pb
     * @param
     */
-   static void PbToCells(GridCore& grid, dsl::ProtobufGrid& pb, std::false_type){
+   static void PbToCells(Grid& grid, dsl::ProtobufGrid& pb, std::false_type){
      for(int id=0; id < grid.nc_; id++){
        ValType val;
        StringToVal(pb.data(id),&val, std::is_pod<ValType>());
@@ -1265,7 +1265,7 @@ private:
     * @param pb
     * @param
     */
-   static void PbToCells(GridCore& grid, dsl::ProtobufGrid& pb, std::true_type){
+   static void PbToCells(Grid& grid, dsl::ProtobufGrid& pb, std::true_type){
      for(int i=0; i < pb.ids_allocated_size(); i++){
        int id = pb.ids_allocated(i);
        ValType val;
@@ -1312,26 +1312,11 @@ protected:
 };
 
 /**
- * An n-dimenensional grid consisting of abstract "cells", or elements
- * identified by a set of coordinates of type PointType, each cell
- * containing data of type DataType.
- * A grid provides instant access to the elements by maintaining
- * an n-dimensional array of pointers to cells. Cells that are empty,
- * e.g. that are inside obstacles, correspond to null pointers.
- *
- * Note that this data structure is only viable up to a few dimensions,
- * e.g. dim=5 or 6.
- */
-template < class PointType, class DataType = EmptyData>
-using Grid = GridCore< PointType,typename Cell<PointType, DataType>::Ptr >;
-
-
-/**
  * An n-dimenensional occupancy map storing type T in every cell. T=Bool
  * is works well to represent the occupancy
  */
 template <typename T, int n>
-using Map = GridCore< Eigen::Matrix<double,n,1>, T >;
+using Map = Grid< Eigen::Matrix<double,n,1>, T >;
 
 }
 

@@ -15,9 +15,9 @@ target_link_libraries(terraincartest dsl)
 add_executable(test_cargrid test_cargrid.cc)
 target_link_libraries(test_cargrid dsl)
 
-# Testing some function of gridcore class
-add_executable(gridcoretest gridcoretest.cc)
-target_link_libraries(gridcoretest dsl)
+# Testing some function of Grid class
+add_executable(grid_tests grid_tests.cc)
+target_link_libraries(grid_tests dsl)
 
 # Testing saving and loading grid for various CellContent(bools, struct, shared_ptr)
 add_executable(grid_save_load grid_save_load.cc)

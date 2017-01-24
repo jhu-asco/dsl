@@ -56,14 +56,14 @@ int main(int argc, char** argv){
   //**********************************************************
   //*********************bool*********************************
   //**********************************************************
-  cout<<"\nsaving and loading GridCore<Vector3d, bool >"<<endl;
-  GridCore<Vector3d,bool >grid(xlb,xub,gs,wd);
+  cout<<"\nsaving and loading Grid<Vector3d, bool >"<<endl;
+  Grid<Vector3d,bool >grid(xlb,xub,gs,wd);
   for(int id = 0; id < grid.nc(); id++)
     grid.set_cells(id,true);
 
   grid.Save(filename);
 
-  auto grid_loaded = GridCore<Vector3d,bool >::Load(filename);
+  auto grid_loaded = Grid<Vector3d,bool >::Load(filename);
 
   cout<<"Printing out the loaded grid for bools"<<endl;
   cout<<"xlb:"<< grid_loaded->xlb().transpose() << endl;
@@ -80,14 +80,14 @@ int main(int argc, char** argv){
   //**********************************************************
   //*********************HT***********************************
   //**********************************************************
-  cout<<"\nsaving and loading GridCore<Vector3d,HT>"<<endl;
-  GridCore<Vector3d,HT > grid_ht(xlb,xub,gs,wd);
+  cout<<"\nsaving and loading Grid<Vector3d,HT>"<<endl;
+  Grid<Vector3d,HT > grid_ht(xlb,xub,gs,wd);
   for(int id = 0; id < grid.nc(); id++)
     grid_ht.set_cells(id,HT(10,20));
 
   grid_ht.Save(filename);
 
-  auto grid_ht_loaded = GridCore<Vector3d,HT >::Load(filename);
+  auto grid_ht_loaded = Grid<Vector3d,HT >::Load(filename);
 
   cout<<"Printing out the loaded grid_ht"<<endl;
   cout<<"xlb:"<< grid_ht_loaded->xlb().transpose() << endl;
@@ -104,8 +104,8 @@ int main(int argc, char** argv){
   //**********************************************************
   //*********************HT::Ptr******************************
   //**********************************************************
-  cout<<"\nsaving and loading GridCore<Vector3d,HT::Ptr >"<<endl;
-  GridCore<Vector3d,HT::Ptr > grid_pht(xlb,xub,gs,wd);
+  cout<<"\nsaving and loading Grid<Vector3d,HT::Ptr >"<<endl;
+  Grid<Vector3d,HT::Ptr > grid_pht(xlb,xub,gs,wd);
 
   //only the 0th and the 2nd cell allocated
   HT::Ptr ptr1(new HT(10,20));
@@ -115,7 +115,7 @@ int main(int argc, char** argv){
 
   grid_pht.Save(filename);
 
-  auto grid_pht_loaded = GridCore<Vector3d,HT::Ptr >::Load(filename);
+  auto grid_pht_loaded = Grid<Vector3d,HT::Ptr >::Load(filename);
 
   cout<<"Printing out the loaded grid_pht"<<endl;
   cout<<"xlb:"<< grid_pht_loaded->xlb().transpose() << endl;

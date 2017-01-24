@@ -16,7 +16,7 @@
 
 namespace dsl {
 using SE2Cell =  Cell< Eigen::Vector3d, Eigen::Matrix3d >; // a cell that stores an SE(2) transformation  matrix
-using SE2CellGrid = GridCore<SE2Cell::PointType, SE2Cell::Ptr>;
+using SE2CellGrid = Grid<SE2Cell::PointType, SE2Cell::Ptr>;
 /**
  * A 3d grid for simple car models with coordinates (theta,x,y). Each cell also
  *stores a 3x3 SE(2) matrix describing the pose

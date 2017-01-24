@@ -9,7 +9,7 @@ using namespace Eigen;
 
 int main(int argc, char** argv){
 
-  GridCore<Vector3d,Vector3i> grid(Vector3d(-0.5,-0.5,-0.5), Vector3d(99.5,99.5,9.5), Vector3d::Ones().eval());
+  Grid<Vector3d,Vector3i> grid(Vector3d(-0.5,-0.5,-0.5), Vector3d(99.5,99.5,9.5), Vector3d::Ones().eval());
   for(int id=0; id < grid.nc(); id++){
     Vector3i gidx;
     grid.Index(id, &gidx);

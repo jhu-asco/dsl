@@ -14,7 +14,7 @@
 namespace dsl {
 
 using XyCostCell = Cell<Eigen::Vector2d, double>;
-using Grid2dBase = GridCore<XyCostCell::PointType, XyCostCell::Ptr>;
+using Grid2dBase = Grid<XyCostCell::PointType, XyCostCell::Ptr>;
 
 /**
  * A 2d grid with coordinates (x,y)
