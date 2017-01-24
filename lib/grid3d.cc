@@ -26,12 +26,12 @@ Grid3d::Grid3d(int length,
         // so
         // they shouldn't be added to the list of cells
         if (cost < maxCost) {
-          cells_[id].reset(new Cell< Eigen::Vector3d, double >(id,
+          cells_[id] = new Cell< Eigen::Vector3d, double >(id,
                                                    Eigen::Vector3d((i + 0.5) * sx, (j + 0.5) * sy, (k + 0.5) * sz),
-                                                   cost));
-              //              Eigen::Vector3d((i + 0.5) * sx, (j + 0.5) * sy, (k + 0.5) * sz),
-              //              Eigen::Vector3d(sx / 2, sy / 2, sz / 2),
-              //              cost);
+                                                   cost);
+//          cells_[id].reset(new Cell< Eigen::Vector3d, double >(id,
+//                                                   Eigen::Vector3d((i + 0.5) * sx, (j + 0.5) * sy, (k + 0.5) * sz),
+//                                                   cost));
         }
       }
     }

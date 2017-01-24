@@ -17,7 +17,8 @@ using namespace std;
 using Vector3b = Eigen::Matrix<bool,3,1>;
 
 struct HT{
-  using Ptr = std::shared_ptr<HT>;
+//  using Ptr = std::shared_ptr<HT>;
+  using Ptr = HT*;
 
   HT():h(0),t(0){}
 
@@ -108,10 +109,10 @@ int main(int argc, char** argv){
   GridCore<Vector3d,HT::Ptr > grid_pht(xlb,xub,gs,wd);
 
   //only the 0th and the 2nd cell allocated
-  HT::Ptr ptr(new HT(10,20));
-  grid_pht.set_cells(0, ptr);
-  ptr.reset(new HT(20,30));
-  grid_pht.set_cells(2, ptr);
+  HT::Ptr ptr1(new HT(10,20));
+  grid_pht.set_cells(0, ptr1);
+  HT::Ptr ptr2(new HT(20,30));
+  grid_pht.set_cells(2, ptr2);
 
   grid_pht.Save(filename);
 

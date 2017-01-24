@@ -20,13 +20,12 @@ Grid2d::Grid2d(int width,
       // this is useful if maxCost defines map cells that are untreversable, so
       // they shouldn't be added to the list of cells
       if (cost < maxCost) {
-        cells_[id].reset(new Cell< Eigen::Vector2d, double>(id,
+        cells_[id] = new Cell< Eigen::Vector2d, double>(id,
                                                        Eigen::Vector2d((i + 0.5) * sx, (j + 0.5) * sy),
-                                                       cost));
-        
-            //            new Cell< Vector2d, double>(Eigen::Vector2d((i + 0.5) * sx, (j + 0.5) * sy),
-            //                                        Eigen::Vector2d(sx / 2, sy / 2),
-            //                                        cost);
+                                                       cost);
+//        cells_[id].reset(new Cell< Eigen::Vector2d, double>(id,
+//                                                       Eigen::Vector2d((i + 0.5) * sx, (j + 0.5) * sy),
+//                                                       cost));
       }
     }
   }

@@ -40,6 +40,12 @@ struct remove_shared_ptr { typedef T type; };
 template<class T>
 struct remove_shared_ptr<std::shared_ptr<T> > { typedef T type; };
 
+template<class T>
+struct remove_unique_ptr { typedef T type; };
+
+template<class T>
+struct remove_unique_ptr<std::shared_ptr<T> > { typedef T type; };
+
 /**
  * An n-dimenensional grid consisting of abstract "cells", or elements
  * identified by a set of coordinates of type PointType, each cell
@@ -92,10 +98,19 @@ public:
   using Stack = GridCore<Vectornp1d,CellType>;
   using StackPtr = std::shared_ptr<Stack>;
 
-  using ValType = typename remove_shared_ptr<CellType>::type;
+  using ValType = typename std::remove_pointer<CellType>::type;
+  static std::is_pointer<CellType> cells_store_ptr_type; //std::false_type or true_type
+  static const bool cells_store_ptr = std::is_pointer<CellType>::value; //true or false
 
-  static has_template_type<CellType,std::shared_ptr> cells_store_ptr_type; //std::false_type or true_type
-  static const bool cells_store_ptr = has_template_type<CellType,std::shared_ptr>::value; //true or false
+
+//  using ValType = typename remove_shared_ptr<CellType>::type;
+//  static has_template_type<CellType,std::shared_ptr> cells_store_ptr_type; //std::false_type or true_type
+//  static const bool cells_store_ptr = has_template_type<CellType,std::shared_ptr>::value; //true or false
+
+
+//  using ValType = typename remove_unique_ptr<CellType>::type;
+//  static has_template_type<CellType,std::unique_ptr> cells_store_ptr_type; //std::false_type or true_type
+//  static const bool cells_store_ptr = has_template_type<CellType,std::unique_ptr>::value; //true or false
 
   /**
    * Initialize the grid using state lower bound, state upper bound, the number of grid cells
@@ -1255,7 +1270,8 @@ private:
        int id = pb.ids_allocated(i);
        ValType val;
        StringToVal(pb.data(i),&val, std::is_pod<ValType>());
-       grid.cells_[id].reset(new ValType);
+       //grid.cells_[id].reset(new ValType);
+       grid.cells_[id] = new ValType;
        *grid.cells_[id] = val;
      }
    }
