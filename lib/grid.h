@@ -98,14 +98,14 @@ public:
   using Stack = GridCore<Vectornp1d,CellType>;
   using StackPtr = std::shared_ptr<Stack>;
 
-  using ValType = typename std::remove_pointer<CellType>::type;
-  static std::is_pointer<CellType> cells_store_ptr_type; //std::false_type or true_type
-  static const bool cells_store_ptr = std::is_pointer<CellType>::value; //true or false
+//  using ValType = typename std::remove_pointer<CellType>::type;
+//  static std::is_pointer<CellType> cells_store_ptr_type; //std::false_type or true_type
+//  static const bool cells_store_ptr = std::is_pointer<CellType>::value; //true or false
 
 
-//  using ValType = typename remove_shared_ptr<CellType>::type;
-//  static has_template_type<CellType,std::shared_ptr> cells_store_ptr_type; //std::false_type or true_type
-//  static const bool cells_store_ptr = has_template_type<CellType,std::shared_ptr>::value; //true or false
+  using ValType = typename remove_shared_ptr<CellType>::type;
+  static has_template_type<CellType,std::shared_ptr> cells_store_ptr_type; //std::false_type or true_type
+  static const bool cells_store_ptr = has_template_type<CellType,std::shared_ptr>::value; //true or false
 
 
 //  using ValType = typename remove_unique_ptr<CellType>::type;
@@ -1270,8 +1270,7 @@ private:
        int id = pb.ids_allocated(i);
        ValType val;
        StringToVal(pb.data(i),&val, std::is_pod<ValType>());
-       //grid.cells_[id].reset(new ValType);
-       grid.cells_[id] = new ValType;
+       grid.cells_[id].reset(new ValType);
        *grid.cells_[id] = val;
      }
    }

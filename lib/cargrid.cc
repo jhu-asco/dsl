@@ -28,8 +28,7 @@ CarGrid::CarGrid(const Map<bool, 3> &cmap, const Vector3d& cs)
     assert(gotcenter);
     bool occ = cmap.Get(cc, false);
     if (!occ) {  //Allocate memory for grid cells if it is not occupied
-      //cells_[id].reset(new SE2Cell(id, cc));
-      cells_[id] = new SE2Cell(id, cc);
+      cells_[id].reset(new SE2Cell(id, cc));
       se2_q2g(cells_[id]->data, cells_[id]->c);
     }
   };

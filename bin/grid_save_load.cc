@@ -17,8 +17,7 @@ using namespace std;
 using Vector3b = Eigen::Matrix<bool,3,1>;
 
 struct HT{
-//  using Ptr = std::shared_ptr<HT>;
-  using Ptr = HT*;
+  using Ptr = std::shared_ptr<HT>;
 
   HT():h(0),t(0){}
 
