@@ -30,7 +30,7 @@ TerrainSE2GridCost::TerrainSE2GridCost(const TerrainSE2Grid& grid, const SE2Grid
 
 }
 
-double TerrainSE2GridCost::Real(const TerrainCell& a, const TerrainCell& b) const {
+double TerrainSE2GridCost::Real(const SE2TerrainCell& a, const SE2TerrainCell& b) const {
   const Vector3d& wt = config_.twist_weight;
   const bool& sp = config_.subpixel;
 
@@ -46,7 +46,7 @@ double TerrainSE2GridCost::Real(const TerrainCell& a, const TerrainCell& b) cons
   double d = twist.tail<2>().norm(); // total distance along curve
   int n_seg = ceil(d/ grid_.cs()[1]); // want segments to lie in each cell along the way
   double d_seg = d/n_seg;
-  TerrainCellPtr wp; //waypoint cells
+  SE2TerrainCell::Ptr wp; //waypoint cells
   double trav_sum = a.data.traversibility + b.data.traversibility;
   double delh_pve_sum = 0; //positive change in height. Only positive change in height incurs cost.
   double pot_prev = a.data.height;
@@ -74,7 +74,7 @@ double TerrainSE2GridCost::Real(const TerrainCell& a, const TerrainCell& b) cons
   return delh_pve_sum + trav_avg*wl;
 }
 
-double TerrainSE2GridCost::Heur(const TerrainCell& a, const TerrainCell& b) const {
+double TerrainSE2GridCost::Heur(const SE2TerrainCell& a, const SE2TerrainCell& b) const {
   const double& eps = config_.eps;
   const Vector3d& wt = config_.twist_weight;
 

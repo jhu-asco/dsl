@@ -76,8 +76,11 @@ public:
   using TypedCell = Cell<PointType, DataType>;
   using TypedCellPtr = typename TypedCell::Ptr;
 
-  using TypedGrid = Grid<PointType, DataType>;
-    
+  using TypedGrid = GridCore<PointType, TypedCellPtr>;
+
+
+  using TypedGridConnectivity = GridConnectivity< PointType, DataType, ConnectionType >;
+
   /**
    * The planner requires a grid, its connectivity, and a cost interface. By
    * default it will expand the
@@ -95,7 +98,7 @@ public:
    * through each cell, this is useful for changing the costs these edges if the
    * cost of that cell changes, or to remove these edges if the cell is removed
    */
-  GridSearch(Grid< PointType, DataType >& grid,
+  GridSearch(TypedGrid& grid,
              const GridConnectivity< PointType, DataType, ConnectionType >& connectivity,
              const GridCost< PointType, DataType >& cost,
              bool expand = false,
@@ -179,7 +182,7 @@ public:
 private:
   Graph< GridVertexData, GridEdgeData> graph; ///< the underlying graph
 
-  Grid< PointType, DataType >& grid; ///< the grid
+  TypedGrid& grid; ///< the grid
   const GridConnectivity< PointType, DataType, ConnectionType >&
       connectivity;              ///< the connectivity interface
   const GridCost< PointType, DataType >& cost; ///< the cost interface
@@ -199,7 +202,7 @@ private:
 
 template < class PointType, class DataType, class ConnectionType >
     GridSearch< PointType, DataType, ConnectionType>::GridSearch(
-    Grid< PointType, DataType>& grid,
+    TypedGrid& grid,
     const GridConnectivity< PointType, DataType, ConnectionType >& connectivity,
     const GridCost< PointType, DataType >& cost,
     bool expand,

@@ -32,11 +32,13 @@ template < class PointType, class DataType = EmptyData>
 public:
   using TypedCell = Cell<PointType, DataType>;
   using TypedCellPtr = typename TypedCell::Ptr;
+  using TypedGrid = GridCore<PointType, TypedCellPtr>;
+
   /**
    * Initialize connectivity using a grid
    * @param grid the grid
    */
-  LineConnectivity(const Grid< PointType, DataType >& grid);
+  LineConnectivity(const TypedGrid& grid);
 
   /**
    * Initialize connectivity using a grid, lines, and costs
@@ -44,7 +46,7 @@ public:
    * @param lines the lines
    * @param costs the costs
    */
-  LineConnectivity(const Grid<PointType, DataType>& grid,
+  LineConnectivity(const TypedGrid& grid,
                    const std::vector<PointType>& lines,
                    const std::vector< double >& costs);
 
@@ -84,17 +86,17 @@ public:
                   double traceStep = 0.1) const;
 
 
-  const Grid<  PointType, DataType >& grid; ///< grid
+  const TypedGrid& grid; ///< grid
   std::vector< PointType > lines; ///< line vectors (directions) connecting to other cells
   std::vector< double > costs; ///< cost along each direction
 };
 
 template < class PointType, class DataType >
-    LineConnectivity< PointType, DataType >::LineConnectivity(const Grid< PointType, DataType >& grid)
+    LineConnectivity< PointType, DataType >::LineConnectivity(const TypedGrid& grid)
   : grid(grid) {}
 
 template < class PointType, class DataType >
-LineConnectivity< PointType, DataType >::LineConnectivity(const Grid<  PointType, DataType >& grid,
+LineConnectivity< PointType, DataType >::LineConnectivity(const TypedGrid& grid,
                                                           const std::vector< PointType >& lines,
                                                           const std::vector< double >& costs)
   : grid(grid), lines(lines), costs(costs) {}

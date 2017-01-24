@@ -13,12 +13,14 @@
 
 namespace dsl {
 
+using XyzCostCell = Cell<Eigen::Vector3d, double>;
+using Grid3dBase = GridCore<XyzCostCell::PointType, XyzCostCell::Ptr>;
 /**
  * A 3d grid with coordinates (x,y,z)
  *
  * Author: Matt Sheckells
  */
-  class Grid3d : public Grid< Eigen::Vector3d, double > {
+  class Grid3d : public Grid3dBase {
 public:
   /**
    * Initialize the grid using a 3d configuration-space map

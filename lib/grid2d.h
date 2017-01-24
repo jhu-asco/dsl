@@ -13,11 +13,14 @@
 
 namespace dsl {
 
+using XyCostCell = Cell<Eigen::Vector2d, double>;
+using Grid2dBase = GridCore<XyCostCell::PointType, XyCostCell::Ptr>;
+
 /**
  * A 2d grid with coordinates (x,y)
  *
  */
-  class Grid2d : public Grid< Eigen::Vector2d, double> {
+  class Grid2d : public Grid2dBase {
 public:
   /**
    * Initialize the grid using a 2d configuration-space map

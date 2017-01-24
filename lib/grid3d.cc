@@ -11,7 +11,7 @@ Grid3d::Grid3d(int length,
                double sz,
                double costScale,
                double maxCost)
-    : Grid< Eigen::Vector3d, double >(Eigen::Vector3d(0, 0, 0),
+    : Grid3dBase(Eigen::Vector3d(0, 0, 0),
               Eigen::Vector3d(sx * length, sy * width, sz * height),
               Eigen::Vector3i(length, width, height)) {
   for (int i = 0; i < length; ++i) {

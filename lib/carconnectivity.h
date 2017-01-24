@@ -48,7 +48,7 @@ public:
   using TypedCell = Cell<PointType, DataType>;
   using TypedCellPtr = typename TypedCell::Ptr;
   using TypedCellConnectionCostTuple = std::tuple<TypedCellPtr, ConnectionType, double>;
-  using TypedGrid = Grid<PointType,DataType>;
+  using TypedGrid = GridCore<PointType, TypedCellPtr>;
   using TypedGridCost = GridCost<PointType, DataType>;
   /**
    * Initialize cargrid connectivity
@@ -273,7 +273,7 @@ public:
 
 using CarTwistConnectivity     = SE2GridConnectivity<SE2Cell::PointType, SE2Cell::DataType, SE2Twist>;
 using CarPathConnectivity      = SE2GridConnectivity<SE2Cell::PointType, SE2Cell::DataType, SE2Path>;
-using TerrainTwistConnectivity = SE2GridConnectivity<TerrainCell::PointType, TerrainCell::DataType, SE2Twist>;
+using TerrainTwistConnectivity = SE2GridConnectivity<SE2TerrainCell::PointType, SE2TerrainCell::DataType, SE2Twist>;
 }
 
 #endif //DSL_CARCONNECTIVITY_H

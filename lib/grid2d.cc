@@ -8,7 +8,7 @@ Grid2d::Grid2d(int width,
                double sx,
                double sy,
                double maxCost)
-    : Grid< Eigen::Vector2d, double >(Eigen::Vector2d(0, 0),
+    : Grid2dBase(Eigen::Vector2d(0, 0),
               Eigen::Vector2d(sx * width, sy * height),
               Eigen::Vector2i(width, height)) {
   for (int i = 0; i < width; ++i) {

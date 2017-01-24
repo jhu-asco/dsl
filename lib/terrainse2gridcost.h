@@ -36,7 +36,7 @@ struct SE2GridCostConfig{
  * - Implement subpixel intepolation of height and traversibility for better accuracy.
  * - When going up or down a slope the length of path should be more than when moving on flat ground
  */
-class TerrainSE2GridCost : public GridCost< TerrainCell::PointType, TerrainCell::DataType > {
+class TerrainSE2GridCost : public GridCost< SE2TerrainCell::PointType, SE2TerrainCell::DataType > {
 public:
   using Ptr = std::shared_ptr<TerrainSE2GridCost>;
   /**
@@ -54,7 +54,7 @@ public:
    * @param b End Cell
    * @return true cost of moving from a to b. If no path, returns numeric_limits<double>::quiet_NaN();
    */
-  double Real(const TerrainCell& a, const TerrainCell& b) const;
+  double Real(const SE2TerrainCell& a, const SE2TerrainCell& b) const;
 
   /**
    * Estimated cost(given a metric) of moving from cell "a" to a cell "b" along a twist element that connects them.
@@ -65,7 +65,7 @@ public:
    * @param b End cell
    * @return estimated cost of moving from a to b.
    */
-  double Heur(const TerrainCell& a, const TerrainCell& b) const;
+  double Heur(const SE2TerrainCell& a, const SE2TerrainCell& b) const;
 
   const TerrainSE2Grid& grid_; ///< reference to the grid structure. Enables CarCost to give cost from cell a to b.
   SE2GridCostConfig config_; ///< configuration for the cost interface.

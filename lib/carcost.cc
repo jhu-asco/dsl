@@ -35,7 +35,7 @@ double CarCost::Real(const SE2Cell& a, const SE2Cell& b) const{
   double d = twist.tail<2>().norm(); // total distance along curve
   int n_seg = ceil(d/(2*grid_.cs()(1))); // 2 * grid.cs[1] is to improve efficiency
   double d_seg = d/n_seg;
-  SE2CellPtr wp; //waypoint cells
+  SE2Cell::Ptr wp; //waypoint cells
   for (int i_seg=1; i_seg<n_seg; i_seg++) {
     se2_exp(dg, (d_seg*i_seg / d) * twist);
     Matrix3d g = ga * dg;

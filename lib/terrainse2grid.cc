@@ -53,7 +53,7 @@ TerrainSE2Grid::TerrainSE2Grid(const Map<bool, 3> &cmap, const Map<TerrainData,2
     assert(gotcenter);
     bool occ = cmap.Get(cc, false);
     if (!occ) {  //Allocate memory for grid cells if it is not occupied
-      cells_[id].reset(new TerrainCell(id, cc));
+      cells_[id].reset(new SE2TerrainCell(id, cc));
       cells_[id]->data = tmap.Get(gidx2d);
     }
   };

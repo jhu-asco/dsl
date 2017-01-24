@@ -12,7 +12,7 @@ using namespace dsl;
 using namespace std;
 using namespace Eigen;
 
-using CarTwistPath = dsl::GridPath<TerrainCell::PointType, TerrainCell::DataType, SE2Twist>;
+using CarTwistPath = dsl::GridPath<SE2TerrainCell::PointType, SE2TerrainCell::DataType, SE2Twist>;
 
 vector<Vector3d> ToVector3dPath(const CarTwistPath &path, double gridcs) {
   vector<Vector3d> path3d;
@@ -195,7 +195,7 @@ int main(int argc, char** argv)
   params.GetBool("initExpand", initExpand);
 
   timer_start(&timer);
-  GridSearch<TerrainCell::PointType, TerrainCell::DataType, SE2Twist> search(grid, connectivity, *cost, initExpand);
+  GridSearch<SE2TerrainCell::PointType, SE2TerrainCell::DataType, SE2Twist> search(grid, connectivity, *cost, initExpand);
   long time = timer_us(&timer);
   printf("  graph construction time= %ld  us\n", time);
   cout <<"  Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges." << endl;
