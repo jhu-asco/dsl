@@ -25,7 +25,7 @@ namespace dsl {
 
 struct EmptyData {};
 
-//To check if a template parameter is shared_ptr
+//To check if a template parameter is shared_ptr, unique_ptr etc
 //  usage: if(has_template_type<T, std::shared_ptr>::value)
 //           std::cout<<"is shared_ptr"<<std::endl;
 template < typename T,template <typename...> class Templated >
@@ -98,15 +98,14 @@ public:
   using Stack = Grid<Vectornp1d,CellType>;
   using StackPtr = std::shared_ptr<Stack>;
 
+
 //  using ValType = typename std::remove_pointer<CellType>::type;
 //  static std::is_pointer<CellType> cells_store_ptr_type; //std::false_type or true_type
 //  static const bool cells_store_ptr = std::is_pointer<CellType>::value; //true or false
 
-
   using ValType = typename remove_shared_ptr<CellType>::type;
   static has_template_type<CellType,std::shared_ptr> cells_store_ptr_type; //std::false_type or true_type
   static const bool cells_store_ptr = has_template_type<CellType,std::shared_ptr>::value; //true or false
-
 
 //  using ValType = typename remove_unique_ptr<CellType>::type;
 //  static has_template_type<CellType,std::unique_ptr> cells_store_ptr_type; //std::false_type or true_type
@@ -1176,6 +1175,16 @@ public:
     if(nc_ != cells.size())
       throw std::length_error(" cells don't have the same length as nc.");
     cells_ = cells;
+  }
+
+  /**
+   * This method is only enabled if cells store shared_ptr
+   * @param id
+   */
+  template< class Q = CellType, typename = typename std::enable_if<has_template_type<Q,std::shared_ptr>::value>::type >
+  void delete_cell(int id)
+  {
+    cells_.at(id).reset();
   }
 
   // To give data access to Slice and Stack

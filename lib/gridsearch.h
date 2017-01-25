@@ -459,8 +459,7 @@ template < class PointType, class DataType, class ConnectionType >
   }
 
   if (grid.cells()[id]) {
-    grid.set_cells(id,nullptr);
-    //grid.cells_[id].reset();
+    grid.delete_cell(id);
   } else {
     return false;
   }
