@@ -46,8 +46,9 @@ class SE2GridConnectivity: public GridConnectivity< PointType, DataType, Connect
 public:
 
   using TypedCell = Cell<PointType, DataType>;
+  using TypedCellCref = typename TypedCell::Cref;
   using TypedCellPtr = typename TypedCell::Ptr;
-  using TypedCellConnectionCostTuple = std::tuple<TypedCellPtr, ConnectionType, double>;
+  using TypedCellConnectionCostTuple = std::tuple<TypedCellCref, ConnectionType, double>;
   using TypedGrid = Grid<PointType, TypedCellPtr>;
   using TypedGridCost = GridCost<PointType, DataType>;
   /**
@@ -216,17 +217,17 @@ public:
    */
   bool GetPrims(const Eigen::Vector3d& pos, std::vector<std::vector<Eigen::Vector2d>>& prims ){
     //Display the primitive at start
-    TypedCellPtr cell_start = grid_.Get(pos);
-    if(!cell_start){
+    TypedCellCref cell_start = grid_.Get(pos);
+    if(!&cell_start){
       prims.clear();
       return false;
     }
     std::vector<TypedCellConnectionCostTuple> paths;
-    if(cell_start){
-      (*this)(*cell_start,paths,true);
+    if(&cell_start){
+      (*this)(cell_start,paths,true);
 
       Eigen::Matrix3d g0;
-      se2_q2g(g0, cell_start->c);
+      se2_q2g(g0, cell_start.c);
 
       prims.reserve(paths.size());
       for(auto& path:paths){

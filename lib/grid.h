@@ -103,13 +103,13 @@ public:
 //  static std::is_pointer<CellType> cells_store_ptr_type; //std::false_type or true_type
 //  static const bool cells_store_ptr = std::is_pointer<CellType>::value; //true or false
 
-  using ValType = typename remove_shared_ptr<CellType>::type;
-  static has_template_type<CellType,std::shared_ptr> cells_store_ptr_type; //std::false_type or true_type
-  static const bool cells_store_ptr = has_template_type<CellType,std::shared_ptr>::value; //true or false
+//  using ValType = typename remove_shared_ptr<CellType>::type;
+//  static has_template_type<CellType,std::shared_ptr> cells_store_ptr_type; //std::false_type or true_type
+//  static const bool cells_store_ptr = has_template_type<CellType,std::shared_ptr>::value; //true or false
 
-//  using ValType = typename remove_unique_ptr<CellType>::type;
-//  static has_template_type<CellType,std::unique_ptr> cells_store_ptr_type; //std::false_type or true_type
-//  static const bool cells_store_ptr = has_template_type<CellType,std::unique_ptr>::value; //true or false
+  using ValType = typename remove_unique_ptr<CellType>::type;
+  static has_template_type<CellType,std::unique_ptr> cells_store_ptr_type; //std::false_type or true_type
+  static const bool cells_store_ptr = has_template_type<CellType,std::unique_ptr>::value; //true or false
 
   /**
    * Initialize the grid using state lower bound, state upper bound, the number of grid cells
@@ -791,10 +791,10 @@ public:
    * @return Copy of contents of cell, could be shared_ptr or bool etc.
    * If cell doesn't exist default object is returned, which in case of a pointer is a nullptr.
    */
-  CellType Get(const Vectornd& x, bool checkValid = true) const {
+  const ValType& Get(const Vectornd& x, bool checkValid = true) const {
     if (checkValid)
       if (!Valid(x))
-        return CellType();//nullptr for shared_ptr
+        return null_ref_;
 
         return Get(Id(x));
   }
@@ -802,14 +802,14 @@ public:
   /**
    * Get the cell at a given cell id
    * @param id a non-negative id
-   * @return Copy of contents of cell, could be shared_ptr or bool etc.
-   * If cell doesn't exist default object is returned, which in case of a pointer is a nullptr.
+   * @return const ref to contents of cell.
+   * If cell holds pointer and is not allocate then a null reference is returned
    */
-  CellType Get(int id) const {
+  const ValType& Get(int id) const {
     if (id<0 || id >= nc_)
-      return CellType();//nullptr for shared_ptr
+      return null_ref_;
 
-    return cells_[id];
+    return Get(id, cells_store_ptr_type);
   }
 
   /**
@@ -818,11 +818,10 @@ public:
    * @return Copy of contents of cell, could be shared_ptr or bool etc.
    * If cell doesn't exist default object is returned, which in case of a pointer is a nullptr.
    */
-  CellType Get(const Vectorni& gidx) const {
+  const ValType& Get(const Vectorni& gidx) const {
     if (!Valid(gidx))
-      return CellType();//nullptr for shared_ptr
-
-    return cells_[Id(gidx)];
+      return null_ref_;
+    return Get(Id(gidx));
   }
 
   /**
@@ -1189,7 +1188,7 @@ public:
    * This method is only enabled if cells store shared_ptr
    * @param id
    */
-  template< class Q = CellType, typename = typename std::enable_if<has_template_type<Q,std::shared_ptr>::value>::type >
+  template< class Q = CellType, typename = typename std::enable_if<has_template_type<Q,std::unique_ptr>::value>::type >
   void delete_cell(int id)
   {
     cells_.at(id).reset();
@@ -1203,6 +1202,30 @@ private:
    * Private constructor only to be used by the Load method
    */
   Grid(){}
+
+
+  /**
+   * Get const ref to cells[i] when cells hold ValType and not pointer/smart_ptr to ValType
+   * @param id a non-negative id
+   * @return const ref to contents of cell.
+   * If cell holds pointer and is not allocate then a null reference is returned
+   */
+  const ValType& Get(int id, std::false_type) const {
+    return cells_[id];
+  }
+
+  /**
+   * Get const ref to *cells[i] when cells hold pointer/smart_ptr to ValType
+   * @param id a non-negative id
+   * @return const ref to contents of cell.
+   * If cell holds pointer and is not allocate then a null reference is returned
+   */
+  const ValType& Get(int id, std::true_type) const {
+    if(cells_[id])
+      return cells_[id];
+    else
+      return null_ref_;
+  }
 
   /**
    * setter function for cells_[id] if holds ValType and not pointer/smart_ptr to ValType
@@ -1327,8 +1350,7 @@ private:
        int id = pb.ids_allocated(i);
        ValType val;
        StringToVal(pb.data(i),&val, std::is_pod<ValType>());
-       grid.cells_[id].reset(new ValType);
-       *grid.cells_[id] = val;
+       grid.cells_[id].reset(new ValType(val));
      }
    }
 
@@ -1364,6 +1386,8 @@ private:
   Vectorni cgs_; ///< cumulative(product) of gs. For n=3, cgs = [1, gs[0], gs[0]*gs[1]]
   Vectornb wd_;  ///< which dimensions are wrapped
   std::vector<CellType> cells_; ///< grid cells
+
+  const ValType& null_ref_ = *(ValType*)0; ///< null reference
 };
 
 /**

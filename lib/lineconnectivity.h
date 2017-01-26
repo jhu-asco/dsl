@@ -31,8 +31,10 @@ template < class PointType, class DataType = EmptyData>
 
 public:
   using TypedCell = Cell<PointType, DataType>;
+  using TypedCellCref = typename TypedCell::Cref;
   using TypedCellPtr = typename TypedCell::Ptr;
   using TypedGrid = Grid<PointType, TypedCellPtr>;
+  using TypedCellConnectionCostTuple = std::tuple<TypedCellCref, PointType, double>;
 
   /**
    * Initialize connectivity using a grid
@@ -53,7 +55,7 @@ public:
   virtual bool Free(const DataType &cost) const override { return cost < 0.5; }
 
   virtual bool operator()(const TypedCell& from,
-                          std::vector< std::tuple<TypedCellPtr, PointType, double> >& paths,
+                          std::vector<TypedCellConnectionCostTuple>& paths,
                           bool fwd = true) const;
 
   /**
@@ -103,7 +105,7 @@ LineConnectivity< PointType, DataType >::LineConnectivity(const TypedGrid& grid,
 
 template < class PointType, class DataType >
     bool LineConnectivity< PointType, DataType >::operator()(const TypedCell& from,
-                                                             std::vector< std::tuple<TypedCellPtr, PointType, double> >& paths,
+                                                             std::vector<TypedCellConnectionCostTuple>& paths,
                                                              bool fwd) const {
   paths.clear();
   for (size_t i = 0; i < lines.size(); ++i) {
@@ -116,11 +118,11 @@ template < class PointType, class DataType >
     if (!grid.Valid(x))
       continue;
 
-    TypedCellPtr cell = grid.Get(x, false);
-    if (!cell)
+    TypedCellCref cell = grid.Get(x, false);
+    if (!&cell)
       continue;
 
-    if (!Free(cell->data)) // if obstacle
+    if (!Free(cell.data)) // if obstacle
       continue;
 
     paths.push_back(std::make_tuple(cell, lines[i], costs[i]));    
