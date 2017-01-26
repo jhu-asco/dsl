@@ -30,8 +30,7 @@ CarGrid::CarGrid(const Map<bool, 3> &cmap, const Vector3d& cs)
     if (!occ) {  //Allocate memory for grid cells if it is not occupied
       Matrix3d g;
       se2_q2g(g, cc);
-      //this->set_cells(id,SE2Cell(id, cc, g));
-      //cells_[id].reset(new SE2Cell(id, cc));
+      this->set_cells(id,SE2Cell(id, cc, g));
     }
   };
   LoopOver(fun);

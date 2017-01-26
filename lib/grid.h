@@ -99,13 +99,13 @@ public:
   using StackPtr = std::shared_ptr<Stack>;
 
 
-//  using ValType = typename std::remove_pointer<CellType>::type;
-//  static std::is_pointer<CellType> cells_store_ptr_type; //std::false_type or true_type
-//  static const bool cells_store_ptr = std::is_pointer<CellType>::value; //true or false
+  //  using ValType = typename std::remove_pointer<CellType>::type;
+  //  static std::is_pointer<CellType> cells_store_ptr_type; //std::false_type or true_type
+  //  static const bool cells_store_ptr = std::is_pointer<CellType>::value; //true or false
 
-//  using ValType = typename remove_shared_ptr<CellType>::type;
-//  static has_template_type<CellType,std::shared_ptr> cells_store_ptr_type; //std::false_type or true_type
-//  static const bool cells_store_ptr = has_template_type<CellType,std::shared_ptr>::value; //true or false
+  //  using ValType = typename remove_shared_ptr<CellType>::type;
+  //  static has_template_type<CellType,std::shared_ptr> cells_store_ptr_type; //std::false_type or true_type
+  //  static const bool cells_store_ptr = has_template_type<CellType,std::shared_ptr>::value; //true or false
 
   using ValType = typename remove_unique_ptr<CellType>::type;
   static has_template_type<CellType,std::unique_ptr> cells_store_ptr_type; //std::false_type or true_type
@@ -136,31 +136,31 @@ public:
     cells_.resize(nc_);
   }
 
-//  /**
-//   * Initialize the map using state lower bound, state upper bound, and a suggested cell size
-//   * @param xlb state lower bound
-//   * @param xub state upper bound
-//   * @param scs suggested cell size along each dimension. The true cs is the one which results in
-//   * integer number of grid cells between xlb and xub
-//   * @param wd indicates if a dimension if wrapped or not. wd[i]=false(flat dim) wd[i]=1(wrapped dim).
-//   * For wrapped dimension i, the ds[i],i.e. dimension size, is given by xub[i]-xlb[i] (e.g. for angles it ds[i]=2*M_PI)
-//   */
-//  Grid(const Vectornd& xlb, const Vectornd& xub, const Vectornd& scs, const Vectornb wd = Vectornb::Zero())
-//  : n(xlb.size()), xlb(xlb), xub(xub), wd(wd), cells(0){
-//    ds = xub - xlb;
-//    nc = 1;
-//    cgs[0] = 1;
-//    for (int i = 0; i < n; ++i) {
-//      assert(xlb[i] < xub[i]);
-//      assert(scs[i] > 0);
-//      gs[i] = floor(ds[i] / scs[i]);
-//      cs[i] = ds[i] / gs[i];
-//      nc *= gs[i]; // total number of cells
-//      if(i>0)
-//        cgs[i] = cgs[i-1]*gs[i-1];
-//    }
-//    cells.resize(nc);
-//  }
+  //  /**
+  //   * Initialize the map using state lower bound, state upper bound, and a suggested cell size
+  //   * @param xlb state lower bound
+  //   * @param xub state upper bound
+  //   * @param scs suggested cell size along each dimension. The true cs is the one which results in
+  //   * integer number of grid cells between xlb and xub
+  //   * @param wd indicates if a dimension if wrapped or not. wd[i]=false(flat dim) wd[i]=1(wrapped dim).
+  //   * For wrapped dimension i, the ds[i],i.e. dimension size, is given by xub[i]-xlb[i] (e.g. for angles it ds[i]=2*M_PI)
+  //   */
+  //  Grid(const Vectornd& xlb, const Vectornd& xub, const Vectornd& scs, const Vectornb wd = Vectornb::Zero())
+  //  : n(xlb.size()), xlb(xlb), xub(xub), wd(wd), cells(0){
+  //    ds = xub - xlb;
+  //    nc = 1;
+  //    cgs[0] = 1;
+  //    for (int i = 0; i < n; ++i) {
+  //      assert(xlb[i] < xub[i]);
+  //      assert(scs[i] > 0);
+  //      gs[i] = floor(ds[i] / scs[i]);
+  //      cs[i] = ds[i] / gs[i];
+  //      nc *= gs[i]; // total number of cells
+  //      if(i>0)
+  //        cgs[i] = cgs[i-1]*gs[i-1];
+  //    }
+  //    cells.resize(nc);
+  //  }
 
   /**
    * Initialize the map using a suggested state lower bound, suggested state upper bound, and a suggested cell size.
@@ -178,7 +178,7 @@ public:
    * contained in the grid)
    */
   Grid(const Vectornd& sxlb, const Vectornd& sxub, const Vectornd& scs,
-           const Vectornb& wd = Vectornb::Zero(), const Vectornb& ss = Vectornb::Zero())
+       const Vectornb& wd = Vectornb::Zero(), const Vectornb& ss = Vectornb::Zero())
   : wd_(wd), cells_(0){
     nc_ = 1;
     cgs_[0] = 1;
@@ -187,27 +187,27 @@ public:
       assert(scs[i] > 0);
 
       if(ss[i]){
-          if(!wd[i]){ //if dimension is flat(cs=scs)
-            cs_[i] = scs[i];
-            int n_org2ub = floor(sxub[i]/cs_[i] - 0.5);
-            int n_org2lb =  ceil(sxlb[i]/cs_[i] + 0.5);
-            gs_[i] = n_org2ub  - n_org2lb + 1;
-            xub_[i] = (n_org2ub +0.5)*cs_[i];
-            xlb_[i] = (n_org2lb -0.5)*cs_[i];
-            ds_[i] = xub_[i] - xlb_[i];
-          }else{ //dimension is wrapped
-            ds_[i] = sxub[i] - sxlb[i]; //For angles this is = 2*M_PI
-            gs_[i] = 4*ceil(ds_[i]/(4*scs[i])); //Multiple of 4 number of cells
-            cs_[i] = ds_[i]/gs_[i];
-            xlb_[i] = -ds_[i]/2 + cs_[i]/2; //shifted by half cell so that pi/(pi/2)/0 lies at center of a cell
-            xub_[i] =  ds_[i]/2 + cs_[i]/2; //shifted by half cell so that pi/(pi/2)/0 lies at center of a cell
-          }
-      }else{
-          xlb_[i] = sxlb[i];
-          xub_[i] = sxub[i];
+        if(!wd[i]){ //if dimension is flat(cs=scs)
+          cs_[i] = scs[i];
+          int n_org2ub = floor(sxub[i]/cs_[i] - 0.5);
+          int n_org2lb =  ceil(sxlb[i]/cs_[i] + 0.5);
+          gs_[i] = n_org2ub  - n_org2lb + 1;
+          xub_[i] = (n_org2ub +0.5)*cs_[i];
+          xlb_[i] = (n_org2lb -0.5)*cs_[i];
           ds_[i] = xub_[i] - xlb_[i];
-          gs_[i] = floor(ds_[i] / scs[i]);
-          cs_[i] = ds_[i] / gs_[i];
+        }else{ //dimension is wrapped
+          ds_[i] = sxub[i] - sxlb[i]; //For angles this is = 2*M_PI
+          gs_[i] = 4*ceil(ds_[i]/(4*scs[i])); //Multiple of 4 number of cells
+          cs_[i] = ds_[i]/gs_[i];
+          xlb_[i] = -ds_[i]/2 + cs_[i]/2; //shifted by half cell so that pi/(pi/2)/0 lies at center of a cell
+          xub_[i] =  ds_[i]/2 + cs_[i]/2; //shifted by half cell so that pi/(pi/2)/0 lies at center of a cell
+        }
+      }else{
+        xlb_[i] = sxlb[i];
+        xub_[i] = sxub[i];
+        ds_[i] = xub_[i] - xlb_[i];
+        gs_[i] = floor(ds_[i] / scs[i]);
+        cs_[i] = ds_[i] / gs_[i];
       }
 
       nc_ *= gs_[i]; // total number of cells
@@ -383,40 +383,40 @@ public:
     return GetSlice(idx,i,init);
   }
 
-    /**
-      * Create a slice of the current grid along dimension at particular index
-      * @param pslice pointer to the slice
-      * @param idx index in a grid along the dim coordinate/dimension
-      * @param dim coordinated index/ dimension
-      */
-     void GetSlice(Slice* pslice, int idx, int dim, bool init = true) const {
-       Slice& slice = *pslice;
-       //Get the new dimension
-       slice.xlb_ = RemoveDimension(xlb_,dim);
-       slice.xub_ = RemoveDimension(xub_,dim);
-       slice.gs_  = RemoveDimension(gs_,dim);
-       slice.wd_  = RemoveDimension(wd_,dim);
-       slice.cs_  = RemoveDimension(cs_,dim);
-       slice.ds_  = RemoveDimension(ds_,dim);
-       slice.nc_=1;
-       slice.cgs_[0]=1;
-       for(int i = 0; i < n_- 1; i++){
-         slice.nc_ *=slice.gs_[i];
-         if(i>0)
-           slice.cgs_[i] = slice.cgs_[i-1]*slice.gs_[i-1];
-       }
-       slice.cells_.resize(slice.nc());//if data is already allocated resize does nothing
+  /**
+   * Create a slice of the current grid along dimension at particular index
+   * @param pslice pointer to the slice
+   * @param idx index in a grid along the dim coordinate/dimension
+   * @param dim coordinated index/ dimension
+   */
+  void GetSlice(Slice* pslice, int idx, int dim, bool init = true) const {
+    Slice& slice = *pslice;
+    //Get the new dimension
+    slice.xlb_ = RemoveDimension(xlb_,dim);
+    slice.xub_ = RemoveDimension(xub_,dim);
+    slice.gs_  = RemoveDimension(gs_,dim);
+    slice.wd_  = RemoveDimension(wd_,dim);
+    slice.cs_  = RemoveDimension(cs_,dim);
+    slice.ds_  = RemoveDimension(ds_,dim);
+    slice.nc_=1;
+    slice.cgs_[0]=1;
+    for(int i = 0; i < n_- 1; i++){
+      slice.nc_ *=slice.gs_[i];
+      if(i>0)
+        slice.cgs_[i] = slice.cgs_[i-1]*slice.gs_[i-1];
+    }
+    slice.cells_.resize(slice.nc());//if data is already allocated resize does nothing
 
-       if(!init || cells_store_ptr)
-         return;
+    if(!init || cells_store_ptr)
+      return;
 
-       for(int id_slice=0; id_slice < slice.nc(); id_slice++){
-         Vectornm1i midx_slice;
-         slice.Index(id_slice, &midx_slice);
-         Vectorni midx = InsertDimension(midx_slice,dim,idx); //midx is multidim index
-         slice.cells_[id_slice] = Get(Id(midx));
-       }
-     }
+    for(int id_slice=0; id_slice < slice.nc(); id_slice++){
+      Vectornm1i midx_slice;
+      slice.Index(id_slice, &midx_slice);
+      Vectorni midx = InsertDimension(midx_slice,dim,idx); //midx is multidim index
+      slice.cells_[id_slice] = Get(Id(midx));
+    }
+  }
 
 
   /**
@@ -452,37 +452,37 @@ public:
   }
 
 
-//  /**
-//   * Takes a set of vertices which are corners of a kernel map. The kernel.cs == grid.cs by design
-//   * @param grid the main grid
-//   * @param vertices set of vertices
-//   * @param valin value inside the area marked by the vertices
-//   * @param valout value outside the area marked by the vertices
-//   */
-//  Grid::Ptr GetKernel(const std::vector<Vectornd>& vertices,CellType valin, CellType valout) const{
-//
-//    //convert vertices to grid coordinates
-//    std::vector<Vectornd> verts_grid; ToGridCoordinates(verts_grid,vertices);
-//
-//    //Get center of points and convert to grid coords
-//    Vectornd center = std::accumulate(vertices.begin(),vertices.end(),Vectornd::Zero().eval())/vertices.size();
-//    Vectornd center_grid; ToGridCoordinates(center_grid,center);
-//
-//    //Snap the vertices to cell centers while making sure it is expanded outwards
-//    std::vector<Vectorni> verts_snapped;
-//    for(size_t i=0; i<vertices.size(); i++){
-//      Vectornd verts_grid_centered = verts_grid[i] - center_grid;
-//      for(int dim=0; dim < n; dim++){
-//        verts_snapped[i][dim] = verts_grid_centered[dim]>0 ?
-//                                ceil(verts_grid[i][dim] ):floor(verts_grid[i][dim] );
-//      }
-//    }
-//
-//
-//
-//    Grid::Ptr kernel;
-//    return kernel;
-//  }
+  //  /**
+  //   * Takes a set of vertices which are corners of a kernel map. The kernel.cs == grid.cs by design
+  //   * @param grid the main grid
+  //   * @param vertices set of vertices
+  //   * @param valin value inside the area marked by the vertices
+  //   * @param valout value outside the area marked by the vertices
+  //   */
+  //  Grid::Ptr GetKernel(const std::vector<Vectornd>& vertices,CellType valin, CellType valout) const{
+  //
+  //    //convert vertices to grid coordinates
+  //    std::vector<Vectornd> verts_grid; ToGridCoordinates(verts_grid,vertices);
+  //
+  //    //Get center of points and convert to grid coords
+  //    Vectornd center = std::accumulate(vertices.begin(),vertices.end(),Vectornd::Zero().eval())/vertices.size();
+  //    Vectornd center_grid; ToGridCoordinates(center_grid,center);
+  //
+  //    //Snap the vertices to cell centers while making sure it is expanded outwards
+  //    std::vector<Vectorni> verts_snapped;
+  //    for(size_t i=0; i<vertices.size(); i++){
+  //      Vectornd verts_grid_centered = verts_grid[i] - center_grid;
+  //      for(int dim=0; dim < n; dim++){
+  //        verts_snapped[i][dim] = verts_grid_centered[dim]>0 ?
+  //                                ceil(verts_grid[i][dim] ):floor(verts_grid[i][dim] );
+  //      }
+  //    }
+  //
+  //
+  //
+  //    Grid::Ptr kernel;
+  //    return kernel;
+  //  }
 
   /**
    * Check if point x is within grid bounds
@@ -624,7 +624,7 @@ public:
     if(Valid(gidx))
       return gidx.transpose()*cgs_;
     else
-       return -1;
+      return -1;
   }
 
   /**
@@ -791,12 +791,17 @@ public:
    * @return Copy of contents of cell, could be shared_ptr or bool etc.
    * If cell doesn't exist default object is returned, which in case of a pointer is a nullptr.
    */
+  template< class Q = CellType, typename = typename std::enable_if<has_template_type<Q,std::unique_ptr>::value>::type >
   const ValType& Get(const Vectornd& x, bool checkValid = true) const {
     if (checkValid)
       if (!Valid(x))
         return null_ref_;
 
-        return Get(Id(x));
+    int id = Id(x);
+    if(cells_[id])
+      return *cells_[id];
+    else
+      return null_ref_;
   }
 
   /**
@@ -805,11 +810,15 @@ public:
    * @return const ref to contents of cell.
    * If cell holds pointer and is not allocate then a null reference is returned
    */
+  template< class Q = CellType, typename = typename std::enable_if<has_template_type<Q,std::unique_ptr>::value>::type >
   const ValType& Get(int id) const {
     if (id<0 || id >= nc_)
       return null_ref_;
 
-    return Get(id, cells_store_ptr_type);
+    if(cells_[id])
+      return *cells_[id];
+    else
+      return null_ref_;
   }
 
   /**
@@ -818,10 +827,61 @@ public:
    * @return Copy of contents of cell, could be shared_ptr or bool etc.
    * If cell doesn't exist default object is returned, which in case of a pointer is a nullptr.
    */
+  template< class Q = CellType, typename = typename std::enable_if<has_template_type<Q,std::unique_ptr>::value>::type >
   const ValType& Get(const Vectorni& gidx) const {
     if (!Valid(gidx))
       return null_ref_;
-    return Get(Id(gidx));
+
+    int id = Id(gidx);
+    if(cells_[id])
+      return *cells_[id];
+    else
+      return null_ref_;
+  }
+
+
+  /**
+   * Get the cell at position x
+   * @param x point
+   * @param checkValid whether to check if within valid bounds (more efficient
+   * if checkValid=0 but dangerous)
+   * @return Copy of contents of cell, could be shared_ptr or bool etc.
+   * If cell doesn't exist default object is returned, which in case of a pointer is a nullptr.
+   */
+  template< class Q = CellType, typename = typename std::enable_if<!has_template_type<Q,std::unique_ptr>::value>::type >
+  ValType Get(const Vectornd& x, bool checkValid = true) const {
+    if (checkValid)
+      if (!Valid(x))
+        return ValType();
+
+    return cells_[Id(x)];
+  }
+
+  /**
+   * Get the cell at a given cell id
+   * @param id a non-negative id
+   * @return const ref to contents of cell.
+   * If cell holds pointer and is not allocate then a null reference is returned
+   */
+  template< class Q = CellType, typename = typename std::enable_if<!has_template_type<Q,std::unique_ptr>::value>::type >
+  ValType Get(int id) const {
+    if (id<0 || id >= nc_)
+      return ValType();
+
+    return cells_[id];
+  }
+
+  /**
+   * Get the cell at a given grid index
+   * @param gidx grid index
+   * @return Copy of contents of cell, could be shared_ptr or bool etc.
+   * If cell doesn't exist default object is returned, which in case of a pointer is a nullptr.
+   */
+  template< class Q = CellType, typename = typename std::enable_if<!has_template_type<Q,std::unique_ptr>::value>::type >
+  ValType Get(const Vectorni& gidx) const {
+    if (!Valid(gidx))
+      return ValType();
+    return cells_[Id(gidx)];
   }
 
   /**
@@ -876,11 +936,11 @@ public:
     Vectorni gidx;
     switch(n_){
       case 1:
-          for(int i0=0; i0<gs_[0]; i0++){
-            gidx[0] = i0;
-            fun(id,gidx);
-            id++;
-          }
+        for(int i0=0; i0<gs_[0]; i0++){
+          gidx[0] = i0;
+          fun(id,gidx);
+          id++;
+        }
         break;
       case 2:
         for(int i1=0; i1<gs_[1]; i1++){
@@ -1160,6 +1220,11 @@ public:
   inline const Vectornb& wd(void)  const {
     return wd_;
   }
+  /**
+   * Getter function for cells. This method is only enabled if cells don't store unique_ptr
+   * @param id
+   */
+  template< class Q = CellType, typename = typename std::enable_if<!has_template_type<Q,std::unique_ptr>::value>::type >
   inline const std::vector<CellType>& cells(void)  const {
     return cells_;
   }
@@ -1202,30 +1267,6 @@ private:
    * Private constructor only to be used by the Load method
    */
   Grid(){}
-
-
-  /**
-   * Get const ref to cells[i] when cells hold ValType and not pointer/smart_ptr to ValType
-   * @param id a non-negative id
-   * @return const ref to contents of cell.
-   * If cell holds pointer and is not allocate then a null reference is returned
-   */
-  const ValType& Get(int id, std::false_type) const {
-    return cells_[id];
-  }
-
-  /**
-   * Get const ref to *cells[i] when cells hold pointer/smart_ptr to ValType
-   * @param id a non-negative id
-   * @return const ref to contents of cell.
-   * If cell holds pointer and is not allocate then a null reference is returned
-   */
-  const ValType& Get(int id, std::true_type) const {
-    if(cells_[id])
-      return cells_[id];
-    else
-      return null_ref_;
-  }
 
   /**
    * setter function for cells_[id] if holds ValType and not pointer/smart_ptr to ValType
@@ -1327,54 +1368,54 @@ private:
 
 
   /**
-    * Update cells_ from Protobuf for cell directly holding ValType
-    * @param grid
-    * @param pb
-    * @param
-    */
-   static void PbToCells(Grid& grid, dsl::ProtobufGrid& pb, std::false_type){
-     for(int id=0; id < grid.nc_; id++){
-       ValType val;
-       StringToVal(pb.data(id),&val, std::is_pod<ValType>());
-       grid.cells_[id] = val;
-     }
-   }
-   /**
-    * Update cells_ from Protobuf for cell holding shared_ptr to ValType
-    * @param grid
-    * @param pb
-    * @param
-    */
-   static void PbToCells(Grid& grid, dsl::ProtobufGrid& pb, std::true_type){
-     for(int i=0; i < pb.ids_allocated_size(); i++){
-       int id = pb.ids_allocated(i);
-       ValType val;
-       StringToVal(pb.data(i),&val, std::is_pod<ValType>());
-       grid.cells_[id].reset(new ValType(val));
-     }
-   }
+   * Update cells_ from Protobuf for cell directly holding ValType
+   * @param grid
+   * @param pb
+   * @param
+   */
+  static void PbToCells(Grid& grid, dsl::ProtobufGrid& pb, std::false_type){
+    for(int id=0; id < grid.nc_; id++){
+      ValType val;
+      StringToVal(pb.data(id),&val, std::is_pod<ValType>());
+      grid.cells_[id] = val;
+    }
+  }
+  /**
+   * Update cells_ from Protobuf for cell holding shared_ptr to ValType
+   * @param grid
+   * @param pb
+   * @param
+   */
+  static void PbToCells(Grid& grid, dsl::ProtobufGrid& pb, std::true_type){
+    for(int i=0; i < pb.ids_allocated_size(); i++){
+      int id = pb.ids_allocated(i);
+      ValType val;
+      StringToVal(pb.data(i),&val, std::is_pod<ValType>());
+      grid.cells_[id].reset(new ValType(val));
+    }
+  }
 
 
-   /**
-    * Converts a ValType data to string for pod type
-    * @param ss
-    * @param val
-    * @param
-    */
-   static void StringToVal(const std::string& str, ValType* val, std::true_type){
-     int n_bytes = sizeof(ValType);
-     std::memcpy(val,str.c_str(), n_bytes);
-   }
+  /**
+   * Converts a ValType data to string for pod type
+   * @param ss
+   * @param val
+   * @param
+   */
+  static void StringToVal(const std::string& str, ValType* val, std::true_type){
+    int n_bytes = sizeof(ValType);
+    std::memcpy(val,str.c_str(), n_bytes);
+  }
 
-   /**
-    * Converts a ValType data to string for non-pod type
-    * @param ss
-    * @param val
-    * @param
-    */
-   static void StringToVal(const std::string& str, ValType* val, std::false_type){
-     val->ParseFromString(str);
-   }
+  /**
+   * Converts a ValType data to string for non-pod type
+   * @param ss
+   * @param val
+   * @param
+   */
+  static void StringToVal(const std::string& str, ValType* val, std::false_type){
+    val->ParseFromString(str);
+  }
 
   const int n_ = PointType::SizeAtCompileTime; ///< grid dimension
   int nc_ = 0;   ///< number of cells in grid
@@ -1387,6 +1428,7 @@ private:
   Vectornb wd_;  ///< which dimensions are wrapped
   std::vector<CellType> cells_; ///< grid cells
 
+  //const ValType default_val_ = ValType(); ///< default values
   const ValType& null_ref_ = *(ValType*)0; ///< null reference
 };
 

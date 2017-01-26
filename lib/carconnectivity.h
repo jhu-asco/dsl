@@ -231,11 +231,11 @@ public:
 
       prims.reserve(paths.size());
       for(auto& path:paths){
-        TypedCellPtr cell_to = std::get<0>(path);
-        if(!cell_to)
+        TypedCellCref cell_to = std::get<0>(path);
+        if(! &cell_to)
           continue;
         Eigen::Matrix3d gto;
-        se2_q2g(gto, cell_to->c);
+        se2_q2g(gto, cell_to.c);
 
         Eigen::Matrix3d gi,dg;
         se2_inv(gi,g0);

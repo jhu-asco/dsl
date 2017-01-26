@@ -18,7 +18,7 @@ using Vector3b = Eigen::Matrix<bool,3,1>;
 
 struct HT{
   using Ptr = std::unique_ptr<HT>;
-
+  using Cref = const HT&;
   HT():h(0),t(0){}
 
   HT(double h, double t): h(h), t(t){}
@@ -124,9 +124,9 @@ int main(int argc, char** argv){
   cout<<"cgs:"<< grid_pht_loaded->cgs().transpose() << endl;
   cout<<"wd:"<< grid_pht_loaded->wd().transpose() << endl;
   for(int id = 0; id< grid_pht_loaded->nc(); id++){
-    auto c = grid_pht_loaded->cells()[id];
-    if(c)
-      cout<<"at id:"<<id<<"  c.h:"<<c->h<<"  c.t:"<<c->t<<endl;
+    HT::Cref c = grid_pht_loaded->Get(id);
+    if(&c)
+      cout<<"at id:"<<id<<"  c.h:"<<c.h<<"  c.t:"<<c.t<<endl;
   }
 
 

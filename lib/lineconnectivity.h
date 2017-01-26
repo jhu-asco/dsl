@@ -177,7 +177,7 @@ template < class PointType, class DataType >
         PointType x = x0 + dx1 * d;
         int id = grid.Id(x);
         assert(id >= 0 && id < grid.nc());
-        if (!grid.cells()[id] || !Free(grid.cells()[id]->data)) {
+        if (! &grid.Get(id) || !Free(grid.Get(id).data)) {
           optPath.cells.push_back(*it1);
           x0 = x1;
           break;
@@ -226,8 +226,8 @@ template < class PointType, class DataType >
     // std::cout << i*traceStep << std::endl;
     // std::cout << pti.transpose() << std::endl;
     //  TODO(comment this out)
-    Cell<PointType, DataType>* cell = grid.Get(splinePath[i]);
-    if(!cell)
+    TypedCellCref cell = grid.Get(splinePath[i]);
+    if(! &cell)
     {
       std::cout << "dsl::SplinePath: Cell does not exist" << std::endl;
       return;

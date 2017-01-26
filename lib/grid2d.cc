@@ -19,8 +19,8 @@ Grid2d::Grid2d(int width,
     assert(gotcenter);
     double cost = map[id]; // cell cost = height/occupany/traversability
     assert(cost >= 0);
-//    if (cost < maxCost) // add this as a cell only if cost is less than a given max cost
-//      this->set_cells(id,XyCostCell(id, cc, cost));
+    if (cost < maxCost) // add this as a cell only if cost is less than a given max cost
+      this->set_cells(id,XyCostCell(id, cc, cost));
   };
   LoopOver(fun);
 }

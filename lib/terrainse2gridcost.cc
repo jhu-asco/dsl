@@ -24,9 +24,9 @@ TerrainSE2GridCost::TerrainSE2GridCost(const TerrainSE2Grid& grid, const SE2Grid
   }
 
   for(int id=0; id < grid.nc(); id++)
-    if(grid.cells()[id])
-      trav_min_ = trav_min_ < grid.cells()[id]->data.traversibility ?
-                  trav_min_ : grid.cells()[id]->data.traversibility;
+    if(&grid.Get(id))
+      trav_min_ = trav_min_ < grid.Get(id).data.traversibility ?
+                  trav_min_ : grid.Get(id).data.traversibility;
 
 }
 

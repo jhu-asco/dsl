@@ -54,9 +54,9 @@ bool SavePpm(const dsl::Map<bool, 2> &map, const string& filename) {
   img.bdata.resize(img.w*img.h);
 
   for (int id = 0; id < map.nc(); id++){
-    img.rdata[id] = map.cells()[id]? img.bitdepth : 0;
-    img.gdata[id] = map.cells()[id]? img.bitdepth : 0;
-    img.bdata[id] = map.cells()[id]? img.bitdepth : 0;
+    img.rdata[id] = map.Get(id)? img.bitdepth : 0;
+    img.gdata[id] = map.Get(id)? img.bitdepth : 0;
+    img.bdata[id] = map.Get(id)? img.bitdepth : 0;
   }
 
   if(!SavePpm(img,filename)){
@@ -84,15 +84,15 @@ bool SavePpm(const dsl::Map<TerrainData, 2> &tmap, const string& filename) {
   double maxh = numeric_limits<double_t>::lowest(); //max height
   double maxt = numeric_limits<double_t>::lowest(); //max traversibility
   for (int id = 0; id < tmap.nc(); id++){
-    maxh = tmap.cells()[id].height > maxh ? tmap.cells()[id].height: maxh;
-    maxt = tmap.cells()[id].traversibility > maxt ? tmap.cells()[id].traversibility: maxt;
+    maxh = tmap.Get(id).height > maxh ? tmap.Get(id).height: maxh;
+    maxt = tmap.Get(id).traversibility > maxt ? tmap.Get(id).traversibility: maxt;
   }
   double hscale = img.bitdepth/maxh;
   double tscale = img.bitdepth/maxt;
 
   for (int id = 0; id < tmap.nc(); id++){
-    img.rdata[id] = 0.5*tmap.cells()[id].height*hscale;
-    img.gdata[id] = 0.5*tmap.cells()[id].traversibility*tscale;
+    img.rdata[id] = 0.5*tmap.Get(id).height*hscale;
+    img.gdata[id] = 0.5*tmap.Get(id).traversibility*tscale;
     img.bdata[id] = 0;
   }
 
@@ -143,7 +143,7 @@ bool SavePpm(const dsl::Map<bool, 3> &cmap, string folder) {
     fs << "P6" << std::endl << width << " " << height << std::endl << "255" << std::endl;
     int ind = 0;
     for (int i = 0; i < width * height; i++, ind += 3) {
-      data[ind] = data[ind + 1] = data[ind + 2] = (char)(omap->cells()[i] * 100);
+      data[ind] = data[ind + 1] = data[ind + 2] = (char)(omap->Get(i) * 100);
     }
     assert(ind == 3*width*height);
     fs.write(data, ind);
@@ -280,15 +280,15 @@ bool saveTmap(Map<TerrainData, 2>& tmap, const string& tmapfile){
   double maxh = numeric_limits<double_t>::lowest(); //max height
   double maxt = numeric_limits<double_t>::lowest(); //max traversibility
   for (int id = 0; id < tmap.nc(); id++){
-    maxh = tmap.cells()[id].height > maxh ? tmap.cells()[id].height: maxh;
-    maxt = tmap.cells()[id].traversibility > maxt ? tmap.cells()[id].traversibility: maxt;
+    maxh = tmap.Get(id).height > maxh ? tmap.Get(id).height: maxh;
+    maxt = tmap.Get(id).traversibility > maxt ? tmap.Get(id).traversibility: maxt;
   }
   double hscale = img.bitdepth/maxh;
   double tscale = img.bitdepth/maxt;
 
   for (int id = 0; id < tmap.nc(); id++){
-    img.rdata[id] = 0.5*tmap.cells()[id].height*hscale;
-    img.gdata[id] = 0.5*tmap.cells()[id].traversibility*tscale;
+    img.rdata[id] = 0.5*tmap.Get(id).height*hscale;
+    img.gdata[id] = 0.5*tmap.Get(id).traversibility*tscale;
     img.bdata[id] = 0;
   }
 
@@ -335,9 +335,9 @@ bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename,
   img.bdata.resize(img.w*img.h);
 
   for (int id = 0; id < smap->nc(); id++){
-    img.rdata[id] = smap->cells()[id]? 100:0;
-    img.gdata[id] = smap->cells()[id]? 100:0;
-    img.bdata[id] = smap->cells()[id]? 100:0;
+    img.rdata[id] = smap->Get(id)? 100:0;
+    img.gdata[id] = smap->Get(id)? 100:0;
+    img.bdata[id] = smap->Get(id)? 100:0;
   }
 
   for(size_t i=0; i<path.size(); i++){
@@ -433,15 +433,15 @@ bool SavePpmWithPath(const dsl::Map<TerrainData, 2>& tmap, std::string filename,
   double maxh = numeric_limits<double_t>::lowest(); //max height
   double maxt = numeric_limits<double_t>::lowest(); //max traversibility
   for (int id = 0; id < smap->nc(); id++){
-    maxh = smap->cells()[id].height > maxh ? smap->cells()[id].height: maxh;
-    maxt = smap->cells()[id].traversibility > maxt ? smap->cells()[id].traversibility: maxt;
+    maxh = smap->Get(id).height > maxh ? smap->Get(id).height: maxh;
+    maxt = smap->Get(id).traversibility > maxt ? smap->Get(id).traversibility: maxt;
   }
   double hscale = img.bitdepth/maxh;
   double tscale = img.bitdepth/maxt;
 
   for (int id = 0; id < smap->nc(); id++){
-    img.rdata[id] = 0.5*smap->cells()[id].height*hscale;
-    img.gdata[id] = 0.5*smap->cells()[id].traversibility*tscale;
+    img.rdata[id] = 0.5*smap->Get(id).height*hscale;
+    img.gdata[id] = 0.5*smap->Get(id).traversibility*tscale;
     img.bdata[id] = 0;
   }
 
@@ -535,9 +535,9 @@ bool SavePpmWithPrimitives(const dsl::Map<bool, 2>& omap, std::string filename,
   img.bdata.resize(img.w*img.h);
 
   for (int id = 0; id < smap->nc(); id++){
-    img.rdata[id] = smap->cells()[id]? 100:0;
-    img.gdata[id] = smap->cells()[id]? 100:0;
-    img.bdata[id] = smap->cells()[id]? 100:0;
+    img.rdata[id] = smap->Get(id)? 100:0;
+    img.gdata[id] = smap->Get(id)? 100:0;
+    img.bdata[id] = smap->Get(id)? 100:0;
   }
 
   for(auto& prim: prims){
@@ -593,14 +593,14 @@ bool SavePpmWithPrimitives(const dsl::Map<TerrainData, 2>& tmap, std::string fil
   double maxh = numeric_limits<double_t>::lowest(); //max height
   double maxt = numeric_limits<double_t>::lowest(); //max traversibility
   for (int id = 0; id < smap->nc(); id++){
-    maxh = smap->cells()[id].height > maxh ? smap->cells()[id].height: maxh;
-    maxt = smap->cells()[id].traversibility > maxt ? smap->cells()[id].traversibility: maxt;
+    maxh = smap->Get(id).height > maxh ? smap->Get(id).height: maxh;
+    maxt = smap->Get(id).traversibility > maxt ? smap->Get(id).traversibility: maxt;
   }
   double hscale = img.bitdepth/maxh;
   double tscale = img.bitdepth/maxt;
   for (int id = 0; id < smap->nc(); id++){
-    img.rdata[id] = 0.5*smap->cells()[id].height*hscale;
-    img.gdata[id] = 0.5*smap->cells()[id].traversibility*tscale;
+    img.rdata[id] = 0.5*smap->Get(id).height*hscale;
+    img.gdata[id] = 0.5*smap->Get(id).traversibility*tscale;
     img.bdata[id] = 0;
   }
 
@@ -751,7 +751,7 @@ Map<bool, 3>::Ptr MakeCmap(const Map<TerrainData, 2> & tmap, double csa){
 
   //Iterate over all cells
   for(int id = 0; id < omap.nc(); id++)
-  omap.set_cells(id, std::isnan(tmap.cells()[id].traversibility));//occupied
+  omap.set_cells(id, std::isnan(tmap.Get(id).traversibility));//occupied
 
   return MakeCmap(omap,csa);
 }
@@ -761,7 +761,7 @@ Map<bool, 3>::Ptr MakeCmap(const Map<TerrainData, 2>& tmap, double csa, const Ca
 
     //Iterate over all cells
     for(int id = 0; id < omap.nc(); id++)
-      omap.set_cells(id, std::isnan(tmap.cells()[id].traversibility));//occupied
+      omap.set_cells(id, std::isnan(tmap.Get(id).traversibility));//occupied
 
     return MakeCmap(omap,csa,geom,nthreads);
 }
