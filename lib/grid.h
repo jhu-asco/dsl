@@ -1065,8 +1065,6 @@ public:
 
   }
 
-
-
   /**
    * Read data from a binary file, deserialize data and create a map object from it
    * @param filename
@@ -1168,13 +1166,23 @@ public:
   }
 
   // Mutators
-  inline void set_cells(int id, CellType content){
-    cells_.at(id) = content;
+  /**
+   * setter function for cells_[id]
+   * @param id array id
+   * @param val
+   */
+  inline void set_cells(int id, const ValType& val){
+    set_cells(id, val, cells_store_ptr_type);
   }
-  inline void set_cells(const std::vector<CellType>& cells){
-    if(nc_ != cells.size())
+
+  /**
+   * setter function for cells
+   * @param vals
+   */
+  inline void set_cells(const std::vector<ValType>& vals){
+    if(nc_ != vals.size())
       throw std::length_error(" cells don't have the same length as nc.");
-    cells_ = cells;
+    set_cells(vals, cells_store_ptr_type);
   }
 
   /**
@@ -1195,6 +1203,46 @@ private:
    * Private constructor only to be used by the Load method
    */
   Grid(){}
+
+  /**
+   * setter function for cells_[id] if holds ValType and not pointer/smart_ptr to ValType
+   * @param id id of the cell
+   * @param val value
+   * @param
+   */
+  inline void set_cells(int id, const ValType& val, std::false_type){
+    cells_.at(id) = val;
+  }
+
+  /**
+   * setter function for cells_[id] if holds pointer/smart_ptr to ValType
+   * @param id id of the cell
+   * @param val value
+   * @param
+   */
+  inline void set_cells(int id, const ValType& val, std::true_type){
+    cells_.at(id).reset(new ValType(val));
+  }
+
+  /**
+   * setter function for cells if cells hold ValType and not pointer/smart_ptr to ValType
+   * @param vals vector of values
+   * @param
+   */
+  inline void set_cells(const std::vector<ValType>& vals, std::false_type){
+    cells_ = vals;
+  }
+
+  /**
+   * setter function for cells if it holds pointer/smart_ptr to ValType
+   * @param vals vector of values
+   * @param
+   */
+  inline void set_cells(const std::vector<ValType>& vals, std::true_type){
+    for(int id = 0; id < nc_ ; id++){
+      cells_.at(id).reset(new ValType(vals[id]));
+    }
+  }
 
   /**
    * Loads data from cells to protocol buffer for non shared_ptr CellType
@@ -1315,8 +1363,6 @@ private:
   Vectorni gs_;  ///< number of cells per dimension
   Vectorni cgs_; ///< cumulative(product) of gs. For n=3, cgs = [1, gs[0], gs[0]*gs[1]]
   Vectornb wd_;  ///< which dimensions are wrapped
-
-protected:
   std::vector<CellType> cells_; ///< grid cells
 };
 

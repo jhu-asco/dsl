@@ -108,10 +108,8 @@ int main(int argc, char** argv){
   Grid<Vector3d,HT::Ptr > grid_pht(xlb,xub,gs,wd);
 
   //only the 0th and the 2nd cell allocated
-  HT::Ptr ptr1(new HT(10,20));
-  grid_pht.set_cells(0, ptr1);
-  HT::Ptr ptr2(new HT(20,30));
-  grid_pht.set_cells(2, ptr2);
+  grid_pht.set_cells(0, HT(10,20));
+  grid_pht.set_cells(2, HT(20,30));
 
   grid_pht.Save(filename);
 

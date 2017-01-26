@@ -58,12 +58,12 @@ int main(int argc, char** argv)
   // 5. Create connectivity object whose job is to provide the search algorithm with motion primitives
   //     (along with cost), for a given cell, to its neighboring cells. In case of car these motion primitives
   //     are se2 twists. It uses the cost object above to get the primitive costs.
-  // 6. Create the main search graph which uses the lattice, cost, connectivity create above.
+  // 6. Create the main search graph which uses the lattice, cost, connectivity created above.
   // 7. Plan the path from a start and goal position using the search graph created above
   // 8. Plot the results on the occupancy map we read before.
 
   //**********************************************************************************/
-  //************************************omap******************************************/
+  //*******************************omap(xy occupancy map)*****************************/
   //**********************************************************************************/
 
   // get filename+ path for the image file(.ppm) representing our occupancy map
@@ -80,7 +80,7 @@ int main(int argc, char** argv)
   dsl::Map<bool, 2>::Ptr omap = LoadPpm(map_img_filename, ocs.tail<2>());
 
   //**********************************************************************************/
-  //************************************cmap******************************************/
+  //***************cmap(configuration space( yaw-x-y) occupancy map*******************/
   //**********************************************************************************/
 
   // get filename+ path for .cmap file that stores representing our occupancy map
