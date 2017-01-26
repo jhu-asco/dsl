@@ -44,7 +44,7 @@ template<class T>
 struct remove_unique_ptr { typedef T type; };
 
 template<class T>
-struct remove_unique_ptr<std::shared_ptr<T> > { typedef T type; };
+struct remove_unique_ptr<std::unique_ptr<T> > { typedef T type; };
 
 /**
  * An n-dimenensional grid consisting of abstract "cells", or elements
