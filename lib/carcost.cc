@@ -35,14 +35,14 @@ double CarCost::Real(const SE2Cell& a, const SE2Cell& b) const{
   double d = twist.tail<2>().norm(); // total distance along curve
   int n_seg = ceil(d/(2*grid_.cs()(1))); // 2 * grid.cs[1] is to improve efficiency
   double d_seg = d/n_seg;
-  SE2Cell::Ptr wp; //waypoint cells
+
   for (int i_seg=1; i_seg<n_seg; i_seg++) {
     se2_exp(dg, (d_seg*i_seg / d) * twist);
     Matrix3d g = ga * dg;
     Vector3d axy;
     se2_g2q(axy, g);
-    wp = grid_.Get(axy); //waypoint
-    if (!wp)
+    SE2Cell::Cref wp = grid_.Get(axy); //waypoint
+    if (!&wp)
       return numeric_limits<double>::quiet_NaN();
   }
   double wl = (twist.array()* wt_.array()).matrix().norm();//weighted length

@@ -46,7 +46,7 @@ double TerrainSE2GridCost::Real(const SE2TerrainCell& a, const SE2TerrainCell& b
   double d = twist.tail<2>().norm(); // total distance along curve
   int n_seg = ceil(d/ grid_.cs()[1]); // want segments to lie in each cell along the way
   double d_seg = d/n_seg;
-  SE2TerrainCell::Ptr wp; //waypoint cells
+
   double trav_sum = a.data.traversibility + b.data.traversibility;
   double delh_pve_sum = 0; //positive change in height. Only positive change in height incurs cost.
   double pot_prev = a.data.height;
@@ -54,15 +54,15 @@ double TerrainSE2GridCost::Real(const SE2TerrainCell& a, const SE2TerrainCell& b
     se2_exp(dg, (d_seg*i_seg / d) * twist);
     Matrix3d g = ga * dg;
     Vector3d axy; se2_g2q(axy, g);
-    wp = grid_.Get(axy);
-    if (!wp) //one of the waypoints is outside the grid.
+    SE2TerrainCell::Cref wp = grid_.Get(axy);
+    if (!&wp) //one of the waypoints is outside the grid.
       return numeric_limits<double>::quiet_NaN();
 
-    trav_sum += wp->data.traversibility;
-    if( (wp->data.height - pot_prev) > 0 )
-      delh_pve_sum += wp->data.height - pot_prev;
+    trav_sum += wp.data.traversibility;
+    if( (wp.data.height - pot_prev) > 0 )
+      delh_pve_sum += wp.data.height - pot_prev;
 
-    pot_prev = wp->data.height;
+    pot_prev = wp.data.height;
   }
   if( (b.data.height - pot_prev) > 0 )
     delh_pve_sum += b.data.height - pot_prev;

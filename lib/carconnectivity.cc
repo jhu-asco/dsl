@@ -7,8 +7,8 @@ using namespace std;
 using namespace Eigen;
 
 template<>
-bool CarTwistConnectivity::operator()(const SE2Cell& from,
-                                           std::vector< std::tuple<SE2Cell::Cref, SE2Twist, double> >& paths,
+bool CarTwistConnectivity::operator()(const TypedCell& from,
+                                           std::vector<TypedCellConnectionCostTuple>& paths,
                                            bool fwd) const{
   std::set<int> cells_visited; //stored index of all the cells visited
   paths.clear();
@@ -22,7 +22,7 @@ bool CarTwistConnectivity::operator()(const SE2Cell& from,
     g_to = g_from*dg;//end pose resulting from the twist
     Vector3d axy;
     se2_g2q(axy, g_to);
-    SE2Cell::Cref to = grid_.Get(axy);
+    TypedCellCref to = grid_.Get(axy);
     if (!&to) // "to" cell is not a part of the grid(because it has an obstacle)
       continue;
     se2_q2g(g_to,to.c);
@@ -53,7 +53,7 @@ bool CarTwistConnectivity::operator()(const SE2Cell& from,
     Vector3d vdt_noslip; vdt_noslip << se2_get_wvx(dg(0,2),dg(1,2)),0;
     Vector3d vdt_final = allow_slip_ ? vdt_slip : vdt_noslip;
 
-    std::tuple< SE2Cell::Ptr, SE2Twist, double> pathTuple(to,vdt_final,primcost);
+    TypedCellConnectionCostTuple pathTuple(to,vdt_final,primcost);
     paths.push_back(pathTuple);
   }
   return true;
@@ -61,7 +61,7 @@ bool CarTwistConnectivity::operator()(const SE2Cell& from,
 
 template<>
 bool TerrainTwistConnectivity::operator()(const SE2TerrainCell& from,
-                                           std::vector< std::tuple<SE2TerrainCell::Cref, SE2Twist, double> >& paths,
+                                           std::vector<TypedCellConnectionCostTuple>& paths,
                                            bool fwd) const{
   std::set<int> cells_visited; //stored index of all the cells visited
   paths.clear();
@@ -74,7 +74,7 @@ bool TerrainTwistConnectivity::operator()(const SE2TerrainCell& from,
     Matrix3d g_to = g_from*dg;//end pose resulting from the twist
     Vector3d axy;
     se2_g2q(axy, g_to);
-    SE2TerrainCell::Cref to = grid_.Get(axy);
+    TypedCellCref to = grid_.Get(axy);
     if (!&to) // "to" cell is not a part of the grid(because it has an obstacle)
       continue;
     se2_q2g(g_to,to.c);
@@ -105,7 +105,7 @@ bool TerrainTwistConnectivity::operator()(const SE2TerrainCell& from,
     Vector3d vdt_noslip; vdt_noslip << se2_get_wvx(dg(0,2),dg(1,2)),0;
     Vector3d vdt_final = allow_slip_ ? vdt_slip : vdt_noslip;
 
-    std::tuple< SE2TerrainCell::Ptr, SE2Twist, double> pathTuple(to,vdt_final,primcost);
+    TypedCellConnectionCostTuple pathTuple(to,vdt_final,primcost);
     paths.push_back(pathTuple);
   }
   return true;
@@ -113,8 +113,8 @@ bool TerrainTwistConnectivity::operator()(const SE2TerrainCell& from,
 
 template<>
 bool CarPathConnectivity::
-    operator()(const SE2Cell& from,
-               std::vector< std::tuple<SE2Cell::Cref, SE2Path, double> >& paths,
+    operator()(const TypedCell& from,
+               std::vector<TypedCellConnectionCostTuple>& paths,
                bool fwd) const {
 
   std::set<int> cells_visited; //stored index of all the cells visited
@@ -126,7 +126,7 @@ bool CarPathConnectivity::
     Matrix3d g = from.data*dg; //end pose resulting from the twist
     Vector3d axy;
     se2_g2q(axy, g);
-    SE2Cell::Cref to = grid_.Get(axy); //snap the end pose to grid
+    TypedCellCref to = grid_.Get(axy); //snap the end pose to grid
     if (!&to) // "to" cell is not a part of the grid(because it has an obstacle)
       continue;
 
@@ -167,7 +167,7 @@ bool CarPathConnectivity::
     }
 
     //add primitive(along with cost and to-cell) to the paths
-    std::tuple< SE2Cell::Ptr, SE2Path, double> pathTuple(to,path,primcost);
+    TypedCellConnectionCostTuple pathTuple(to,path,primcost);
     paths.push_back(pathTuple);
   }
   return true;

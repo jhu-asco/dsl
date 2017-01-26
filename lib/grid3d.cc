@@ -22,8 +22,8 @@ Grid3d::Grid3d(int length,
     assert(gotcenter);
     double cost = map[id] * costScale; // cell cost = height/occupany/traversability
     assert(cost >= 0);
-    if (cost < maxCost) // add this as a cell only if cost is less than a given max cost
-      this->set_cells(id,XyzCostCell(id, cc, cost));
+//    if (cost < maxCost) // add this as a cell only if cost is less than a given max cost
+//      this->set_cells(id,XyzCostCell(id, cc, cost));
   };
   LoopOver(fun);
 }

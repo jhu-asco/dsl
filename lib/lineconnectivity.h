@@ -119,7 +119,7 @@ template < class PointType, class DataType >
       continue;
 
     TypedCellCref cell = grid.Get(x, false);
-    if (!&cell)
+    if (! &cell)
       continue;
 
     if (!Free(cell.data)) // if obstacle
