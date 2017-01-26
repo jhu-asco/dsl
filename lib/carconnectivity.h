@@ -46,6 +46,7 @@ class SE2GridConnectivity: public GridConnectivity< PointType, DataType, Connect
 public:
 
   using TypedCell = Cell<PointType, DataType>;
+  using TypedCellCref = typename TypedCell::Cref;
   using TypedCellPtr = typename TypedCell::Ptr;
   using TypedCellConnectionCostTuple = std::tuple<TypedCellPtr, ConnectionType, double>;
   using TypedGrid = Grid<PointType, TypedCellPtr>;
