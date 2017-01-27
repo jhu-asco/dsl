@@ -14,7 +14,7 @@
 namespace dsl {
 
 using XyzCostCell = Cell<Eigen::Vector3d, double>;
-using Grid3dBase = Grid<XyzCostCell::PointType, XyzCostCell::Ptr>;
+using Grid3dBase = Grid<XyzCostCell::PointType, XyzCostCell>;
 /**
  * A 3d grid with coordinates (x,y,z)
  *

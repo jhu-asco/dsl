@@ -77,7 +77,7 @@ public:
   using TypedCellCref = typename TypedCell::Cref;
   using TypedCellPtr = typename TypedCell::Ptr;
 
-  using TypedGrid = Grid<PointType, TypedCellPtr>;
+  using TypedGrid = Grid<PointType, TypedCell>;
   using TypedCellConnectionCostTuple = std::tuple<TypedCellCref, ConnectionType, double>;
 
   using TypedGridConnectivity = GridConnectivity< PointType, DataType, ConnectionType >;

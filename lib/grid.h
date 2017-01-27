@@ -24,28 +24,6 @@
 namespace dsl {
 
 struct EmptyData {};
-
-//To check if a template parameter is shared_ptr, unique_ptr etc
-//  usage: if(has_template_type<T, std::shared_ptr>::value)
-//           std::cout<<"is shared_ptr"<<std::endl;
-template < typename T,template <typename...> class Templated >
-struct has_template_type : std::false_type {};
-
-template < template <typename...> class T, typename... Ts>
-struct has_template_type<T<Ts...>, T> : std::true_type {};
-
-template<class T>
-struct remove_shared_ptr { typedef T type; };
-
-template<class T>
-struct remove_shared_ptr<std::shared_ptr<T> > { typedef T type; };
-
-template<class T>
-struct remove_unique_ptr { typedef T type; };
-
-template<class T>
-struct remove_unique_ptr<std::unique_ptr<T> > { typedef T type; };
-
 /**
  * An n-dimenensional grid consisting of abstract "cells", or elements
  * identified by a set of coordinates of type PointType, each cell
@@ -70,10 +48,9 @@ struct remove_unique_ptr<std::unique_ptr<T> > { typedef T type; };
  *       4. Add clone methods to deep copy data
  *
  */
-template < class PointType, class CellType>
+template < class PointType, class DataType, bool UsePtr = true>
 class Grid {
 public:
-
 
   //n-dimensional std::vectors
   using Vectornd   =  Eigen::Matrix< double,  PointType::SizeAtCompileTime,   1 >;
@@ -92,24 +69,15 @@ public:
 
   using Ptr = std::shared_ptr<Grid>;
 
-  using Slice = Grid<Vectornm1d,CellType>;
+  using Slice = Grid<Vectornm1d, DataType, UsePtr>;
   using SlicePtr = std::shared_ptr<Slice>;
 
-  using Stack = Grid<Vectornp1d,CellType>;
+  using Stack = Grid<Vectornp1d, DataType, UsePtr>;
   using StackPtr = std::shared_ptr<Stack>;
 
-
-  //  using ValType = typename std::remove_pointer<CellType>::type;
-  //  static std::is_pointer<CellType> cells_store_ptr_type; //std::false_type or true_type
-  //  static const bool cells_store_ptr = std::is_pointer<CellType>::value; //true or false
-
-  //  using ValType = typename remove_shared_ptr<CellType>::type;
-  //  static has_template_type<CellType,std::shared_ptr> cells_store_ptr_type; //std::false_type or true_type
-  //  static const bool cells_store_ptr = has_template_type<CellType,std::shared_ptr>::value; //true or false
-
-  using ValType = typename remove_unique_ptr<CellType>::type;
-  static has_template_type<CellType,std::unique_ptr> cells_store_ptr_type; //std::false_type or true_type
-  static const bool cells_store_ptr = has_template_type<CellType,std::unique_ptr>::value; //true or false
+  using CellType = typename std::conditional<UsePtr, std::unique_ptr<DataType>, DataType>::type;
+  static const std::integral_constant<bool, UsePtr> cells_store_ptr_type; //std::false_type or true_type
+  static const bool cells_store_ptr = UsePtr;
 
   /**
    * Initialize the grid using state lower bound, state upper bound, the number of grid cells
@@ -433,12 +401,12 @@ public:
       return pscaled;
 
     if(scale==1){
-      pscaled.reset(new Grid<PointType, CellType>(*this));
+      pscaled.reset(new Grid(*this));
       return pscaled;
     }
 
     Vectorni gs_scaled = gs_*scale;
-    pscaled.reset(new Grid<PointType, CellType>(xlb_,xub_, gs_scaled, wd_));
+    pscaled.reset(new Grid(xlb_,xub_, gs_scaled, wd_));
 
     if(!init || cells_store_ptr)
       return pscaled;
@@ -791,8 +759,8 @@ public:
    * @return const ref to *cell at position x
    * If cell is unallocated then a null reference is returned
    */
-  template< class Q = CellType, typename = typename std::enable_if<has_template_type<Q,std::unique_ptr>::value>::type >
-  const ValType& Get(const Vectornd& x, bool checkValid = true) const {
+  template< bool Q = UsePtr, typename = typename std::enable_if<Q>::type >
+  const DataType& Get(const Vectornd& x, bool checkValid = true) const {
     if (checkValid)
       if (!Valid(x))
         return null_ref_;
@@ -810,8 +778,8 @@ public:
    * @return const ref to contents of cell.
    * If cell holds pointer and is not allocate then a null reference is returned
    */
-  template< class Q = CellType, typename = typename std::enable_if<has_template_type<Q,std::unique_ptr>::value>::type >
-  const ValType& Get(int id) const {
+  template< bool Q = UsePtr, typename = typename std::enable_if<Q>::type >
+  const DataType& Get(int id) const {
     if (id<0 || id >= nc_)
       return null_ref_;
 
@@ -827,8 +795,8 @@ public:
    * @return Copy of contents of cell, could be shared_ptr or bool etc.
    * If cell doesn't exist default object is returned, which in case of a pointer is a nullptr.
    */
-  template< class Q = CellType, typename = typename std::enable_if<has_template_type<Q,std::unique_ptr>::value>::type >
-  const ValType& Get(const Vectorni& gidx) const {
+  template< bool Q = UsePtr, typename = typename std::enable_if<Q>::type >
+  const DataType& Get(const Vectorni& gidx) const {
     if (!Valid(gidx))
       return null_ref_;
 
@@ -848,11 +816,11 @@ public:
    * @return Copy of contents of cell, could be shared_ptr or bool etc.
    * If cell doesn't exist default object is returned, which in case of a pointer is a nullptr.
    */
-  template< class Q = CellType, typename = typename std::enable_if<!has_template_type<Q,std::unique_ptr>::value>::type >
-  ValType Get(const Vectornd& x, bool checkValid = true) const {
+  template< bool Q = UsePtr, typename = typename std::enable_if<!Q>::type >
+  DataType Get(const Vectornd& x, bool checkValid = true) const {
     if (checkValid)
       if (!Valid(x))
-        return ValType();
+        return DataType();
 
     return cells_[Id(x)];
   }
@@ -863,10 +831,10 @@ public:
    * @return const ref to contents of cell.
    * If cell holds pointer and is not allocate then a null reference is returned
    */
-  template< class Q = CellType, typename = typename std::enable_if<!has_template_type<Q,std::unique_ptr>::value>::type >
-  ValType Get(int id) const {
+  template< bool Q = UsePtr, typename = typename std::enable_if<!Q>::type >
+  DataType Get(int id) const {
     if (id<0 || id >= nc_)
-      return ValType();
+      return DataType();
 
     return cells_[id];
   }
@@ -877,10 +845,10 @@ public:
    * @return Copy of contents of cell, could be shared_ptr or bool etc.
    * If cell doesn't exist default object is returned, which in case of a pointer is a nullptr.
    */
-  template< class Q = CellType, typename = typename std::enable_if<!has_template_type<Q,std::unique_ptr>::value>::type >
-  ValType Get(const Vectorni& gidx) const {
+  template< bool Q = UsePtr, typename = typename std::enable_if<!Q>::type >
+  DataType Get(const Vectorni& gidx) const {
     if (!Valid(gidx))
-      return ValType();
+      return DataType();
     return cells_[Id(gidx)];
   }
 
@@ -890,7 +858,7 @@ public:
    * @param data
    * @return was able to set data or not
    */
-  bool Set(const Vectornd& x, const ValType& data)  {
+  bool Set(const Vectornd& x, const DataType& data)  {
     int id = Id(x);
     if(id<0)
       return false;
@@ -904,7 +872,7 @@ public:
    * @param data
    * @return was able to set data or not
    */
-  bool Set(const Vectorni& gidx, const ValType& data)  {
+  bool Set(const Vectorni& gidx, const DataType& data)  {
     int id = Id(gidx);
     if(id<0)
       return false;
@@ -918,7 +886,7 @@ public:
    * @param data the content of a cell
    * @return true if it was able to set the data
    */
-  bool Set(int id, const ValType& data) {
+  bool Set(int id, const DataType& data) {
     if (id<0 || id >= nc_)
       return false;
     set_cells(id, data, cells_store_ptr_type);
@@ -1162,7 +1130,7 @@ public:
       }
 
       // Data probably is valid, so initilize the grid and load data into it
-      grid.reset(new Grid<Vectornd,CellType>());
+      grid.reset(new Grid());
 
       if(grid->n_ !=  pb.n()){ //one last check
         throw std::length_error("pb's n doesn't match with grid.h");
@@ -1224,7 +1192,7 @@ public:
    * Getter function for cells. This method is only enabled if cells don't store unique_ptr
    * @param id
    */
-  template< class Q = CellType, typename = typename std::enable_if<!has_template_type<Q,std::unique_ptr>::value>::type >
+  template< bool Q = UsePtr, typename = typename std::enable_if<!Q>::type >
   inline const std::vector<CellType>& cells(void)  const {
     return cells_;
   }
@@ -1234,7 +1202,7 @@ public:
    * setter function for cells
    * @param vals
    */
-  inline void set_cells(const std::vector<ValType>& vals){
+  inline void set_cells(const std::vector<DataType>& vals){
     if(nc_ != vals.size())
       throw std::length_error(" cells don't have the same length as nc.");
     set_cells(vals, cells_store_ptr_type);
@@ -1244,14 +1212,14 @@ public:
    * This method is only enabled if cells store shared_ptr
    * @param id
    */
-  template< class Q = CellType, typename = typename std::enable_if<has_template_type<Q,std::unique_ptr>::value>::type >
+  template< bool Q = UsePtr, typename = typename std::enable_if<Q>::type >
   void delete_cell(int id)
   {
     cells_.at(id).reset();
   }
 
   // To give data access to Slice and Stack
-  template < class PT, class CT> friend class Grid;
+  template < class PointType_, class DataType_, bool UsePtr_> friend class Grid;
 
 private:
   /**
@@ -1260,42 +1228,42 @@ private:
   Grid(){}
 
   /**
-   * setter function for cells_[id] if holds ValType and not pointer/smart_ptr to ValType
+   * setter function for cells_[id] if holds DataType and not pointer/smart_ptr to DataType
    * @param id id of the cell
    * @param val value
    * @param
    */
-  inline void set_cells(int id, const ValType& val, std::false_type){
+  inline void set_cells(int id, const DataType& val, std::false_type){
     cells_.at(id) = val;
   }
 
   /**
-   * setter function for cells_[id] if holds pointer/smart_ptr to ValType
+   * setter function for cells_[id] if holds pointer/smart_ptr to DataType
    * @param id id of the cell
    * @param val value
    * @param
    */
-  inline void set_cells(int id, const ValType& val, std::true_type){
-    cells_.at(id).reset(new ValType(val));
+  inline void set_cells(int id, const DataType& val, std::true_type){
+    cells_.at(id).reset(new DataType(val));
   }
 
   /**
-   * setter function for cells if cells hold ValType and not pointer/smart_ptr to ValType
+   * setter function for cells if cells hold DataType and not pointer/smart_ptr to DataType
    * @param vals vector of values
    * @param
    */
-  inline void set_cells(const std::vector<ValType>& vals, std::false_type){
+  inline void set_cells(const std::vector<DataType>& vals, std::false_type){
     cells_ = vals;
   }
 
   /**
-   * setter function for cells if it holds pointer/smart_ptr to ValType
+   * setter function for cells if it holds pointer/smart_ptr to DataType
    * @param vals vector of values
    * @param
    */
-  inline void set_cells(const std::vector<ValType>& vals, std::true_type){
+  inline void set_cells(const std::vector<DataType>& vals, std::true_type){
     for(int id = 0; id < nc_ ; id++){
-      cells_.at(id).reset(new ValType(vals[id]));
+      cells_.at(id).reset(new DataType(vals[id]));
     }
   }
 
@@ -1308,7 +1276,7 @@ private:
     pb.mutable_data()->Reserve(nc_);
     for(int id=0; id < nc_; id++){
       std::string str;
-      ValToString(cells_[id], &str, std::is_pod<ValType>());
+      ValToString(cells_[id], &str, std::is_pod<DataType>());
       pb.add_data(str);
     }
   }
@@ -1329,50 +1297,50 @@ private:
         pb.add_ids_allocated(id);
 
         std::string str;
-        ValToString(*cells_[id], &str, std::is_pod<ValType>());
+        ValToString(*cells_[id], &str, std::is_pod<DataType>());
         pb.add_data(str);
       }
     }
   }
 
   /**
-   * converts a ValType to string for pod type
+   * converts a DataType to string for pod type
    * @param val
    * @param ss
    * @param
    */
-  void ValToString(const ValType& val, std::string* str, std::true_type) const {
-    int n_bytes = sizeof(ValType);
+  void ValToString(const DataType& val, std::string* str, std::true_type) const {
+    int n_bytes = sizeof(DataType);
     str->resize(n_bytes);
     str->replace(0,n_bytes,(char*)&val, n_bytes);
   }
 
   /**
-   * converts a ValType to string for non-pod type
+   * converts a DataType to string for non-pod type
    * @param val
    * @param ss
    * @param
    */
-  void ValToString(const ValType& val, std::string* str, std::false_type) const{
+  void ValToString(const DataType& val, std::string* str, std::false_type) const{
     val.SerializeToString(str);
   }
 
 
   /**
-   * Update cells_ from Protobuf for cell directly holding ValType
+   * Update cells_ from Protobuf for cell directly holding DataType
    * @param grid
    * @param pb
    * @param
    */
   static void PbToCells(Grid& grid, dsl::ProtobufGrid& pb, std::false_type){
     for(int id=0; id < grid.nc_; id++){
-      ValType val;
-      StringToVal(pb.data(id),&val, std::is_pod<ValType>());
+      DataType val;
+      StringToVal(pb.data(id),&val, std::is_pod<DataType>());
       grid.cells_[id] = val;
     }
   }
   /**
-   * Update cells_ from Protobuf for cell holding shared_ptr to ValType
+   * Update cells_ from Protobuf for cell holding shared_ptr to DataType
    * @param grid
    * @param pb
    * @param
@@ -1380,31 +1348,31 @@ private:
   static void PbToCells(Grid& grid, dsl::ProtobufGrid& pb, std::true_type){
     for(int i=0; i < pb.ids_allocated_size(); i++){
       int id = pb.ids_allocated(i);
-      ValType val;
-      StringToVal(pb.data(i),&val, std::is_pod<ValType>());
-      grid.cells_[id].reset(new ValType(val));
+      DataType val;
+      StringToVal(pb.data(i),&val, std::is_pod<DataType>());
+      grid.cells_[id].reset(new DataType(val));
     }
   }
 
 
   /**
-   * Converts a ValType data to string for pod type
+   * Converts a DataType data to string for pod type
    * @param ss
    * @param val
    * @param
    */
-  static void StringToVal(const std::string& str, ValType* val, std::true_type){
-    int n_bytes = sizeof(ValType);
+  static void StringToVal(const std::string& str, DataType* val, std::true_type){
+    int n_bytes = sizeof(DataType);
     std::memcpy(val,str.c_str(), n_bytes);
   }
 
   /**
-   * Converts a ValType data to string for non-pod type
+   * Converts a DataType data to string for non-pod type
    * @param ss
    * @param val
    * @param
    */
-  static void StringToVal(const std::string& str, ValType* val, std::false_type){
+  static void StringToVal(const std::string& str, DataType* val, std::false_type){
     val->ParseFromString(str);
   }
 
@@ -1419,8 +1387,8 @@ private:
   Vectornb wd_;  ///< which dimensions are wrapped
   std::vector<CellType> cells_; ///< grid cells
 
-  //const ValType default_val_ = ValType(); ///< default values
-  const ValType& null_ref_ = *(ValType*)0; ///< null reference
+  //const DataType default_val_ = DataType(); ///< default values
+  const DataType& null_ref_ = *(DataType*)0; ///< null reference
 };
 
 /**
@@ -1428,7 +1396,10 @@ private:
  * is works well to represent the occupancy
  */
 template <typename T, int n>
-using Map = Grid< Eigen::Matrix<double,n,1>, T >;
+using Map = Grid< Eigen::Matrix<double,n,1>, T, false >;
+
+template < class PointType, class DataType>
+using Lattice = Grid<PointType, DataType, true>;
 
 }
 

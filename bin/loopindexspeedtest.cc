@@ -19,7 +19,7 @@ int main(int argc, char** argv){
     Vector2d xub(9999.5,9999.5);
     Vector2d cs(1.0,1.0);
     Vector2b wd(false,false);
-    Grid<Vector2d,bool> grid(xlb,xub,cs, wd);
+    Grid<Vector2d, bool, false> grid(xlb,xub,cs, wd);
 
     cout<<"grid.gs:"<<grid.gs().transpose()<<endl;
     cout<<"grid nc:"<<grid.nc()<<endl;
@@ -77,7 +77,7 @@ int main(int argc, char** argv){
     Vector3d xub(999.5,999.5,99.5);
     Vector3d cs(1.0,1.0,1.0);
     Vector3b wd(false,false,false);
-    Grid<Vector3d,bool> grid(xlb,xub,cs, wd);
+    Grid<Vector3d, bool, false> grid(xlb,xub,cs, wd);
 
     cout<<"grid.gs:"<<grid.gs().transpose()<<endl;
     cout<<"grid nc:"<<grid.nc()<<endl;
@@ -138,7 +138,7 @@ int main(int argc, char** argv){
     Vector4d xub(999.5,99.5,99.5,9.5);
     Vector4d cs(1.0,1.0,1.0,1.0);
     Vector4b wd(false,false,false,false);
-    Grid<Vector4d,bool> grid(xlb,xub,cs, wd);
+    Grid<Vector4d, bool, false> grid(xlb,xub,cs, wd);
 
     cout<<"grid.gs:"<<grid.gs().transpose()<<endl;
     cout<<"grid nc:"<<grid.nc()<<endl;

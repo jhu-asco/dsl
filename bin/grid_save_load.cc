@@ -57,13 +57,13 @@ int main(int argc, char** argv){
   //*********************bool*********************************
   //**********************************************************
   cout<<"\nsaving and loading Grid<Vector3d, bool >"<<endl;
-  Grid<Vector3d,bool >grid(xlb,xub,gs,wd);
+  Grid<Vector3d, bool, false>grid(xlb,xub,gs,wd);
   for(int id = 0; id < grid.nc(); id++)
     grid.Set(id,true);
 
   grid.Save(filename);
 
-  auto grid_loaded = Grid<Vector3d,bool >::Load(filename);
+  auto grid_loaded = Grid<Vector3d,bool,false >::Load(filename);
 
   cout<<"Printing out the loaded grid for bools"<<endl;
   cout<<"xlb:"<< grid_loaded->xlb().transpose() << endl;
@@ -81,13 +81,13 @@ int main(int argc, char** argv){
   //*********************HT***********************************
   //**********************************************************
   cout<<"\nsaving and loading Grid<Vector3d,HT>"<<endl;
-  Grid<Vector3d,HT > grid_ht(xlb,xub,gs,wd);
+  Grid<Vector3d, HT, false > grid_ht(xlb,xub,gs,wd);
   for(int id = 0; id < grid.nc(); id++)
     grid_ht.Set(id,HT(10,20));
 
   grid_ht.Save(filename);
 
-  auto grid_ht_loaded = Grid<Vector3d,HT >::Load(filename);
+  auto grid_ht_loaded = Grid<Vector3d,HT, false >::Load(filename);
 
   cout<<"Printing out the loaded grid_ht"<<endl;
   cout<<"xlb:"<< grid_ht_loaded->xlb().transpose() << endl;
@@ -105,7 +105,7 @@ int main(int argc, char** argv){
   //*********************HT::Ptr******************************
   //**********************************************************
   cout<<"\nsaving and loading Grid<Vector3d,HT::Ptr >"<<endl;
-  Grid<Vector3d,HT::Ptr > grid_pht(xlb,xub,gs,wd);
+  Grid<Vector3d,HT, true> grid_pht(xlb,xub,gs,wd);
 
   //only the 0th and the 2nd cell allocated
   grid_pht.Set(0, HT(10,20));
@@ -113,7 +113,7 @@ int main(int argc, char** argv){
 
   grid_pht.Save(filename);
 
-  auto grid_pht_loaded = Grid<Vector3d,HT::Ptr >::Load(filename);
+  auto grid_pht_loaded = Grid<Vector3d,HT, true >::Load(filename);
 
   cout<<"Printing out the loaded grid_pht"<<endl;
   cout<<"xlb:"<< grid_pht_loaded->xlb().transpose() << endl;

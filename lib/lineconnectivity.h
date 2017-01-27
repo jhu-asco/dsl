@@ -33,7 +33,7 @@ public:
   using TypedCell = Cell<PointType, DataType>;
   using TypedCellCref = typename TypedCell::Cref;
   using TypedCellPtr = typename TypedCell::Ptr;
-  using TypedGrid = Grid<PointType, TypedCellPtr>;
+  using TypedGrid = Grid<PointType, TypedCell>;
   using TypedCellConnectionCostTuple = std::tuple<TypedCellCref, PointType, double>;
 
   /**
