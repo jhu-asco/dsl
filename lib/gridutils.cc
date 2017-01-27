@@ -638,7 +638,7 @@ Map<bool, 3>::Ptr MakeCmap(const Map<bool, 2>& omap, double csa) {
 
   auto fun = [&](int id, const Vector3i& gidx){
     Vector2i gidx_omap = gidx.tail<2>();
-    cmap->set_cells(id, omap.Get(gidx_omap) );
+    cmap->Set(id, omap.Get(gidx_omap) );
   };
   cmap->LoopOver(fun);
 
@@ -713,7 +713,7 @@ Map<bool, 3>::Ptr MakeCmap(const Map<bool, 2>& omap, double csa, const CarGeom& 
         for (int idx_y = 0; idx_y < cmap->gs()[2]; ++idx_y) {
           int id_omap = omap.Id( Vector2i(idx_x, idx_y) );
           int id_cmap = cmap->Id( Vector3i(idx_a, idx_x, idx_y) );
-          cmap->set_cells(id_cmap,dmaps[0][id_omap]);
+          cmap->Set(id_cmap,dmaps[0][id_omap]);
         }
       }
     }
@@ -734,7 +734,7 @@ Map<bool, 3>::Ptr MakeCmap(const Map<bool, 2>& omap, double csa, const CarGeom& 
             for (int idx_y = 0; idx_y < cmap->gs()[2]; ++idx_y) {
               int id_omap = omap.Id( Vector2i(idx_x, idx_y) );
               int id_cmap = cmap->Id( Vector3i(idx_a, idx_x, idx_y) );
-              cmap->set_cells(id_cmap,dmaps[t][id_omap]);
+              cmap->Set(id_cmap,dmaps[t][id_omap]);
             }
           }
         }
@@ -751,7 +751,7 @@ Map<bool, 3>::Ptr MakeCmap(const Map<TerrainData, 2> & tmap, double csa){
 
   //Iterate over all cells
   for(int id = 0; id < omap.nc(); id++)
-  omap.set_cells(id, std::isnan(tmap.Get(id).traversibility));//occupied
+  omap.Set(id, std::isnan(tmap.Get(id).traversibility));//occupied
 
   return MakeCmap(omap,csa);
 }
@@ -761,7 +761,7 @@ Map<bool, 3>::Ptr MakeCmap(const Map<TerrainData, 2>& tmap, double csa, const Ca
 
     //Iterate over all cells
     for(int id = 0; id < omap.nc(); id++)
-      omap.set_cells(id, std::isnan(tmap.Get(id).traversibility));//occupied
+      omap.Set(id, std::isnan(tmap.Get(id).traversibility));//occupied
 
     return MakeCmap(omap,csa,geom,nthreads);
 }

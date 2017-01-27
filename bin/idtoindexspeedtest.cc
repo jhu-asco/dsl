@@ -13,7 +13,7 @@ int main(int argc, char** argv){
   for(int id=0; id < grid.nc(); id++){
     Vector3i gidx;
     grid.Index(id, &gidx);
-    grid.set_cells(id, gidx);
+    grid.Set(id, gidx);
   }
 
   cout<<"grid.gs():"<<grid.gs().transpose()<<endl;

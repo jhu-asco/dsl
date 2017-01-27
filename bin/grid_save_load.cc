@@ -59,7 +59,7 @@ int main(int argc, char** argv){
   cout<<"\nsaving and loading Grid<Vector3d, bool >"<<endl;
   Grid<Vector3d,bool >grid(xlb,xub,gs,wd);
   for(int id = 0; id < grid.nc(); id++)
-    grid.set_cells(id,true);
+    grid.Set(id,true);
 
   grid.Save(filename);
 
@@ -83,7 +83,7 @@ int main(int argc, char** argv){
   cout<<"\nsaving and loading Grid<Vector3d,HT>"<<endl;
   Grid<Vector3d,HT > grid_ht(xlb,xub,gs,wd);
   for(int id = 0; id < grid.nc(); id++)
-    grid_ht.set_cells(id,HT(10,20));
+    grid_ht.Set(id,HT(10,20));
 
   grid_ht.Save(filename);
 
@@ -108,8 +108,8 @@ int main(int argc, char** argv){
   Grid<Vector3d,HT::Ptr > grid_pht(xlb,xub,gs,wd);
 
   //only the 0th and the 2nd cell allocated
-  grid_pht.set_cells(0, HT(10,20));
-  grid_pht.set_cells(2, HT(20,30));
+  grid_pht.Set(0, HT(10,20));
+  grid_pht.Set(2, HT(20,30));
 
   grid_pht.Save(filename);
 

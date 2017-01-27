@@ -784,12 +784,12 @@ public:
   }
 
   /**
-   * Get the cell at position x
+   * Get const ref to *cell at position x
    * @param x point
    * @param checkValid whether to check if within valid bounds (more efficient
    * if checkValid=0 but dangerous)
-   * @return Copy of contents of cell, could be shared_ptr or bool etc.
-   * If cell doesn't exist default object is returned, which in case of a pointer is a nullptr.
+   * @return const ref to *cell at position x
+   * If cell is unallocated then a null reference is returned
    */
   template< class Q = CellType, typename = typename std::enable_if<has_template_type<Q,std::unique_ptr>::value>::type >
   const ValType& Get(const Vectornd& x, bool checkValid = true) const {
@@ -890,11 +890,11 @@ public:
    * @param data
    * @return was able to set data or not
    */
-  bool Set(const Vectornd& x, const CellType& data)  {
+  bool Set(const Vectornd& x, const ValType& data)  {
     int id = Id(x);
     if(id<0)
       return false;
-    cells_[id] = data;
+    set_cells(id, data, cells_store_ptr_type);
     return true;
   }
 
@@ -904,11 +904,11 @@ public:
    * @param data
    * @return was able to set data or not
    */
-  bool Set(const Vectorni& gidx, const CellType& data)  {
+  bool Set(const Vectorni& gidx, const ValType& data)  {
     int id = Id(gidx);
     if(id<0)
       return false;
-    cells_[id] = data;
+    set_cells(id, data, cells_store_ptr_type);
     return true;
   }
 
@@ -918,10 +918,10 @@ public:
    * @param data the content of a cell
    * @return true if it was able to set the data
    */
-  bool Set(int id, const CellType& data) {
+  bool Set(int id, const ValType& data) {
     if (id<0 || id >= nc_)
       return false;
-    cells_[id] = data;
+    set_cells(id, data, cells_store_ptr_type);
     return true;
   }
 
@@ -1230,15 +1230,6 @@ public:
   }
 
   // Mutators
-  /**
-   * setter function for cells_[id]
-   * @param id array id
-   * @param val
-   */
-  inline void set_cells(int id, const ValType& val){
-    set_cells(id, val, cells_store_ptr_type);
-  }
-
   /**
    * setter function for cells
    * @param vals

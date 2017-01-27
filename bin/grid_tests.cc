@@ -15,7 +15,7 @@ int main(int argc, char** argv){
 
   Grid<Vector3d,double> grid(xlb,xub,cs);
   for(int id = 0; id < grid.nc() ; id++){
-    grid.set_cells(id, id);
+    grid.Set(id, id);
   }
 
   cout<<endl;
