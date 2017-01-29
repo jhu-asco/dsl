@@ -9,65 +9,7 @@
 namespace dsl {
 
 using namespace Eigen;
-
-Map<bool, 2> load(const char* filename, const Vector2d &cs) {
-  std::string header;
-  int max_col = 0;
-  
-  std::fstream fs (filename, std::fstream::in);
-  assert(fs.is_open());
-  fs >> header;
-  assert (header == std::string("P6"));
-
-  int width, height;
-  fs >> width >> height >> max_col;
-  assert(width > 0);
-  assert(height > 0);
-
-  dsl::Map<bool, 2> map(Vector2d(0,0), Vector2d(cs[0]*width, cs[1]*height), cs);
-
-  int size = width*height;
-  int raster_size = (max_col > 255 ? size*6 : size*3);
-  
-  char *data = (char*)malloc(raster_size);    
-  fs.read(data, raster_size);
-
-  int step = max_col > 255 ? 6 : 3;  
-  for (int i = 0; i < size; i++) 
-    map.cells[i] = (data[step * i] ? 1 : 0);
-  free(data);
-  fs.close();
-  return map;
-}
-
-
-void save(const dsl::Map<bool, 2> &map, const char* filename, const std::vector<Vector2d> *path) {
-  const int &width = map.gs[0];
-  const int &height = map.gs[1];
-  
-  char data[width*height*3];
-  std::fstream fs(filename, std::fstream::out);
-  assert(fs.is_open());
-  fs << "P6" << std::endl << width << " " << height << std::endl << "255" << std::endl;
-
-  int ind = 0;
-  for (int i = 0; i < width * height; i++, ind += 3) {
-    data[ind] = data[ind + 1] = data[ind + 2] = (char)(map.cells[i] * 100);
-  }
-  assert(ind == 3*width*height);
-
-  if (path) {
-    for (auto&& p : *path) {
-      int id = map.Id(p);
-      int id3 = 3*id;
-      data[id3] = 255; data[id3+1] = 0; data[id3 + 2] = 0;
-    }
-  }
-
-  fs.write(data, ind);
-  fs.close();
-}
-
+using namespace std;
 
 void save_map(const char* map, int width, int height, const char* filename) {
   int i, ind;
@@ -97,7 +39,7 @@ char* load_map(int &width, int &height, const char* filename) {
   std::string header;
 
   int max_col = 0;
-  
+
   //FILE* file = fopen(filename, "r");
   //assert(file);
   //assert(fscanf(file, "P6\n%d %d 255\n", width, height));
@@ -105,7 +47,7 @@ char* load_map(int &width, int &height, const char* filename) {
   assert(fs.is_open());
   fs >> header;
   assert (header == std::string("P6"));
-  
+
   fs >> width >> height >> max_col;
   assert(width > 0);
   assert(height > 0);
@@ -115,11 +57,11 @@ char* load_map(int &width, int &height, const char* filename) {
 
   data = (char*)malloc(raster_size);
   map = (char*)malloc(size);
-    
+
   fs.read(data, raster_size);
 
   int step = max_col > 255 ? 6 : 3;
-  
+
   for (i = 0; i < size; i++) 
     map[i] = (data[step * i] ? 1 : 0);
   free(data);
@@ -189,7 +131,7 @@ void se2_inv(Matrix3d& mi, const Matrix3d& m) {
 void se2_exp(Matrix3d& m, const Vector3d& v, double tol) {
   const double& w = v[0];
 
-  if (fabs(w) < tol) {
+  if (std::fabs(w) < tol) {
     m(0, 0) = 1;
     m(0, 1) = 0;
     m(0, 2) = v[1];
@@ -219,12 +161,40 @@ void se2_exp(Matrix3d& m, const Vector3d& v, double tol) {
   m(2, 2) = 1;
 }
 
-
-void replaceExt(std::string& s, const std::string& newExt) {
-  std::string::size_type i = s.rfind('.', s.length());
-  if (i != std::string::npos) {
-    s.replace(i+1, newExt.length(), newExt);
+void se2_log(Vector3d &v, const Matrix3d &m, double tol){
+  double th = atan2(m(1,0),m(0,0));
+  v(0) = th;
+  const double& x = m(0,2);
+  const double& y = m(1,2);
+  if (std::fabs(th) < tol) {
+    v(1) = x;
+    v(2) = y;
+    return;
   }
+  double th2 = th/2;
+  double a = th2/tan(th/2);
+  v(1) = a*x + th2*y;
+  v(2) = -th2*x + a*y;
+}
+
+Vector2d se2_get_wvx( double xf,double yf){
+  double w, t;
+  if(std::fabs(yf)<1e-12){
+    w=0;
+    t=xf;
+  }else{
+    w = 2*yf/(xf*xf+yf*yf);
+    t = atan2(w*xf, 1-w*yf)/w;
+  }
+  return Vector2d(w*t,t);
+}
+
+std::string ReplaceExtension(const std::string& filename, const std::string& new_extension) {
+  string filename_new = filename;
+  std::string::size_type i = filename.rfind('.', filename.length());
+  if (i != std::string::npos)
+    filename_new.replace(i+1, new_extension.length(), new_extension);
+  return filename_new;
 }
 
 }

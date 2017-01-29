@@ -1,6 +1,7 @@
 #include "grid2d.h"
 
 using namespace dsl;
+using namespace Eigen;
 
 Grid2d::Grid2d(int width,
                int height,
@@ -8,26 +9,18 @@ Grid2d::Grid2d(int width,
                double sx,
                double sy,
                double maxCost)
-    : Grid< Eigen::Vector2d, double >(Eigen::Vector2d(0, 0),
+    : Grid2dBase(Eigen::Vector2d(0, 0),
               Eigen::Vector2d(sx * width, sy * height),
               Eigen::Vector2i(width, height)) {
-  for (int i = 0; i < width; ++i) {
-    for (int j = 0; j < height; ++j) {
-      int id = j * width + i;
-      double cost = map[id]; // cell cost = height/occupany/traversability
-      assert(cost >= 0);
-      // add this as a cell only if cost is less than a given max cost
-      // this is useful if maxCost defines map cells that are untreversable, so
-      // they shouldn't be added to the list of cells
-      if (cost < maxCost) {
-        cells[id] = new Cell< Eigen::Vector2d, double>(id,
-                                                       Eigen::Vector2d((i + 0.5) * sx, (j + 0.5) * sy),
-                                                       cost);
-        
-            //            new Cell< Vector2d, double>(Eigen::Vector2d((i + 0.5) * sx, (j + 0.5) * sy),
-            //                                        Eigen::Vector2d(sx / 2, sy / 2),
-            //                                        cost);
-      }
-    }
-  }
+  //Iterate over all cells
+  auto fun = [&](int id, const Vector2i& gidx){
+    Vector2d cc; //CellCenter
+    bool gotcenter = CellCenter(gidx, &cc);
+    assert(gotcenter);
+    double cost = map[id]; // cell cost = height/occupany/traversability
+    assert(cost >= 0);
+    if (cost < maxCost) // add this as a cell only if cost is less than a given max cost
+      this->set_cells(id,XyCostCell(id, cc, cost));
+  };
+  LoopOver(fun);
 }

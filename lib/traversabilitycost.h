@@ -6,8 +6,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_TRAVERSABILITYCOST_H
-#define DSL_TRAVERSABILITYCOST_H
+#ifndef DSL_LIB_TRAVERSABILITYCOST_H_
+#define DSL_LIB_TRAVERSABILITYCOST_H_
 
 #include "gridcost.h"
 
@@ -34,8 +34,8 @@ public:
 
   double Heur(const TypedCell& a, const TypedCell& b) const {
     /*
-    double dx = std::abs(a.c[0] - b.c[0]);
-    double dy = std::abs(a.c[1] - b.c[1]);
+    double dx = std::fabs(a.c[0] - b.c[0]);
+    double dy = std::fabs(a.c[1] - b.c[1]);
     if (dx > dy)
       return dx;
     else

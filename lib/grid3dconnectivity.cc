@@ -5,8 +5,8 @@ namespace dsl {
 
 using Eigen::Vector3d;
 
-Grid3dConnectivity::Grid3dConnectivity(const Grid< Vector3d, double >& grid)
-    : LineConnectivity< Vector3d, double >(grid) {
+Grid3dConnectivity::Grid3dConnectivity(const Grid3dBase& grid)
+    : Line3dConnectivity(grid) {
   for (int i = -1; i <= 1; i++) {
     for (int j = -1; j <= 1; j++) {
       for (int k = -1; k <= 1; k++) {
@@ -17,7 +17,7 @@ Grid3dConnectivity::Grid3dConnectivity(const Grid< Vector3d, double >& grid)
     }
   }
   for (auto& x : lines) {
-    x = x.cwiseProduct(grid.cs);
+    x = x.cwiseProduct(grid.cs());
     costs.push_back(x.norm());
   }
 }

@@ -6,21 +6,24 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_GRID3DCONNECTIVITY_H
-#define DSL_GRID3DCONNECTIVITY_H
+#ifndef DSL_LIB_GRID3DCONNECTIVITY_H_
+#define DSL_LIB_GRID3DCONNECTIVITY_H_
 
 #include "lineconnectivity.h"
+#include "grid3d.h"
 
 namespace dsl {
+
+using Line3dConnectivity = LineConnectivity< XyzCostCell::PointType, XyzCostCell::DataType>;
 
 /**
  * Defines a simple connectivity between cells in a 3d grid.
  * The default implementation is the 26-cell Moore neighborhood connectivity.
  * The costs are the Euclidean distances b/n the cell centers.
  */
-  class Grid3dConnectivity : public LineConnectivity< Eigen::Vector3d, double > {
+  class Grid3dConnectivity : public Line3dConnectivity {
 public:
-    Grid3dConnectivity(const Grid< Eigen::Vector3d, double >& grid);
+    Grid3dConnectivity(const Grid3dBase& grid);
 };
 }
 

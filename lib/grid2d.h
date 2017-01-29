@@ -6,18 +6,21 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_GRID2D_H
-#define DSL_GRID2D_H
+#ifndef DSL_LIB_GRID2D_H_
+#define DSL_LIB_GRID2D_H_
 
 #include "grid.h"
 
 namespace dsl {
 
+using XyCostCell = Cell<Eigen::Vector2d, double>;
+using Grid2dBase = Grid<XyCostCell::PointType, XyCostCell::Ptr>;
+
 /**
  * A 2d grid with coordinates (x,y)
  *
  */
-  class Grid2d : public Grid< Eigen::Vector2d, double> {
+  class Grid2d : public Grid2dBase {
 public:
   /**
    * Initialize the grid using a 2d configuration-space map

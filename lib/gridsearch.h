@@ -6,8 +6,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_GRIDSEARCH_H
-#define DSL_GRIDSEARCH_H
+#ifndef DSL_LIB_GRIDSEARCH_H_
+#define DSL_LIB_GRIDSEARCH_H_
 
 #include "search.h"
 #include "gridcost.h"
@@ -60,9 +60,12 @@ using std::vector;
  * there is cost of transitioning between two cells.
  *
  */
-template < class PointType, class DataType, class ConnectionType = std::vector< Cell<PointType, DataType>* > >
-  class GridSearch : public Search< Cell<PointType, DataType>, ConnectionType > {
+template < class PointType_, class DataType_, class ConnectionType_ = std::vector< typename Cell<PointType_, DataType_>::Ptr > >
+  class GridSearch : public Search< Cell<PointType_, DataType_>, ConnectionType_ > {
 public:
+  using PointType = PointType_;
+  using DataType = DataType_;
+  using ConnectionType = ConnectionType_;
 
   using GridVertexData = Cell<PointType, DataType>;
   using GridEdgeData = ConnectionType;
@@ -71,8 +74,13 @@ public:
   using CellEdge = Edge< GridVertexData, GridEdgeData>;
 
   using TypedCell = Cell<PointType, DataType>;
-  using TypedGrid = Grid<PointType, DataType>;
-    
+  using TypedCellPtr = typename TypedCell::Ptr;
+
+  using TypedGrid = Grid<PointType, TypedCellPtr>;
+
+
+  using TypedGridConnectivity = GridConnectivity< PointType, DataType, ConnectionType >;
+
   /**
    * The planner requires a grid, its connectivity, and a cost interface. By
    * default it will expand the
@@ -90,7 +98,7 @@ public:
    * through each cell, this is useful for changing the costs these edges if the
    * cost of that cell changes, or to remove these edges if the cell is removed
    */
-  GridSearch(const Grid< PointType, DataType >& grid,
+  GridSearch(TypedGrid& grid,
              const GridConnectivity< PointType, DataType, ConnectionType >& connectivity,
              const GridCost< PointType, DataType >& cost,
              bool expand = false,
@@ -174,7 +182,7 @@ public:
 private:
   Graph< GridVertexData, GridEdgeData> graph; ///< the underlying graph
 
-  const Grid< PointType, DataType >& grid; ///< the grid
+  TypedGrid& grid; ///< the grid
   const GridConnectivity< PointType, DataType, ConnectionType >&
       connectivity;              ///< the connectivity interface
   const GridCost< PointType, DataType >& cost; ///< the cost interface
@@ -194,23 +202,23 @@ private:
 
 template < class PointType, class DataType, class ConnectionType >
     GridSearch< PointType, DataType, ConnectionType>::GridSearch(
-    const Grid< PointType, DataType>& grid,
+    TypedGrid& grid,
     const GridConnectivity< PointType, DataType, ConnectionType >& connectivity,
     const GridCost< PointType, DataType >& cost,
     bool expand,
     bool trackEdgesThroughCell)
-    : Search< Cell<PointType, DataType>, ConnectionType >(graph, cost),
+    : Search< TypedCell, ConnectionType >(graph, cost),
     grid(grid),
     connectivity(connectivity),
     cost(cost),
     trackEdgesThroughCell(trackEdgesThroughCell) {
 
-      vertexMap = new CellVertex* [grid.nc];
-      memset(vertexMap, 0, grid.nc * sizeof(CellVertex*));
+      vertexMap = new CellVertex* [grid.nc()];
+      memset(vertexMap, 0, grid.nc() * sizeof(CellVertex*));
 
   if (expand) {
-    for (int i = 0; i < grid.nc; ++i) {
-      const TypedCell *cell = grid.Get(i);
+    for (int i = 0; i < grid.nc(); ++i) {
+      const TypedCellPtr cell = grid.Get(i);
       if (cell) {
         vertexMap[i] = new CellVertex(*cell);
         graph.AddVertex(*vertexMap[i]);
@@ -218,19 +226,19 @@ template < class PointType, class DataType, class ConnectionType >
     }
 
     // expand the successors of each vertex
-    for (int i = 0; i < grid.nc; ++i) {
-      const TypedCell *cell = grid.Get(i);
+    for (int i = 0; i < grid.nc(); ++i) {
+      const TypedCellPtr cell = grid.Get(i);
       if (cell) {
         CellVertex* from = vertexMap[i];
         assert(from);
 
         // generate successor paths
-        std::vector< std::tuple<TypedCell*, ConnectionType, double> > paths;
+        std::vector< std::tuple<TypedCellPtr, ConnectionType, double> > paths;
         connectivity(*cell, paths);        
 
         for (auto&& path : paths) {
           // find cell where the end of the path falls
-          TypedCell *toCell = std::get<0>(path);
+          TypedCellPtr toCell = std::get<0>(path);
           
           CellVertex* to = vertexMap[toCell->id];
           
@@ -281,18 +289,18 @@ template < class PointType, class DataType, class ConnectionType >
     return true;
 
   // cell must exist
-  const Cell<PointType, DataType>* cell = grid.Get(from.data.id);
+  const TypedCellPtr cell = grid.Get(from.data.id);
   //  if (!cell) {
   //    std::cout << id << " " << from.data.c.transpose() << std::endl;    
   //  }
   assert(cell);
   
-  std::vector< std::tuple<TypedCell*, ConnectionType, double> > paths;  
+  std::vector< std::tuple<TypedCellPtr, ConnectionType, double> > paths;
   connectivity(*cell, paths, fwd);
   
   for (auto&& path : paths) {
 
-    TypedCell *toCell = std::get<0>(path);
+    TypedCellPtr toCell = std::get<0>(path);
     assert(toCell);
     
     int id = toCell->id;
@@ -381,7 +389,7 @@ template < class PointType, class DataType, class ConnectionType >
   int id = grid.Id(x);
 
   // cell must exist
-  const Cell<PointType, DataType >* cell = grid.Get(id);
+  const TypedCellPtr cell = grid.Get(id);
   if (!cell) {
     std::cout << "[W] GridSearch:SetStart: cell at=" << x.transpose() << " does not exist!"
               << std::endl;
@@ -410,9 +418,9 @@ template < class PointType, class DataType, class ConnectionType >
   }
 
   int id = grid.Id(x);
-  assert(id >= 0 && id < grid.nc);
+  assert(id >= 0 && id < grid.nc());
 
-  const TypedCell* cell = grid.Get(id);
+  const TypedCellPtr cell = grid.Get(id);
   if (!cell) {
     std::cout << "[W] GridSearch:SetGoal: cell at=" << x.transpose() << " does not exist!"
               << std::endl;
@@ -435,7 +443,7 @@ template < class PointType, class DataType, class ConnectionType >
 template < class PointType, class DataType, class ConnectionType >
     bool GridSearch< PointType, DataType, ConnectionType >::RemoveCell(const PointType& x) {
   int id = grid.Id(x);  
-  if (id < 0 || id >= grid.nc) {
+  if (id < 0 || id >= grid.nc()) {
     std::cout << "[W] GridSearch::RemoveCell: id=" << id << " out of bounds!" << std::endl;    
     return false;
   }
@@ -450,9 +458,8 @@ template < class PointType, class DataType, class ConnectionType >
     return false;
   }
 
-  if (grid.cells[id]) {
-    delete grid.cells[id];
-    grid.cells[id] = 0;
+  if (grid.cells()[id]) {
+    grid.delete_cell(id);
   } else {
     return false;
   }
@@ -523,7 +530,7 @@ template <class PointType, class DataType, class ConnectionType>
 template < class PointType, class DataType, class ConnectionType>
     double GridSearch< PointType, DataType, ConnectionType>::GetCost(const PointType& x) const {
   int id = grid.Id(x);
-  if (id < 0 || id >= grid.nc)
+  if (id < 0 || id >= grid.nc())
     return 0;
 
   Cell< PointType, DataType >* cell = grid.Get(id);
@@ -539,10 +546,10 @@ template < class PointType, class DataType, class ConnectionType>
 template < class PointType, class DataType, class ConnectionType >
     bool GridSearch< PointType, DataType, ConnectionType>::SetCost(const PointType& x, double cost) {
   int id = grid.Id(x);
-  if (id < 0 || id >= grid.nc)
+  if (id < 0 || id >= grid.nc())
     return false;
 
-  Cell<PointType, DataType >* cell = grid.Get(id);  
+  TypedCellPtr cell = grid.Get(id);
   if (!cell) {
     // std::cout << "[W] GridSearch::SetCost: no cell at position " <<
     // x.transpose() << std::endl;

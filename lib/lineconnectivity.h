@@ -6,15 +6,17 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_LINECONNECTIVITY_H
-#define DSL_LINECONNECTIVITY_H
+#ifndef DSL_LIB_LINECONNECTIVITY_H_
+#define DSL_LIB_LINECONNECTIVITY_H_
 
 #include "gridconnectivity.h"
 #include "grid.h"
 #include "spline.h"
+#include <memory>
 
 namespace dsl {
 
+using std::shared_ptr;
 /**
  * The most basic grid connectivity: each cell is connected with "lines" to
  * other cells, and each line has an associate cost.
@@ -26,15 +28,18 @@ namespace dsl {
  */
 template < class PointType, class DataType = EmptyData>
     class LineConnectivity : public GridConnectivity< PointType, DataType, PointType> {
+
 public:
-
-using TypedCell = Cell<PointType, DataType>;
-
+  using TypedCell = Cell<PointType, DataType>;
+  using TypedCellCref = typename TypedCell::Cref;
+  using TypedCellPtr = typename TypedCell::Ptr;
+  using TypedGrid = Grid<PointType, TypedCellPtr>;
+  using TypedCellConnectionCostTuple = std::tuple<TypedCellPtr, PointType, double>;
   /**
    * Initialize connectivity using a grid
    * @param grid the grid
    */
-  LineConnectivity(const Grid< PointType, DataType >& grid);
+  LineConnectivity(const TypedGrid& grid);
 
   /**
    * Initialize connectivity using a grid, lines, and costs
@@ -42,14 +47,14 @@ using TypedCell = Cell<PointType, DataType>;
    * @param lines the lines
    * @param costs the costs
    */
-  LineConnectivity(const Grid<PointType, DataType>& grid,
+  LineConnectivity(const TypedGrid& grid,
                    const std::vector<PointType>& lines,
                    const std::vector< double >& costs);
 
   virtual bool Free(const DataType &cost) const override { return cost < 0.5; }
 
-  virtual bool operator()(const Cell<PointType, DataType>& from,
-                          std::vector< std::tuple<Cell<PointType, DataType>*, PointType, double> >& paths,
+  virtual bool operator()(const TypedCell& from,
+                          std::vector<TypedCellConnectionCostTuple>& paths,
                           bool fwd = true) const;
 
   /**
@@ -82,24 +87,24 @@ using TypedCell = Cell<PointType, DataType>;
                   double traceStep = 0.1) const;
 
 
-  const Grid<  PointType, DataType >& grid; ///< grid
+  const TypedGrid& grid; ///< grid
   std::vector< PointType > lines; ///< line vectors (directions) connecting to other cells
   std::vector< double > costs; ///< cost along each direction
 };
 
 template < class PointType, class DataType >
-    LineConnectivity< PointType, DataType >::LineConnectivity(const Grid< PointType, DataType >& grid)
+    LineConnectivity< PointType, DataType >::LineConnectivity(const TypedGrid& grid)
   : grid(grid) {}
 
 template < class PointType, class DataType >
-LineConnectivity< PointType, DataType >::LineConnectivity(const Grid<  PointType, DataType >& grid,
+LineConnectivity< PointType, DataType >::LineConnectivity(const TypedGrid& grid,
                                                           const std::vector< PointType >& lines,
                                                           const std::vector< double >& costs)
   : grid(grid), lines(lines), costs(costs) {}
 
 template < class PointType, class DataType >
-    bool LineConnectivity< PointType, DataType >::operator()(const Cell< PointType, DataType >& from,
-                                                             std::vector< std::tuple<Cell<PointType, DataType>*, PointType, double> >& paths,
+    bool LineConnectivity< PointType, DataType >::operator()(const TypedCell& from,
+                                                             std::vector<TypedCellConnectionCostTuple>& paths,
                                                              bool fwd) const {
   paths.clear();
   for (size_t i = 0; i < lines.size(); ++i) {
@@ -112,7 +117,7 @@ template < class PointType, class DataType >
     if (!grid.Valid(x))
       continue;
 
-    TypedCell *cell = grid.Get(x, false);
+    TypedCellPtr cell = grid.Get(x, false);
     if (!cell)
       continue;
 
@@ -155,7 +160,7 @@ template < class PointType, class DataType >
   optPath.cells.push_back(path.cells[0]);
 
   if (traceStep <= 0)
-    traceStep = grid.cs.norm();
+    traceStep = grid.cs().norm();
 
   for (; it1 != path.cells.end() - 1; ++it1) {
     x1 = it1->c;
@@ -170,8 +175,8 @@ template < class PointType, class DataType >
       for (double d = traceStep; d < dn; d += traceStep) {
         PointType x = x0 + dx1 * d;
         int id = grid.Id(x);
-        assert(id >= 0 && id < grid.nc);
-        if (!grid.cells[id] || !Free(grid.cells[id]->data)) {
+        assert(id >= 0 && id < grid.nc());
+        if (!grid.cells()[id] || !Free(grid.cells()[id]->data)) {
           optPath.cells.push_back(*it1);
           x0 = x1;
           break;
