@@ -24,9 +24,9 @@ TerrainSE2GridCost::TerrainSE2GridCost(const TerrainSE2Grid& grid, const SE2Grid
   }
 
   for(int id=0; id < grid.nc(); id++)
-    if(&grid.Get(id))
-      trav_min_ = trav_min_ < grid.Get(id).data.traversibility ?
-                  trav_min_ : grid.Get(id).data.traversibility;
+    if(grid.Get(id))
+      trav_min_ = trav_min_ < grid.Get(id)->data.traversibility ?
+                  trav_min_ : grid.Get(id)->data.traversibility;
 
 }
 
@@ -54,15 +54,15 @@ double TerrainSE2GridCost::Real(const SE2TerrainCell& a, const SE2TerrainCell& b
     se2_exp(dg, (d_seg*i_seg / d) * twist);
     Matrix3d g = ga * dg;
     Vector3d axy; se2_g2q(axy, g);
-    SE2TerrainCell::Cref wp = grid_.Get(axy);
-    if (!&wp) //one of the waypoints is outside the grid.
+    SE2TerrainCell::Cptr wp = grid_.Get(axy);
+    if (!wp) //one of the waypoints is outside the grid.
       return numeric_limits<double>::quiet_NaN();
 
-    trav_sum += wp.data.traversibility;
-    if( (wp.data.height - pot_prev) > 0 )
-      delh_pve_sum += wp.data.height - pot_prev;
+    trav_sum += wp->data.traversibility;
+    if( (wp->data.height - pot_prev) > 0 )
+      delh_pve_sum += wp->data.height - pot_prev;
 
-    pot_prev = wp.data.height;
+    pot_prev = wp->data.height;
   }
   if( (b.data.height - pot_prev) > 0 )
     delh_pve_sum += b.data.height - pot_prev;

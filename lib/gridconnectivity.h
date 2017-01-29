@@ -21,9 +21,8 @@ template < class PointType, class DataType, class ConnectionType>
 class GridConnectivity {
 public:
     using TypedCell = Cell<PointType, DataType>;
-    using TypedCellCref = typename TypedCell::Cref;
-    using TypedCellPtr = typename TypedCell::Ptr;
-    using TypedCellConnectionCostTuple = std::tuple<TypedCellCref, ConnectionType, double>;
+    using TypedCellCptr = typename TypedCell::Cptr;
+    using TypedCellConnectionCostTuple = std::tuple<TypedCellCptr, ConnectionType, double>;
   /**
    * Connectivity operator providing primitive paths from a given vertex. This
    * function should generate connections from the given vertex and store them

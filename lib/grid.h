@@ -759,17 +759,13 @@ public:
    * @return const ref to *cell at position x
    * If cell is unallocated then a null reference is returned
    */
-  template< bool Q = UsePtr, typename = typename std::enable_if<Q>::type >
-  const DataType& Get(const Vectornd& x, bool checkValid = true) const {
+  template< bool UsesPtr = UsePtr, typename = typename std::enable_if<UsesPtr>::type >
+  const DataType* Get(const Vectornd& x, bool checkValid = true) const {
     if (checkValid)
       if (!Valid(x))
-        return null_ref_;
+        return nullptr;
 
-    int id = Id(x);
-    if(cells_[id])
-      return *cells_[id];
-    else
-      return null_ref_;
+    return cells_[Id(x)].get();
   }
 
   /**
@@ -778,15 +774,12 @@ public:
    * @return const ref to contents of cell.
    * If cell holds pointer and is not allocate then a null reference is returned
    */
-  template< bool Q = UsePtr, typename = typename std::enable_if<Q>::type >
-  const DataType& Get(int id) const {
+  template< bool UsesPtr = UsePtr, typename = typename std::enable_if<UsesPtr>::type >
+  const DataType* Get(int id) const {
     if (id<0 || id >= nc_)
-      return null_ref_;
+      return nullptr;
 
-    if(cells_[id])
-      return *cells_[id];
-    else
-      return null_ref_;
+    return cells_[id].get();
   }
 
   /**
@@ -795,16 +788,12 @@ public:
    * @return Copy of contents of cell, could be shared_ptr or bool etc.
    * If cell doesn't exist default object is returned, which in case of a pointer is a nullptr.
    */
-  template< bool Q = UsePtr, typename = typename std::enable_if<Q>::type >
-  const DataType& Get(const Vectorni& gidx) const {
+  template< bool UsesPtr = UsePtr, typename = typename std::enable_if<UsesPtr>::type >
+  const DataType* Get(const Vectorni& gidx) const {
     if (!Valid(gidx))
-      return null_ref_;
+      return nullptr;
 
-    int id = Id(gidx);
-    if(cells_[id])
-      return *cells_[id];
-    else
-      return null_ref_;
+    return cells_[Id(gidx)].get();
   }
 
 
@@ -816,7 +805,7 @@ public:
    * @return Copy of contents of cell, could be shared_ptr or bool etc.
    * If cell doesn't exist default object is returned, which in case of a pointer is a nullptr.
    */
-  template< bool Q = UsePtr, typename = typename std::enable_if<!Q>::type >
+  template< bool UsesPtr = UsePtr, typename = typename std::enable_if<!UsesPtr>::type >
   DataType Get(const Vectornd& x, bool checkValid = true) const {
     if (checkValid)
       if (!Valid(x))
@@ -831,7 +820,7 @@ public:
    * @return const ref to contents of cell.
    * If cell holds pointer and is not allocate then a null reference is returned
    */
-  template< bool Q = UsePtr, typename = typename std::enable_if<!Q>::type >
+  template< bool UsesPtr = UsePtr, typename = typename std::enable_if<!UsesPtr>::type >
   DataType Get(int id) const {
     if (id<0 || id >= nc_)
       return DataType();
@@ -845,7 +834,7 @@ public:
    * @return Copy of contents of cell, could be shared_ptr or bool etc.
    * If cell doesn't exist default object is returned, which in case of a pointer is a nullptr.
    */
-  template< bool Q = UsePtr, typename = typename std::enable_if<!Q>::type >
+  template< bool UsesPtr = UsePtr, typename = typename std::enable_if<!UsesPtr>::type >
   DataType Get(const Vectorni& gidx) const {
     if (!Valid(gidx))
       return DataType();
@@ -1192,7 +1181,7 @@ public:
    * Getter function for cells. This method is only enabled if cells don't store unique_ptr
    * @param id
    */
-  template< bool Q = UsePtr, typename = typename std::enable_if<!Q>::type >
+  template< bool UsesPtr = UsePtr, typename = typename std::enable_if<!UsesPtr>::type >
   inline const std::vector<CellType>& cells(void)  const {
     return cells_;
   }
@@ -1212,7 +1201,7 @@ public:
    * This method is only enabled if cells store shared_ptr
    * @param id
    */
-  template< bool Q = UsePtr, typename = typename std::enable_if<Q>::type >
+  template< bool UsesPtr = UsePtr, typename = typename std::enable_if<UsesPtr>::type >
   void delete_cell(int id)
   {
     cells_.at(id).reset();

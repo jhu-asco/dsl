@@ -22,19 +22,19 @@ bool CarTwistConnectivity::operator()(const TypedCell& from,
     g_to = g_from*dg;//end pose resulting from the twist
     Vector3d axy;
     se2_g2q(axy, g_to);
-    TypedCellCref to = grid_.Get(axy);
-    if (!&to) // "to" cell is not a part of the grid(because it has an obstacle)
+    TypedCellCptr to = grid_.Get(axy);
+    if (!to) // "to" cell is not a part of the grid(because it has an obstacle)
       continue;
-    se2_q2g(g_to,to.c);
+    se2_q2g(g_to,to->c);
 
-    auto it = cells_visited.find(to.id);
+    auto it = cells_visited.find(to->id);
     if(it==cells_visited.end())//new cell
-      cells_visited.insert(to.id);
+      cells_visited.insert(to->id);
     else //visited the cell before
       continue;
 
     //Get cost and check if path is clear
-    double primcost = cost_.Real(from,to);
+    double primcost = cost_.Real(from,*to);
     if(std::isnan(primcost)) //path is not clear
       continue;
 
@@ -74,19 +74,19 @@ bool TerrainTwistConnectivity::operator()(const SE2TerrainCell& from,
     Matrix3d g_to = g_from*dg;//end pose resulting from the twist
     Vector3d axy;
     se2_g2q(axy, g_to);
-    TypedCellCref to = grid_.Get(axy);
+    TypedCellCptr to = grid_.Get(axy);
     if (!&to) // "to" cell is not a part of the grid(because it has an obstacle)
       continue;
-    se2_q2g(g_to,to.c);
+    se2_q2g(g_to,to->c);
 
-    auto it = cells_visited.find(to.id);
+    auto it = cells_visited.find(to->id);
     if(it==cells_visited.end())//new cell
-      cells_visited.insert(to.id);
+      cells_visited.insert(to->id);
     else //visited the cell before
       continue;
 
     //Get cost and check if path is clear
-    double primcost = cost_.Real(from,to);
+    double primcost = cost_.Real(from,*to);
     if(std::isnan(primcost)) //path is not clear
       continue;
 
@@ -126,25 +126,25 @@ bool CarPathConnectivity::
     Matrix3d g = from.data*dg; //end pose resulting from the twist
     Vector3d axy;
     se2_g2q(axy, g);
-    TypedCellCref to = grid_.Get(axy); //snap the end pose to grid
-    if (!&to) // "to" cell is not a part of the grid(because it has an obstacle)
+    TypedCellCptr to = grid_.Get(axy); //snap the end pose to grid
+    if (!to) // "to" cell is not a part of the grid(because it has an obstacle)
       continue;
 
-    auto it = cells_visited.find(to.id);
+    auto it = cells_visited.find(to->id);
     if(it==cells_visited.end())//new cell
-      cells_visited.insert(to.id);
+      cells_visited.insert(to->id);
     else //visited the cell before
       continue;
 
     //Get cost and check if path is clear
-    double primcost = cost_.Real(from,to);
+    double primcost = cost_.Real(from,*to);
     if(std::isnan(primcost)) //path is not clear
       continue;
 
     //sample states along the path
     Matrix3d gi;
     se2_inv(gi,from.data);
-    dg = gi * to.data; //relative of from.data to to->data
+    dg = gi * to->data; //relative of from.data to to->data
     Vector3d vdt_slip;
     se2_log(vdt_slip,dg);//twist that take you exactly to successor
     Vector3d vdt_noslip;
@@ -162,7 +162,7 @@ bool CarPathConnectivity::
     }else{
       for (int i_seg=1; i_seg<=n_seg; i_seg++) {
         se2_exp(dg, -(d_seg*i_seg / d) * vdt_final);
-        path[i_seg-1] = to.data * dg;
+        path[i_seg-1] = to->data * dg;
       }
     }
 

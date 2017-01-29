@@ -22,10 +22,7 @@ template < class PointType_, class DataType_ >
 struct Cell {
   using PointType = PointType_;
   using DataType = DataType_;
-  using Cref = const Cell<PointType, DataType>&;
-  using Ptr = std::unique_ptr< Cell<PointType,DataType> >;
-  //using Ptr = std::shared_ptr< Cell<PointType,DataType> >;
-  //using Ptr = Cell<PointType,DataType>*;
+  using Cptr = const Cell<PointType,DataType>*;
 
  Cell(int id, const PointType& c) : id(id), c(c) {}
   

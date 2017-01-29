@@ -31,10 +31,9 @@ template < class PointType, class DataType = EmptyData>
 
 public:
   using TypedCell = Cell<PointType, DataType>;
-  using TypedCellCref = typename TypedCell::Cref;
-  using TypedCellPtr = typename TypedCell::Ptr;
+  using TypedCellCptr = typename TypedCell::Cptr;
   using TypedGrid = Grid<PointType, TypedCell>;
-  using TypedCellConnectionCostTuple = std::tuple<TypedCellCref, PointType, double>;
+  using TypedCellConnectionCostTuple = std::tuple<TypedCellCptr, PointType, double>;
 
   /**
    * Initialize connectivity using a grid
@@ -118,14 +117,14 @@ template < class PointType, class DataType >
     if (!grid.Valid(x))
       continue;
 
-    TypedCellCref cell = grid.Get(x, false);
-    if (! &cell)
+    TypedCellCptr cell = grid.Get(x, false);
+    if (!cell)
       continue;
 
-    if (!Free(cell.data)) // if obstacle
+    if (!Free(cell->data)) // if obstacle
       continue;
 
-    paths.push_back(std::make_tuple(cell, lines[i], costs[i]));    
+    paths.push_back(std::make_tuple(cell, lines[i], costs[i]));
   }
   return true;
 }
@@ -177,7 +176,7 @@ template < class PointType, class DataType >
         PointType x = x0 + dx1 * d;
         int id = grid.Id(x);
         assert(id >= 0 && id < grid.nc());
-        if (! &grid.Get(id) || !Free(grid.Get(id).data)) {
+        if (! grid.Get(id) || !Free(grid.Get(id)->data)) {
           optPath.cells.push_back(*it1);
           x0 = x1;
           break;
@@ -226,8 +225,8 @@ template < class PointType, class DataType >
     // std::cout << i*traceStep << std::endl;
     // std::cout << pti.transpose() << std::endl;
     //  TODO(comment this out)
-    TypedCellCref cell = grid.Get(splinePath[i]);
-    if(! &cell)
+    TypedCellCptr cell = grid.Get(splinePath[i]);
+    if(!cell)
     {
       std::cout << "dsl::SplinePath: Cell does not exist" << std::endl;
       return;

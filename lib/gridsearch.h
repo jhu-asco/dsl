@@ -74,11 +74,10 @@ public:
   using CellEdge = Edge< GridVertexData, GridEdgeData>;
 
   using TypedCell = Cell<PointType, DataType>;
-  using TypedCellCref = typename TypedCell::Cref;
-  using TypedCellPtr = typename TypedCell::Ptr;
+  using TypedCellCptr = typename TypedCell::Cptr;
 
   using TypedGrid = Grid<PointType, TypedCell>;
-  using TypedCellConnectionCostTuple = std::tuple<TypedCellCref, ConnectionType, double>;
+  using TypedCellConnectionCostTuple = std::tuple<TypedCellCptr, ConnectionType, double>;
 
   using TypedGridConnectivity = GridConnectivity< PointType, DataType, ConnectionType >;
 
@@ -219,32 +218,32 @@ template < class PointType, class DataType, class ConnectionType >
 
   if (expand) {
     for (int i = 0; i < grid.nc(); ++i) {
-      TypedCellCref cell = grid.Get(i);
-      if (&cell) {
-        vertexMap[i] = new CellVertex(cell);
+      TypedCellCptr cell = grid.Get(i);
+      if (cell) {
+        vertexMap[i] = new CellVertex(*cell);
         graph.AddVertex(*vertexMap[i]);
       }
     }
 
     // expand the successors of each vertex
     for (int i = 0; i < grid.nc(); ++i) {
-      TypedCellCref cell = grid.Get(i);
-      if (&cell) {
+      TypedCellCptr cell = grid.Get(i);
+      if (cell) {
         CellVertex* from = vertexMap[i];
         assert(from);
 
         // generate successor paths
         std::vector<TypedCellConnectionCostTuple> paths;
-        connectivity(cell, paths);
+        connectivity(*cell, paths);
 
         for (auto&& path : paths) {
           // find cell where the end of the path falls
-          TypedCellCref toCell = std::get<0>(path);
+          TypedCellCptr toCell = std::get<0>(path);
           
-          if(! &toCell)
+          if(!toCell)
             continue;
 
-          CellVertex* to = vertexMap[toCell.id];
+          CellVertex* to = vertexMap[toCell->id];
           
           if (!to)
             continue;
@@ -293,25 +292,25 @@ template < class PointType, class DataType, class ConnectionType >
     return true;
 
   // cell must exist
-  TypedCellCref cell = grid.Get(from.data.id);
+  TypedCellCptr cell = grid.Get(from.data.id);
   //  if (!cell) {
   //    std::cout << id << " " << from.data.c.transpose() << std::endl;    
   //  }
   assert(&cell);
   
   std::vector<TypedCellConnectionCostTuple> paths;
-  connectivity(cell, paths, fwd);
+  connectivity(*cell, paths, fwd);
   
   for (auto&& path : paths) {
 
-    TypedCellCref toCell = std::get<0>(path);
-    assert(&toCell);
+    TypedCellCptr toCell = std::get<0>(path);
+    assert(toCell);
     
-    int id = toCell.id;
+    int id = toCell->id;
 
     // if this vertex doesn't exist, create it and add to graph
     if (!vertexMap[id]) {
-      vertexMap[id] = new CellVertex(toCell);
+      vertexMap[id] = new CellVertex(*toCell);
       graph.AddVertex(*vertexMap[id]);
     }
     CellVertex* to = vertexMap[id];
@@ -393,18 +392,18 @@ template < class PointType, class DataType, class ConnectionType >
   int id = grid.Id(x);
 
   // cell must exist
-  TypedCellCref cell = grid.Get(id);
-  if (! &cell) {
+  TypedCellCptr cell = grid.Get(id);
+  if (!cell) {
     std::cout << "[W] GridSearch:SetStart: cell at=" << x.transpose() << " does not exist!"
               << std::endl;
     return false;
   }
   
-  assert(cell.id == id);
+  assert(cell->id == id);
   
   // if it's not added previously add it
   if (!vertexMap[id]) {
-    vertexMap[id] = new CellVertex(cell);
+    vertexMap[id] = new CellVertex(*cell);
     graph.AddVertex(*vertexMap[id]);
   }
 
@@ -424,18 +423,18 @@ template < class PointType, class DataType, class ConnectionType >
   int id = grid.Id(x);
   assert(id >= 0 && id < grid.nc());
 
-  TypedCellCref cell = grid.Get(id);
-  if (! &cell) {
+  TypedCellCptr cell = grid.Get(id);
+  if (!cell) {
     std::cout << "[W] GridSearch:SetGoal: cell at=" << x.transpose() << " does not exist!"
               << std::endl;
     return false;
   }
 
-  assert(cell.id == id);
+  assert(cell->id == id);
 
   // if it's not added previously add it
   if (!vertexMap[id]) {
-    vertexMap[id] = new CellVertex(cell);
+    vertexMap[id] = new CellVertex(*cell);
     graph.AddVertex(*vertexMap[id]);
   }
 
@@ -462,7 +461,7 @@ template < class PointType, class DataType, class ConnectionType >
     return false;
   }
 
-  if (&grid.Get(id)) {
+  if (grid.Get(id)) {
     grid.delete_cell(id);
   } else {
     return false;
@@ -553,13 +552,13 @@ template < class PointType, class DataType, class ConnectionType >
   if (id < 0 || id >= grid.nc())
     return false;
 
-  TypedCellCref cell = grid.Get(id);
-  if (! &cell) {
+  TypedCellCptr cell = grid.Get(id);
+  if (!cell) {
     // std::cout << "[W] GridSearch::SetCost: no cell at position " <<
     // x.transpose() << std::endl;
     return false;
   }
-  assert(id == cell.id);
+  assert(id == cell->id);
 
   // change the costs of eall edges passing through this cell  
   if (trackEdgesThroughCell) {

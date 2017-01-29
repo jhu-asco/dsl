@@ -41,8 +41,8 @@ double CarCost::Real(const SE2Cell& a, const SE2Cell& b) const{
     Matrix3d g = ga * dg;
     Vector3d axy;
     se2_g2q(axy, g);
-    SE2Cell::Cref wp = grid_.Get(axy); //waypoint
-    if (!&wp)
+    SE2Cell::Cptr wp = grid_.Get(axy); //waypoint
+    if (!wp)
       return numeric_limits<double>::quiet_NaN();
   }
   double wl = (twist.array()* wt_.array()).matrix().norm();//weighted length
