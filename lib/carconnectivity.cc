@@ -75,7 +75,7 @@ bool TerrainTwistConnectivity::operator()(const SE2TerrainCell& from,
     Vector3d axy;
     se2_g2q(axy, g_to);
     TypedCellCptr to = grid_.Get(axy);
-    if (!&to) // "to" cell is not a part of the grid(because it has an obstacle)
+    if (!to) // "to" cell is not a part of the grid(because it has an obstacle)
       continue;
     se2_q2g(g_to,to->c);
 

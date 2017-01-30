@@ -27,11 +27,6 @@ target_link_libraries(grid_save_load dsl)
 add_executable(idtoindexspeedtest idtoindexspeedtest.cc)
 target_link_libraries(idtoindexspeedtest dsl)
 
-
-# Benchmarking id and id2 methods in grid.h
-add_executable(id_and_id2_benchmarking id_and_id2_benchmarking.cc)
-target_link_libraries(id_and_id2_benchmarking dsl)
-
 # Testing speed for different methods to loop over all elements 
 add_executable(loopindexspeedtest loopindexspeedtest.cc)
 target_link_libraries(loopindexspeedtest dsl)

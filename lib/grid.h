@@ -586,40 +586,31 @@ public:
    * @return the cell array id. -1 if point x is not in grid
    */
   int Id(const Vectornd& x) const {
-    Vectorni gidx;
-    Index(x, &gidx);
+//    Vectorni gidx;
+//    Index(x, &gidx);
+//
+//    if(Valid(gidx))
+//      return gidx.transpose()*cgs_;
+//    else
+//      return -1;
 
-    if(Valid(gidx))
-      return gidx.transpose()*cgs_;
-    else
-      return -1;
-  }
-
-  /**
-   * Get an id of point x useful for direct lookup in the grid array
-   * @param x point
-   * @return a computed id
-   */
-  int IdOld(const Vectornd& x) const {
-    int cum = 1; // cumulative offset for next dimension
+    //This is forloop is actually faster than unrolled because there
+    //are no function calls.
     int id = 0;
     for (int i = 0; i < n_; ++i) {
       // index of i-th dimension
       double xi = x[i];
-      if(wd_[i]){ //dimension is wrapped
-        while(xi < xlb_[i]){xi += ds_[i];}
-        while(xi > xub_[i]){xi -= ds_[i];}
-      }
+      if(xi - xlb_[i] >= 0)
+        xi =  fmod(xi - xlb_[i], ds_[i]) + xlb_[i];
+      else
+        xi = -fmod(xlb_[i] - xi, ds_[i]) - xlb_[i];
       int ind = floor((xi - xlb_[i]) / ds_[i] * gs_[i]);
       if(ind < 0 || ind >= gs_[i])
         return -1;
-      id += cum * ind;
-      if (i < n_ - 1)
-        cum *= gs_[i];
+      id += cgs_[i] * ind;
     }
     return id;
   }
-
 
   /**
    * Get the id of a point corresponding to the grid index
