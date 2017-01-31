@@ -1364,9 +1364,6 @@ private:
   Vectorni cgs_; ///< cumulative(product) of gs. For n=3, cgs = [1, gs[0], gs[0]*gs[1]]
   Vectornb wd_;  ///< which dimensions are wrapped
   std::vector<CellType> cells_; ///< grid cells
-
-  //const DataType default_val_ = DataType(); ///< default values
-  const DataType& null_ref_ = *(DataType*)0; ///< null reference
 };
 
 /**
