@@ -26,12 +26,10 @@ namespace dsl {
 struct EmptyData {};
 /**
  * An n-dimenensional grid consisting of abstract "cells", or elements
- * identified by a set of coordinates of type PointType, each cell
- * containing data of type CellType. The CellType can directly be
- * the intended data or shared_ptr to intended data. Using the shared_ptr
- * is useful to avoid memory allocation until it's actually needed.
- * CellType=bool/double can be used to make a grid of occupancy or
- * traversibility of a cell.
+ * identified by a set of coordinates of type PointType. The cells can hold
+ * a specified DataType or a unique_ptr to the DataType. The second option
+ * allows for allocation of data for specific cells. All that is controlled by
+ * the template parameter UsePtr
  *
  * Explanation of certain important variables:
  *   id:   id for direct lookup in an array(or std::vector)
@@ -42,7 +40,7 @@ struct EmptyData {};
  * Note that this data structure is only viable up to a few dimensions,
  * e.g. dim=5 or 6.
  *
- * TODO: 1. Make sure origin lies at center of a cell
+ *\todo: 1. Make sure origin lies at center of a cell
  *       2. Check for bound in GetSlice and GetStack methods
  *       3. Implement GetStack method that can perform occupancy dilation
  *       4. Add clone methods to deep copy data
