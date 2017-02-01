@@ -27,6 +27,16 @@ struct ImageRGB{
   std::vector<uint16_t> bdata;
 
   void ChangeBitDepth(BitDepth bitdepth_new);
+
+  void resize(int size);
+
+  void set_rgb(int id, uint16_t val);
+
+  void set_to_red(int id, uint16_t val);
+
+  void set_to_blue(int id, uint16_t val);
+
+  void set_to_green(int id, uint16_t val);
 };
 
 /**

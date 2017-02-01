@@ -49,9 +49,7 @@ bool SavePpm(const dsl::Map<bool, 2> &map, const string& filename) {
   img.w = map.gs()[0];
   img.h = map.gs()[1];
   img.bitdepth = ImageRGB::BD8; // only occupancy information. Higher bit depth not required.
-  img.rdata.resize(img.w*img.h);
-  img.gdata.resize(img.w*img.h);
-  img.bdata.resize(img.w*img.h);
+  img.resize(img.w*img.h);
 
   for (int id = 0; id < map.nc(); id++){
     img.rdata[id] = map.Get(id)? img.bitdepth : 0;
@@ -77,9 +75,7 @@ bool SavePpm(const dsl::Map<TerrainData, 2> &tmap, const string& filename) {
   img.w = tmap.gs()[0];
   img.h = tmap.gs()[1];
   img.bitdepth = ImageRGB::BD16;
-  img.rdata.resize(img.w*img.h);
-  img.gdata.resize(img.w*img.h);
-  img.bdata.resize(img.w*img.h);
+  img.resize(img.w*img.h);
 
   double maxh = numeric_limits<double_t>::lowest(); //max height
   double maxt = numeric_limits<double_t>::lowest(); //max traversibility
@@ -93,7 +89,7 @@ bool SavePpm(const dsl::Map<TerrainData, 2> &tmap, const string& filename) {
   for (int id = 0; id < tmap.nc(); id++){
     img.rdata[id] = 0.5*tmap.Get(id).height*hscale;
     img.gdata[id] = 0.5*tmap.Get(id).traversibility*tscale;
-    img.bdata[id] = 0;
+
   }
 
   if(!SavePpm(img,filename)){
@@ -273,9 +269,7 @@ bool saveTmap(Map<TerrainData, 2>& tmap, const string& tmapfile){
   img.w = tmap.gs()[0];
   img.h = tmap.gs()[1];
   img.bitdepth = ImageRGB::BD16;
-  img.rdata.resize(img.w*img.h);
-  img.gdata.resize(img.w*img.h);
-  img.bdata.resize(img.w*img.h);
+  img.resize(img.w*img.h);
 
   double maxh = numeric_limits<double_t>::lowest(); //max height
   double maxt = numeric_limits<double_t>::lowest(); //max traversibility
@@ -289,7 +283,7 @@ bool saveTmap(Map<TerrainData, 2>& tmap, const string& tmapfile){
   for (int id = 0; id < tmap.nc(); id++){
     img.rdata[id] = 0.5*tmap.Get(id).height*hscale;
     img.gdata[id] = 0.5*tmap.Get(id).traversibility*tscale;
-    img.bdata[id] = 0;
+
   }
 
   if(!SavePpm(img,map_img_filename)){
@@ -330,15 +324,10 @@ bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename,
   img.w = smap->gs()[0];
   img.h = smap->gs()[1];
   img.bitdepth = ImageRGB::BD8;
-  img.rdata.resize(img.w*img.h);
-  img.gdata.resize(img.w*img.h);
-  img.bdata.resize(img.w*img.h);
+  img.resize(img.w*img.h);
 
-  for (int id = 0; id < smap->nc(); id++){
-    img.rdata[id] = smap->Get(id)? 100:0;
-    img.gdata[id] = smap->Get(id)? 100:0;
-    img.bdata[id] = smap->Get(id)? 100:0;
-  }
+  for (int id = 0; id < smap->nc(); id++)
+    img.set_rgb(id, smap->Get(id)? 100:0);
 
   for(size_t i=0; i<path.size(); i++){
     if(geom){
@@ -357,43 +346,27 @@ bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename,
 
       if(i==0){
         for (int id = 0; id < smap->nc(); id++)
-          if(temp[id]){
-            img.rdata[id] = 0;
-            img.gdata[id] = img.bitdepth;//Start of path in green
-            img.bdata[id] = 0;
-          }
+          if(temp[id])
+             img.set_to_green(id,img.bitdepth);//Start of path in green
       }else if(i==path.size()-1){
         for (int id = 0; id < smap->nc(); id++)
-          if(temp[id]){
-            img.rdata[id] = img.bitdepth;//End of path in red
-            img.gdata[id] = 0;
-            img.bdata[id] = 0;
-          }
+          if(temp[id])
+             img.set_to_red(id, img.bitdepth);//End of path in red
       }else{
         for (int id = 0; id < smap->nc(); id++)
-          if(temp[id]){
-            img.rdata[id] = 0;
-            img.gdata[id] = 0;
-            img.bdata[id] = img.bitdepth;//Points in between in blue
-          }
+          if(temp[id])
+             img.set_to_blue(id, img.bitdepth);//Points in between in blue
       }
     }else{
       Vector2d pos = path.at(i).tail<2>();
       int id = smap->Id(pos);
-      if(i==0){
-        img.rdata[id] = 0;
-        img.gdata[id] = img.bitdepth;//Start of path in green
-        img.bdata[id] = 0;
+      if(i==0)
+         img.set_to_green(id,img.bitdepth);//Start of path in green
+      else if(i==path.size()-1)
+         img.set_to_red(id, img.bitdepth);//End of path in red
+      else
+         img.set_to_blue(id, img.bitdepth);//Points in between in blue
 
-      }else if(i==path.size()-1){
-        img.rdata[id] = img.bitdepth;//End of path in red
-        img.gdata[id] = 0;
-        img.bdata[id] = 0;
-      }else{
-        img.rdata[id] = 0;
-        img.gdata[id] = 0;
-        img.bdata[id] = img.bitdepth;//Points in between in blue
-      }
     }
   }
 
@@ -426,9 +399,7 @@ bool SavePpmWithPath(const dsl::Map<TerrainData, 2>& tmap, std::string filename,
   img.w = smap->gs()[0];
   img.h = smap->gs()[1];
   img.bitdepth = ImageRGB::BD16;
-  img.rdata.resize(img.w*img.h);
-  img.gdata.resize(img.w*img.h);
-  img.bdata.resize(img.w*img.h);
+  img.resize(img.w*img.h);
 
   double maxh = numeric_limits<double_t>::lowest(); //max height
   double maxt = numeric_limits<double_t>::lowest(); //max traversibility
@@ -442,7 +413,6 @@ bool SavePpmWithPath(const dsl::Map<TerrainData, 2>& tmap, std::string filename,
   for (int id = 0; id < smap->nc(); id++){
     img.rdata[id] = 0.5*smap->Get(id).height*hscale;
     img.gdata[id] = 0.5*smap->Get(id).traversibility*tscale;
-    img.bdata[id] = 0;
   }
 
   for(size_t i=0; i<path.size(); i++){
@@ -462,43 +432,28 @@ bool SavePpmWithPath(const dsl::Map<TerrainData, 2>& tmap, std::string filename,
 
       if(i==0){
         for (int id = 0; id < smap->nc(); id++)
-          if(temp[id]){
-            img.rdata[id] = 0;
-            img.gdata[id] = img.bitdepth;//Start of path in green
-            img.bdata[id] = 0;
-          }
+          if(temp[id])
+             img.set_to_green(id,img.bitdepth);//Start of path in green
+
       }else if(i==path.size()-1){
         for (int id = 0; id < smap->nc(); id++)
-          if(temp[id]){
-            img.rdata[id] = img.bitdepth;//End of path in red
-            img.gdata[id] = 0;
-            img.bdata[id] = 0;
-          }
+          if(temp[id])
+             img.set_to_red(id, img.bitdepth);//End of path in red
       }else{
         for (int id = 0; id < smap->nc(); id++)
-          if(temp[id]){
-            img.rdata[id] = 0;
-            img.gdata[id] = 0;
-            img.bdata[id] = img.bitdepth;//Middle points of path in blue
-          }
+          if(temp[id])
+             img.set_to_blue(id, img.bitdepth);//Middle points of path in blue
       }
     }else{
       Vector2d pos = path.at(i).tail<2>();
       int id = smap->Id(pos);
-      if(i==0){
-        img.rdata[id] = 0;
-        img.gdata[id] = img.bitdepth;//Start of path in green
-        img.bdata[id] = 0;
+      if(i==0)
+         img.set_to_green(id,img.bitdepth);//Start of path in green
+      else if(i==path.size()-1)
+         img.set_to_red(id, img.bitdepth);//End of path in red
+      else
+         img.set_to_blue(id, img.bitdepth);//Points in between in blue
 
-      }else if(i==path.size()-1){
-        img.rdata[id] = img.bitdepth;//End of path in red
-        img.gdata[id] = 0;
-        img.bdata[id] = 0;
-      }else{
-        img.rdata[id] = 0;
-        img.gdata[id] = 0;
-        img.bdata[id] = img.bitdepth;//Points in between in blue
-      }
     }
   }
 
@@ -530,32 +485,20 @@ bool SavePpmWithPrimitives(const dsl::Map<bool, 2>& omap, std::string filename,
   img.w = smap->gs()[0];
   img.h = smap->gs()[1];
   img.bitdepth = ImageRGB::BD8;
-  img.rdata.resize(img.w*img.h);
-  img.gdata.resize(img.w*img.h);
-  img.bdata.resize(img.w*img.h);
+  img.resize(img.w*img.h);
 
-  for (int id = 0; id < smap->nc(); id++){
-    img.rdata[id] = smap->Get(id)? 100:0;
-    img.gdata[id] = smap->Get(id)? 100:0;
-    img.bdata[id] = smap->Get(id)? 100:0;
-  }
+  for (int id = 0; id < smap->nc(); id++)
+    img.set_rgb(id, smap->Get(id)? 100:0);
 
   for(auto& prim: prims){
     for(size_t i=0; i< prim.size(); i++){
       int id = smap->Id(prim[i]);
-      if(i==0){
-        img.rdata[id] = 0;
-        img.gdata[id] = img.bitdepth; //start point in green
-        img.bdata[id] = 0;
-      }else if(i==prim.size()-1){
-        img.rdata[id] = img.bitdepth; //goal point in red
-        img.gdata[id] = 0;
-        img.bdata[id] = 0;
-      }else{
-        img.rdata[id] = 0;
-        img.gdata[id] = 0;
-        img.bdata[id] = img.bitdepth; //point along the way in blue
-      }
+      if(i==0)
+         img.set_to_green(id,img.bitdepth); //start point in green
+      else if(i==prim.size()-1)
+         img.set_to_red(id, img.bitdepth); //goal point in red
+      else
+         img.set_to_blue(id, img.bitdepth); //point along the way in blue
     }
   }
 
@@ -586,9 +529,7 @@ bool SavePpmWithPrimitives(const dsl::Map<TerrainData, 2>& tmap, std::string fil
   img.w = smap->gs()[0];
   img.h = smap->gs()[1];
   img.bitdepth = ImageRGB::BD16;
-  img.rdata.resize(img.w*img.h);
-  img.gdata.resize(img.w*img.h);
-  img.bdata.resize(img.w*img.h);
+  img.resize(img.w*img.h);
 
   double maxh = numeric_limits<double_t>::lowest(); //max height
   double maxt = numeric_limits<double_t>::lowest(); //max traversibility
@@ -601,7 +542,6 @@ bool SavePpmWithPrimitives(const dsl::Map<TerrainData, 2>& tmap, std::string fil
   for (int id = 0; id < smap->nc(); id++){
     img.rdata[id] = 0.5*smap->Get(id).height*hscale;
     img.gdata[id] = 0.5*smap->Get(id).traversibility*tscale;
-    img.bdata[id] = 0;
   }
 
   char data[smap->nc()*3];
@@ -609,19 +549,12 @@ bool SavePpmWithPrimitives(const dsl::Map<TerrainData, 2>& tmap, std::string fil
   for(auto& prim: prims){
     for(size_t i=0; i< prim.size(); i++){
       int id = smap->Id(prim[i]);
-      if(i==0){
-        img.rdata[id] = 0;
-        img.gdata[id] = img.bitdepth; //start point in green
-        img.bdata[id] = 0;
-      }else if(i==prim.size()-1){
-        img.rdata[id] = img.bitdepth; //goal point in red
-        img.gdata[id] = 0;
-        img.bdata[id] = 0;
-      }else{
-        img.rdata[id] = 0;
-        img.gdata[id] = 0;
-        img.bdata[id] = img.bitdepth; //point along the way in blue
-      }
+      if(i==0)
+         img.set_to_green(id,img.bitdepth); //start point in green
+      else if(i==prim.size()-1)
+         img.set_to_red(id, img.bitdepth); //goal point in red
+      else
+         img.set_to_blue(id, img.bitdepth); //point along the way in blue
     }
   }
 

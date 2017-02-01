@@ -33,6 +33,36 @@ void ImageRGB::ChangeBitDepth(BitDepth bitdepth_new){
   bitdepth = bitdepth_new;
 }
 
+void ImageRGB::resize(int size){
+  rdata.resize(size);
+  gdata.resize(size);
+  bdata.resize(size);
+}
+
+void ImageRGB::set_rgb(int id, uint16_t val){
+  rdata[id] = val;
+  gdata[id] = val;
+  bdata[id] = val;
+}
+
+void ImageRGB::set_to_red(int id, uint16_t val){
+  rdata[id] = val;
+  gdata[id] = 0;
+  bdata[id] = 0;
+}
+
+void ImageRGB::set_to_blue(int id, uint16_t val){
+  rdata[id] = 0;
+  gdata[id] = 0;
+  bdata[id] = val;
+}
+
+void ImageRGB::set_to_green(int id, uint16_t val){
+  rdata[id] = 0;
+  gdata[id] = val;
+  bdata[id] = 0;
+}
+
 bool LoadPpm(ImageRGB &img, const string &filename){
   if(filename.compare(filename.size() - 4, 4, ".ppm")){
     cout<<"File doesn't have .ppm extension"<<endl;

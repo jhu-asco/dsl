@@ -108,11 +108,11 @@ int main(int argc, char** argv)
   shared_ptr<dsl::Map<bool, 3> > cmap;
 
   if(!cmapValid){
-    cmap.reset(new dsl::Map<bool, 3>(xlb, xub, ocs));
     std::cout << "Making cmap... " << std::endl;
     timer_start(&timer);
     if (use_geom) {
-      int nthreads; params.GetInt("nthreads", nthreads);
+      int nthreads;
+      params.GetInt("nthreads", nthreads);
       cmap = MakeCmap(*omap, ocs(0), geom, nthreads);
     } else {
       cmap = MakeCmap(*omap, ocs(0));
