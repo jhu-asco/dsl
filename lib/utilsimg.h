@@ -174,6 +174,42 @@ void addLine( std::vector<T>& map, int w, int h, Eigen::Vector2d p1, Eigen::Vect
 }
 
 /**
+ * Takes in an image and corners of a polygon, and adds the polygon with specified
+ * line width
+ * @param map The input image as a vector
+ * @param w The width of the image
+ * @param h The height of the image
+ * @param p1 End point1 for the line in pixel coordinates
+ * @param p2 End point2 for the line in pixel coordinates
+ * @param lval the pixel value for the line
+ * @param lw linewidth in pixels
+ */
+template < typename T >
+void addPoly( std::vector<T>& map, int w, int h, std::vector<Eigen::Vector2d> ps, T lval, double lw) {
+
+  std::vector<Eigen::Vector2d> points = ps;
+  points.push_back(points[0]); //repeat the first one
+  for(int i = 0; i < ps.size(); i++){
+    Eigen::Vector2d p1 = points[i];
+    Eigen::Vector2d p2 = points[i+1];
+    Eigen::Vector2d n = Eigen::Rotation2Dd(M_PI / 2) * (p2 - p1).normalized();
+    Matrix2x4d verts2d;
+    verts2d.col(0) = p1 + n * lw / 2;
+    verts2d.col(1) = p1 - n * lw / 2;
+    verts2d.col(2) = p2 - n * lw / 2;
+    verts2d.col(3) = p2 + n * lw / 2;
+
+    for (int r = 0; r < h; r++) {
+      for (int c = 0; c < w; c++) {
+        int idx = c + r * w;
+        if (inPoly(verts2d, Eigen::Vector2d(c, r)))
+          map[idx] = lval;
+      }
+    }
+  }
+}
+
+/**
  * Takes in an input image, a kernel image a and the origin of kernel image and
  * produces a dilated image.
  * @param data_dil Dilated image

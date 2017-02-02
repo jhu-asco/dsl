@@ -330,18 +330,23 @@ bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename,
     img.set_rgb(id, smap->Get(id)? 100:0);
 
   for(size_t i=0; i<path.size(); i++){
-    if(geom){
+    if(geom){ //plot rectangles
       Vector3d axy = path[i];
-      vector<Vector2d> vs; geom->GetTrueCorners(vs,axy(0));//Get corners of car relative to it's origin
-      for_each(vs.begin(),vs.end(),[&](Vector2d& v){v +=axy.tail<2>();}); //corners relative to world origin
-
-      smap->ToGridCoordinates(&vs); //convert to grid coordinates
-      int seq[]={3,0,1,2};
-      double lwm = 0.05; //line width meters
-      int lw = ceil(lwm/smap->cs()[0]);//line width in pixels
+      vector<Vector2d> vs_true;
+      geom->GetTrueCorners(vs_true,axy(0));//Get true corners of car relative to it's origin
+      for_each(vs_true.begin(),vs_true.end(),[&](Vector2d& v){v +=axy.tail<2>();}); //true corners relative to world origin
+      smap->ToGridCoordinates(&vs_true); //convert to grid coordinates
       vector<bool> temp(smap->nc(), false);
-      for(int i=0;i<4;i++){
-        addLine<bool>(temp, smap->gs()[0], smap->gs()[1], vs[i], vs[seq[i]], true,lw);
+      double lwm = 0.02; //line width meters
+      int lw = ceil(lwm/smap->cs()[0])+1;//line width in pixels
+      addPoly<bool>(temp, smap->gs()[0], smap->gs()[1], vs_true, true, lw);
+
+      if(i==0 || i==path.size()-1){
+        vector<Vector2d> vs_safe;
+        geom->GetSafeCorners(vs_safe,axy(0));//Get safe corners of car relative to it's origin
+        for_each(vs_safe.begin(),vs_safe.end(),[&](Vector2d& v){v +=axy.tail<2>();}); //safe corners relative to world origin
+        smap->ToGridCoordinates(&vs_safe); //convert to grid coordinates
+        addPoly<bool>(temp, smap->gs()[0], smap->gs()[1], vs_safe, true, 1);
       }
 
       if(i==0){
@@ -357,7 +362,7 @@ bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename,
           if(temp[id])
              img.set_to_blue(id, img.bitdepth);//Points in between in blue
       }
-    }else{
+    }else{ //plot points
       Vector2d pos = path.at(i).tail<2>();
       int id = smap->Id(pos);
       if(i==0)
@@ -418,7 +423,8 @@ bool SavePpmWithPath(const dsl::Map<TerrainData, 2>& tmap, std::string filename,
   for(size_t i=0; i<path.size(); i++){
     if(geom){
       Vector3d axy = path[i];
-      vector<Vector2d> vs; geom->GetTrueCorners(vs,axy(0));//Get corners of car relative to it's origin
+      vector<Vector2d> vs;
+      geom->GetTrueCorners(vs,axy(0));//Get corners of car relative to it's origin
       for_each(vs.begin(),vs.end(),[&](Vector2d& v){v +=axy.tail<2>();}); //corners relative to world origin
 
       smap->ToGridCoordinates(&vs); //convert to grid coordinates
