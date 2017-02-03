@@ -333,7 +333,7 @@ bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename,
     if(geom){ //plot rectangles
       Vector3d axy = path[i];
       vector<Vector2d> vs_true;
-      geom->GetTrueCorners(vs_true,axy(0));//Get true corners of car relative to it's origin
+      geom->GetTrueCorners(vs_true,axy(0));//Get true corners of car relative to it's unrotated origin
       for_each(vs_true.begin(),vs_true.end(),[&](Vector2d& v){v +=axy.tail<2>();}); //true corners relative to world origin
       smap->ToGridCoordinates(&vs_true); //convert to grid coordinates
       vector<bool> temp(smap->nc(), false);
@@ -343,7 +343,7 @@ bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename,
 
       if(i==0 || i==path.size()-1){
         vector<Vector2d> vs_safe;
-        geom->GetSafeCorners(vs_safe,axy(0));//Get safe corners of car relative to it's origin
+        geom->GetSafeCorners(vs_safe,axy(0));//Get safe corners of car relative to it's unrotated origin
         for_each(vs_safe.begin(),vs_safe.end(),[&](Vector2d& v){v +=axy.tail<2>();}); //safe corners relative to world origin
         smap->ToGridCoordinates(&vs_safe); //convert to grid coordinates
         addPoly<bool>(temp, smap->gs()[0], smap->gs()[1], vs_safe, true, 1);

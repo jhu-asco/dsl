@@ -179,8 +179,7 @@ void addLine( std::vector<T>& map, int w, int h, Eigen::Vector2d p1, Eigen::Vect
  * @param map The input image as a vector
  * @param w The width of the image
  * @param h The height of the image
- * @param p1 End point1 for the line in pixel coordinates
- * @param p2 End point2 for the line in pixel coordinates
+ * @param ps Points in pixel coordinates
  * @param lval the pixel value for the line
  * @param lw linewidth in pixels
  */

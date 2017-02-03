@@ -19,7 +19,7 @@ using namespace std;
 
 //SE2CellGrid::Vectornb(true,false,false) says which dimensions are wrapped
 CarGrid::CarGrid(const Map<bool, 3> &cmap, const Vector3d& cs)
-    : SE2CellGrid(cmap.xlb(), cmap.xub(), cs, SE2CellGrid::Vectornb(true,false,false)){
+    : SE2CellGrid(cmap.xlb(), cmap.xub(), cs, SE2CellGrid::Vectornb(true,false,false), SE2CellGrid::Vectornb(true,true,true)){
 
   //Iterate over all cells
   auto fun = [&](int id, const Vector3i& gidx){

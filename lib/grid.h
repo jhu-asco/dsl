@@ -972,7 +972,6 @@ public:
    * @param coord In metric coordinates. After update they are in grid coordinates
    */
   void ToGridCoordinates(std::vector<Vectornd>* coord) const{
-
     Vectornd point0;
     Vectorni gidx0 = Vectorni::Zero();
     CellCenter(gidx0, &point0);
