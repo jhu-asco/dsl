@@ -12,12 +12,11 @@ using namespace dsl;
 using namespace std;
 using namespace Eigen;
 
-using CarPath = GridPath<SE2Cell::PointType, SE2Cell::DataType, SE2Path>;
 using CarTwistPath = dsl::GridPath<SE2Cell::PointType, SE2Cell::DataType, SE2Twist>;
 
-vector<Vector4d> ToAxyvPath(const CarTwistPath &path, double gridcs) {
-  vector<Vector4d> axyvs;
-  Vector4d axyv;
+vector<Vector6d> ToAxyWvxvyPath(const CarTwistPath &path, double gridcs) {
+  vector<Vector6d> axywvxvys;
+  Vector6d axywvxvy;
   for (size_t i=0; i<path.connections.size(); i++){
     Vector3d v = path.connections[i];
     Vector3d axy = path.cells[i].c;
@@ -31,11 +30,11 @@ vector<Vector4d> ToAxyvPath(const CarTwistPath &path, double gridcs) {
       se2_exp(dg, (s*i_seg / d) * v);
       g = g_from * dg;
       se2_g2q(axy, g);
-      axyv << axy, v(1);
-      axyvs.push_back(axyv);
+      axywvxvy << axy, v;
+      axywvxvys.push_back(axywvxvy);
     }
   }
-  return axyvs;
+  return axywvxvys;
 }
 
 
@@ -146,7 +145,7 @@ int main(int argc, char** argv)
   //**********************************************************************************/
 
   Vector3d wt; //weights for twist element
-  shared_ptr<CarCost> cost;
+  CarCost::Ptr cost;
   if( params.GetVector3d("wt", wt))
     cost.reset(new CarCost(grid, wt));
   else
@@ -215,17 +214,17 @@ int main(int argc, char** argv)
   //***************************************plot***************************************/
   //**********************************************************************************/
 
-  vector<Vector4d> axyvs;
+  vector<Vector6d> axywvxvys;
 
   if(start_set && goal_set){
-    axyvs = ToAxyvPath(path,grid.cs()[1]);
+    axywvxvys = ToAxyWvxvyPath(path,grid.cs()[1]);
     cout << "Map and path saved to path.ppm" << endl;
   }else{
-    Vector4d axyv;
-    axyv << grid.CellCenter(start), 1;
-    axyvs.push_back(axyv);
-    axyv << grid.CellCenter(goal), 1;
-    axyvs.push_back(axyv);
+    Vector6d axywvxvy;
+    axywvxvy << grid.CellCenter(start), 0, 0, 0;
+    axywvxvys.push_back(axywvxvy);
+    axywvxvy << grid.CellCenter(goal), 0, 0, 0;
+    axywvxvys.push_back(axywvxvy);
     cout << "Map, start and goal (no path available ) saved to path.ppm" << endl;
   }
 
@@ -233,9 +232,9 @@ int main(int argc, char** argv)
   params.GetBool("plot_car", plot_car);
   // save it to image for viewing
   if(plot_car){
-    SavePpmWithPath(*omap, "path.ppm", axyvs, 3, &geom);
+    SavePpmWithPath(*omap, "path.ppm", axywvxvys, 3, &geom);
   }else{
-    SavePpmWithPath(*omap, "path.ppm", axyvs, 3);
+    SavePpmWithPath(*omap, "path.ppm", axywvxvys, 3);
   }
 
   //Display the primitive at start

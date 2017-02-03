@@ -81,6 +81,8 @@ public:
 
   using TypedGridConnectivity = GridConnectivity< PointType, DataType, ConnectionType >;
 
+  using TypedGridPath = GridPath< PointType, DataType, ConnectionType >;
+
   /**
    * The planner requires a grid, its connectivity, and a cost interface. By
    * default it will expand the
@@ -157,7 +159,7 @@ public:
    * the first cell of the next edge)
    * @return true on success
    */
-  bool Plan(GridPath< PointType, DataType, ConnectionType >& path, bool removeDuplicateCells = true);
+  bool Plan(TypedGridPath& path, bool removeDuplicateCells = true);
 
   /**
    * Useful method to get the graph vertex at position x
@@ -486,7 +488,7 @@ template < class PointType, class DataType, class ConnectionType >
 }
 
 template <class PointType, class DataType, class ConnectionType>
-    bool GridSearch< PointType, DataType, ConnectionType>::Plan(GridPath< PointType, DataType, ConnectionType >& path,
+    bool GridSearch< PointType, DataType, ConnectionType>::Plan(TypedGridPath& path,
                                                                 bool removeDuplicateCells) {
   path.cells.clear();
   path.cost = 0;

@@ -305,7 +305,8 @@ bool saveTmap(Map<TerrainData, 2>& tmap, const string& tmapfile){
 }
 
 bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename,
-                      const std::vector<Vector3d>& path, int scale, const CarGeom* geom){
+                      const std::vector<Vector6d>& path_axywvxvy, int scale, const CarGeom* geom){
+  int n_nodes = path_axywvxvy.size();
   //checks
   if(scale<1){
     cout<<"Scale should be >=1"<<endl;
@@ -329,9 +330,10 @@ bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename,
   for (int id = 0; id < smap->nc(); id++)
     img.set_to_white(id, smap->Get(id)? 100:0);
 
-  for(size_t i=0; i<path.size(); i++){
+  for(int i = 0; i < n_nodes; i++){
+    double vx = path_axywvxvy[i](4);
     if(geom){ //plot rectangles
-      Vector3d axy = path[i];
+      Vector3d axy = path_axywvxvy[i].head<3>();
       vector<Vector2d> vs_true;
       geom->GetTrueCorners(vs_true,axy(0));//Get true corners of car relative to it's unrotated origin
       for_each(vs_true.begin(),vs_true.end(),[&](Vector2d& v){v +=axy.tail<2>();}); //true corners relative to world origin
@@ -341,7 +343,7 @@ bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename,
       int lw = ceil(lwm/smap->cs()[0])+1;//line width in pixels
       addPoly<bool>(temp, smap->gs()[0], smap->gs()[1], vs_true, true, lw);
 
-      if(i==0 || i==path.size()-1){
+      if(i==0 || i == n_nodes-1){
         vector<Vector2d> vs_safe;
         geom->GetSafeCorners(vs_safe,axy(0));//Get safe corners of car relative to it's unrotated origin
         for_each(vs_safe.begin(),vs_safe.end(),[&](Vector2d& v){v +=axy.tail<2>();}); //safe corners relative to world origin
@@ -353,94 +355,14 @@ bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename,
         for (int id = 0; id < smap->nc(); id++)
           if(temp[id])
              img.set_to_green(id,img.bitdepth);//Start of path in green
-      }else if(i==path.size()-1){
-        for (int id = 0; id < smap->nc(); id++)
-          if(temp[id])
-             img.set_to_red(id, img.bitdepth);//End of path in red
-      }else{
-        for (int id = 0; id < smap->nc(); id++)
-          if(temp[id])
-             img.set_to_blue(id, img.bitdepth);//Points in between in blue
-      }
-    }else{ //plot points
-      Vector2d pos = path.at(i).tail<2>();
-      int id = smap->Id(pos);
-      if(i==0)
-         img.set_to_green(id,img.bitdepth);//Start of path in green
-      else if(i==path.size()-1)
-         img.set_to_red(id, img.bitdepth);//End of path in red
-      else
-         img.set_to_blue(id, img.bitdepth);//Points in between in blue
-
-    }
-  }
-
-  if(!SavePpm(img,filename)){
-    cout<<"Had problems saving the image file"<<endl;
-    return false;
-  }
-
-  return true;
-}
-
-bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename,
-                      const std::vector<Vector4d>& path_axyv, int scale, const CarGeom* geom){
-  //checks
-  if(scale<1){
-    cout<<"Scale should be >=1"<<endl;
-    return false;
-  }
-
-  if(filename.compare(filename.size() - 4, 4, ".ppm")){
-    cout<<"File doesn't have .ppm extension"<<endl;
-    return false;
-  }
-
-  dsl::Map<bool,2>::Ptr smap = omap.ScaleUp(scale);
-
-  //The image to be saved
-  ImageRGB img;
-  img.w = smap->gs()[0];
-  img.h = smap->gs()[1];
-  img.bitdepth = ImageRGB::BD8;
-  img.resize(img.w*img.h);
-
-  for (int id = 0; id < smap->nc(); id++)
-    img.set_to_white(id, smap->Get(id)? 100:0);
-
-  for(size_t i=0; i<path_axyv.size(); i++){
-    double v = path_axyv[i](3);
-    if(geom){ //plot rectangles
-      Vector3d axy = path_axyv[i].head<3>();
-      vector<Vector2d> vs_true;
-      geom->GetTrueCorners(vs_true,axy(0));//Get true corners of car relative to it's unrotated origin
-      for_each(vs_true.begin(),vs_true.end(),[&](Vector2d& v){v +=axy.tail<2>();}); //true corners relative to world origin
-      smap->ToGridCoordinates(&vs_true); //convert to grid coordinates
-      vector<bool> temp(smap->nc(), false);
-      double lwm = 0.02; //line width meters
-      int lw = ceil(lwm/smap->cs()[0])+1;//line width in pixels
-      addPoly<bool>(temp, smap->gs()[0], smap->gs()[1], vs_true, true, lw);
-
-      if(i==0 || i==path_axyv.size()-1){
-        vector<Vector2d> vs_safe;
-        geom->GetSafeCorners(vs_safe,axy(0));//Get safe corners of car relative to it's unrotated origin
-        for_each(vs_safe.begin(),vs_safe.end(),[&](Vector2d& v){v +=axy.tail<2>();}); //safe corners relative to world origin
-        smap->ToGridCoordinates(&vs_safe); //convert to grid coordinates
-        addPoly<bool>(temp, smap->gs()[0], smap->gs()[1], vs_safe, true, 1);
-      }
-
-      if(i==0){
-        for (int id = 0; id < smap->nc(); id++)
-          if(temp[id])
-             img.set_to_green(id,img.bitdepth);//Start of path in green
-      }else if(i==path_axyv.size()-1){
+      }else if(i == n_nodes-1){
         for (int id = 0; id < smap->nc(); id++)
           if(temp[id])
              img.set_to_red(id, img.bitdepth);//End of path in red
       }else{
         for (int id = 0; id < smap->nc(); id++){
           if(temp[id]){
-            if(v >0)
+            if(vx >= 0)
              img.set_to_blue(id, img.bitdepth);//Points in between in blue
             else
               img.set_to_cyan(id, img.bitdepth);//Points in between in cyan
@@ -448,14 +370,14 @@ bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename,
         }
       }
     }else{ //plot points
-      Vector2d pos( path_axyv[i](1), path_axyv[i](2)) ;
+      Vector2d pos( path_axywvxvy[i](1), path_axywvxvy[i](2)) ;
       int id = smap->Id(pos);
       if(i==0){
          img.set_to_green(id,img.bitdepth);//Start of path in green
-      }else if(i==path_axyv.size()-1){
+      }else if(i == n_nodes-1){
          img.set_to_red(id, img.bitdepth);//End of path in red
       }else{
-        if(v >0)
+        if(vx >= 0)
           img.set_to_blue(id, img.bitdepth);//Points in between in blue
         else
           img.set_to_cyan(id, img.bitdepth);//Points in between in cyan

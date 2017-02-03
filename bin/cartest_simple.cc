@@ -12,22 +12,24 @@ using namespace dsl;
 using namespace std;
 using namespace Eigen;
 
-using CarPath = GridPath<SE2Cell::PointType, SE2Cell::DataType, SE2Path>;
+using CarPosePath = GridPath<SE2Cell::PointType, SE2Cell::DataType, SE2Path>;
 
 /**
- * Converts CarPath to a vector of axy points representing the path. axy: yaw, x and y
- * @param path
- * @return vector of axy points
+ * Converts CarPath to a vector of (a, x, y, w, vx, vy)points representing the path
+ * @param path is the solution of DSL planning problem
+ * @return vector of (a, x, y, w, vx, vy)
  */
-vector<Vector3d> ToVector3dPath(const CarPath &path) {
-  vector<Vector3d> path3d;
+vector<Vector6d> ToAxyWvxvyPath(const CarPosePath &path) {
+  vector<Vector6d> axywvxvys;
+  Vector6d axywvxvy;
   for (auto&& connection : path.connections)
     for (auto&& g : connection){
-      Vector3d axy; axy.tail<2>() = g.topRightCorner<2,1>();
-      axy(0) = atan2(-g(0,1),g(0,0));
-      path3d.push_back(axy);
+      axywvxvy.setZero(); //setting the velocities(and others) to zero
+      axywvxvy.segment<2>(1) = g.topRightCorner<2,1>(); //x and y
+      axywvxvy(0) = atan2(-g(0,1),g(0,0)); // a
+      axywvxvys.push_back(axywvxvy);
     }
-  return path3d;
+  return axywvxvys;
 }
 
 int main(int argc, char** argv)
@@ -178,7 +180,7 @@ int main(int argc, char** argv)
   // create planner
   timer_start(&timer);
   GridSearch<Vector3d, Matrix3d, SE2Path> search(grid, connectivity, *cost, initExpand);
-  CarPath path;
+  CarPosePath path;
   long time = timer_us(&timer);
   printf("graph construction time= %ld  us\n", time);
 
@@ -210,23 +212,25 @@ int main(int argc, char** argv)
   //**********************************************************************************/
   //***************************************plot***************************************/
   //**********************************************************************************/
-
-  vector<Vector3d> path3d;
+  vector<Vector6d> axywvxvys;
   if(start_set && goal_set){
-    path3d = ToVector3dPath(path);
+    axywvxvys = ToAxyWvxvyPath(path);
     cout << "Map and path saved to path.ppm" << endl;
   }else{
-    path3d.push_back(grid.CellCenter(start));
-    path3d.push_back(grid.CellCenter(goal));
-    cout << "Map, start and goal (no path available) saved to path.ppm" << endl;
+    Vector6d axywvxvy;
+    axywvxvy << grid.CellCenter(start), 0, 0, 0;
+    axywvxvys.push_back(axywvxvy);
+    axywvxvy << grid.CellCenter(goal), 0, 0, 0;
+    axywvxvys.push_back(axywvxvy);
+    cout << "Map, start and goal (no path available ) saved to path.ppm" << endl;
   }
 
   bool plot_car; //To plot the path as rectanges or just points
   params.GetBool("plot_car", plot_car);
   if(plot_car)
-    SavePpmWithPath(*omap, "path.ppm", path3d, 3, &geom);
+    SavePpmWithPath(*omap, "path.ppm", axywvxvys, 3, &geom);
   else
-    SavePpmWithPath(*omap, "path.ppm", path3d, 3);
+    SavePpmWithPath(*omap, "path.ppm", axywvxvys, 3);
 
 
   //Display the primitive at start

@@ -9,6 +9,10 @@
 #include <Eigen/Dense>
 
 namespace dsl {
+
+  using Vector6d = Eigen::Matrix<double,6,1>;
+
+
 /**
  * Load a 2D occupancy grid map from an image file(.ppm)
  * @param filename file to load
@@ -74,16 +78,12 @@ bool saveMap(Map<TerrainData, 2>::Ptr& tmap, const std::string& tmapfile);
  * If geometry is available then it plots rectangles instead.
  * @param omap 2D occupancy map
  * @param filename .ppm filename to save the image to
- * @param path 3D path(angle, x and y)
+ * @param path path in (angle, x, y, w, vx, vy(last three can be left zero))
  * @param scale scale to increase resolution of output image for clarity.
  * @param geom pointer to optional geometry of the car
  */
 bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename,
-                      const std::vector<Eigen::Vector3d>& path, int scale = 1, const CarGeom* geom = 0);
-
-bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename,
-                      const std::vector<Eigen::Vector4d>& path, int scale = 1, const CarGeom* geom = 0);
-
+                      const std::vector<Vector6d>& path, int scale = 1, const CarGeom* geom = 0);
 /**
  * Save an terrain map as .ppm image with a start(green), goal(red) and the waypoints(blue) as points.
  * If geometry is available then it plots rectangles instead.

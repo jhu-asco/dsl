@@ -34,7 +34,6 @@ struct CarPrimitiveConfig {
   bool    pert;         //! preturb primitive length to have better spread of primitives
 };
 
-
 /**
  * Simple car connectivity using primitives. It enables generation of successors/predecessors Cells
  * given a Cell, along with the connection in between them. The connection type is a se2 twist element
