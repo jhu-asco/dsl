@@ -1,0 +1,10 @@
+# Data that makes a terrain map
+#   image: image file location relative to this file(R: height, G: traversibility)
+#   cellsize: in meters along x and y direction
+#   hscale: height = hscale*pixel value
+#   tscale: traversibility = tscale*pixel value
+image = terrain.ppm
+cellsize= 0.100000,0.100000
+hscale= 0.7846
+#hscale= 0.007846
+tscale= 0.0100000

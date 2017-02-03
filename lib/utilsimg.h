@@ -6,20 +6,17 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_UTILSIMG_H
-#define DSL_UTILSIMG_H
+#ifndef DSL_LIB_UTILSIMG_H_
+#define DSL_LIB_UTILSIMG_H_
 
 #include <vector>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 namespace dsl {
 
-using namespace Eigen;
-using namespace std;
-
-typedef Transform< double, 2, Affine > Transform2d;
-typedef Matrix< double, 2, 4 > Matrix2x4d;
-typedef Matrix< int, 2, 4 > Matrix2x4i;
+using Transform2d = Eigen::Transform< double, 2, Eigen::Affine >;
+using Matrix2x4d = Eigen::Matrix< double, 2, 4 >;
+using Matrix2x4i = Eigen::Matrix< int, 2, 4 >;
 
 /**
  * Takes in the dimensions of a rectangle, position of its origin and a rotation
@@ -44,7 +41,6 @@ void getRotdVertsInPixWrtOrg(Matrix2x4d& verts2d_rotd_pix,
                              double sx,
                              double sy,
                              double theta);
-
 
 /**
  * Scales up an image with the same scaling factor in x and y direction
@@ -73,6 +69,33 @@ void scaleMap(T* map_scaled, const T* map, int w, int h, int scale) {
 }
 
 /**
+ * Scales up an image with the same scaling factor in x and y direction
+ * @param map_scaled Reference to scaled map
+ * @param map Original map
+ * @param w Width of the map
+ * @param h Height of the map
+ * @param scale Scaling factor
+ */
+template < typename T >
+void scaleMap(std::vector<T>& map_scaled, const std::vector<T>& map, int w, int h, int scale) {
+  int ws = scale * w;
+  int hs = scale * h;
+
+  map_scaled.resize(ws*hs);
+  for (int rs = 0; rs < hs; rs++) {
+    for (int cs = 0; cs < ws; cs++) {
+      int c = round(cs / scale);
+      int r = round(rs / scale);
+
+      int idx = c + r * w;
+      int idxs = cs + rs * ws;
+
+      map_scaled[idxs] = map[idx];
+    }
+  }
+}
+
+/**
  * Checks if a given point is in a polygon
  * @param verts A Matrix of vertices of the polygon. Each column represents a
  * vertex.
@@ -80,7 +103,7 @@ void scaleMap(T* map_scaled, const T* map, int w, int h, int scale) {
  * @return
  */
 template < typename T, int m, int n >
-int inPoly(Matrix< T, m, n > verts, Matrix< T, m, 1 > pt) {
+int inPoly(Eigen::Matrix< T, m, n > verts, Eigen::Matrix< T, m, 1 > pt) {
   int i, j, c = 0;
   for (i = 0, j = n - 1; i < n; j = i++) {
     if (((verts(1, i) > pt(1)) != (verts(1, j) > pt(1))) &&
@@ -104,9 +127,8 @@ int inPoly(Matrix< T, m, n > verts, Matrix< T, m, 1 > pt) {
  * @param lw linewidth in pixels
  */
 template < typename T >
-void addLine(
-    T* map, int w, int h, Vector2d p1, Vector2d p2, T lval, double lw) {
-  Vector2d n = Rotation2Dd(M_PI / 2) * (p2 - p1).normalized();
+void addLine( T* map, int w, int h, Eigen::Vector2d p1, Eigen::Vector2d p2, T lval, double lw) {
+  Eigen::Vector2d n = Eigen::Rotation2Dd(M_PI / 2) * (p2 - p1).normalized();
   Matrix2x4d verts2d;
   verts2d.col(0) = p1 + n * lw / 2;
   verts2d.col(1) = p1 - n * lw / 2;
@@ -116,8 +138,72 @@ void addLine(
   for (int r = 0; r < h; r++) {
     for (int c = 0; c < w; c++) {
       int idx = c + r * w;
-      if (inPoly(verts2d, Vector2d(c, r)))
+      if (inPoly(verts2d, Eigen::Vector2d(c, r)))
         map[idx] = lval;
+    }
+  }
+}
+
+/**
+ * Takes in an image and end points of a line and adds that line of certain
+ * pixel width
+ * @param map The input image as a vector
+ * @param w The width of the image
+ * @param h The height of the image
+ * @param p1 End point1 for the line in pixel coordinates
+ * @param p2 End point2 for the line in pixel coordinates
+ * @param lval the pixel value for the line
+ * @param lw linewidth in pixels
+ */
+template < typename T >
+void addLine( std::vector<T>& map, int w, int h, Eigen::Vector2d p1, Eigen::Vector2d p2, T lval, double lw) {
+  Eigen::Vector2d n = Eigen::Rotation2Dd(M_PI / 2) * (p2 - p1).normalized();
+  Matrix2x4d verts2d;
+  verts2d.col(0) = p1 + n * lw / 2;
+  verts2d.col(1) = p1 - n * lw / 2;
+  verts2d.col(2) = p2 - n * lw / 2;
+  verts2d.col(3) = p2 + n * lw / 2;
+
+  for (int r = 0; r < h; r++) {
+    for (int c = 0; c < w; c++) {
+      int idx = c + r * w;
+      if (inPoly(verts2d, Eigen::Vector2d(c, r)))
+        map[idx] = lval;
+    }
+  }
+}
+
+/**
+ * Takes in an image and corners of a polygon, and adds the polygon with specified
+ * line width
+ * @param map The input image as a vector
+ * @param w The width of the image
+ * @param h The height of the image
+ * @param ps Points in pixel coordinates
+ * @param lval the pixel value for the line
+ * @param lw linewidth in pixels
+ */
+template < typename T >
+void addPoly( std::vector<T>& map, int w, int h, std::vector<Eigen::Vector2d> ps, T lval, double lw) {
+
+  std::vector<Eigen::Vector2d> points = ps;
+  points.push_back(points[0]); //repeat the first one
+  for(int i = 0; i < ps.size(); i++){
+    Eigen::Vector2d p1 = points[i];
+    Eigen::Vector2d p2 = points[i+1];
+    Eigen::Vector2d n = Eigen::Rotation2Dd(M_PI / 2) * (p2 - p1).normalized();
+    Matrix2x4d verts2d;
+    verts2d.col(0) = p1 + n * lw / 2;
+    verts2d.col(1) = p1 - n * lw / 2;
+    verts2d.col(2) = p2 - n * lw / 2;
+    verts2d.col(3) = p2 + n * lw / 2;
+
+    for (int r = 0; r < h; r++) {
+      for (int c = 0; c < w; c++) {
+        int idx = c + r * w;
+        if (inPoly(verts2d, Eigen::Vector2d(c, r)))
+          map[idx] = lval;
+      }
     }
   }
 }
@@ -136,16 +222,16 @@ void addLine(
  * @param oy_k y coordinate of the origin of the kernel image
  */
 template < typename T >
-void dilate(T* data_dil,
-            const T* data,
+void dilate(std::vector<T>& data_dil,
+            const std::vector<T>&  data,
             int w,
             int h,
-            const T* data_k,
+            const std::vector<T>& data_k,
             int w_k,
             int h_k,
             int ox_k,
             int oy_k) {
-  vector< T > prod(h_k * w_k);
+  std::vector< T > prod(h_k * w_k);
 
   // Visit each pixel in the main image
   for (int r = 0; r < h; r++) {
@@ -175,7 +261,7 @@ void dilate(T* data_dil,
             prod[id_k] = 0;
         }
       }
-      data_dil[id] = *(max_element< typename vector< T >::iterator >(
+      data_dil[id] = *(std::max_element< typename std::vector< T >::iterator >(
           prod.begin(), prod.end()));
 
     }
@@ -192,11 +278,11 @@ void dilate(T* data_dil,
  * @param val the value that is to be fill in. Rest is 0
  */
 template < typename T = bool>
-    void fillQuad(T* data, int w, int h, Matrix2x4d verts, T val) {
+    void fillQuad(std::vector<T>& data, int w, int h, Matrix2x4d verts, T val) {
   for (int r = 0; r < h; r++) {
     for (int c = 0; c < w; c++) {
       int idx_2d = c + r * w;
-      if (inPoly(verts, Vector2d(c, r)))
+      if (inPoly(verts, Eigen::Vector2d(c, r)))
         data[idx_2d] = val;
       else
         data[idx_2d] = 0;

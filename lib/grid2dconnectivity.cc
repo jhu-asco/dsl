@@ -5,8 +5,8 @@ namespace dsl {
 
 using Eigen::Vector2d;
 
-Grid2dConnectivity::Grid2dConnectivity(const Grid< Vector2d, double >& grid)
-    : LineConnectivity< Vector2d, double >(grid) {
+Grid2dConnectivity::Grid2dConnectivity(const Grid2dBase& grid)
+    : Line2dConnectivity(grid) {
   lines.push_back(Vector2d(-1, -1));
   lines.push_back(Vector2d(0, -1));
   lines.push_back(Vector2d(1, -1));
@@ -17,7 +17,7 @@ Grid2dConnectivity::Grid2dConnectivity(const Grid< Vector2d, double >& grid)
   lines.push_back(Vector2d(1, 1));
   
   for (auto&& x : lines) {
-    x = x.cwiseProduct(grid.cs); // scale by grid cell size
+    x = x.cwiseProduct(grid.cs()); // scale by grid cell size
     costs.push_back(x.norm());
   }
 }
