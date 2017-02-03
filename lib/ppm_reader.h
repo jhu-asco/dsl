@@ -18,7 +18,7 @@ namespace dsl{
  */
 struct ImageRGB{
   enum BitDepth: uint16_t{ BD8  = 0xff, BD16 = 0xffff };
-  enum Color: uint8_t{ RED = 0, GREEN = 1, BLUE = 2, ALL = 3};
+  enum Color: uint8_t{ RED, GREEN, BLUE , WHITE, YELLOW, CYAN, MAGENTA  };
 
   int w, h;
 
@@ -31,13 +31,21 @@ struct ImageRGB{
 
   void resize(int size);
 
-  void set_rgb(int id, uint16_t val);
+  void set_to_white(int id, uint16_t val);
 
   void set_to_red(int id, uint16_t val);
 
   void set_to_blue(int id, uint16_t val);
 
   void set_to_green(int id, uint16_t val);
+
+  void set_to_yellow(int id, uint16_t val);
+
+  void set_to_cyan(int id, uint16_t val);
+
+  void set_to_magenta(int id, uint16_t val);
+
+  void set_color(int id, uint16_t val, Color color);
 
 };
 

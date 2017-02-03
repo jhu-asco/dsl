@@ -327,7 +327,7 @@ bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename,
   img.resize(img.w*img.h);
 
   for (int id = 0; id < smap->nc(); id++)
-    img.set_rgb(id, smap->Get(id)? 100:0);
+    img.set_to_white(id, smap->Get(id)? 100:0);
 
   for(size_t i=0; i<path.size(); i++){
     if(geom){ //plot rectangles
@@ -371,6 +371,95 @@ bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename,
          img.set_to_red(id, img.bitdepth);//End of path in red
       else
          img.set_to_blue(id, img.bitdepth);//Points in between in blue
+
+    }
+  }
+
+  if(!SavePpm(img,filename)){
+    cout<<"Had problems saving the image file"<<endl;
+    return false;
+  }
+
+  return true;
+}
+
+bool SavePpmWithPath(const dsl::Map<bool, 2>& omap, std::string filename,
+                      const std::vector<Vector4d>& path_axyv, int scale, const CarGeom* geom){
+  //checks
+  if(scale<1){
+    cout<<"Scale should be >=1"<<endl;
+    return false;
+  }
+
+  if(filename.compare(filename.size() - 4, 4, ".ppm")){
+    cout<<"File doesn't have .ppm extension"<<endl;
+    return false;
+  }
+
+  dsl::Map<bool,2>::Ptr smap = omap.ScaleUp(scale);
+
+  //The image to be saved
+  ImageRGB img;
+  img.w = smap->gs()[0];
+  img.h = smap->gs()[1];
+  img.bitdepth = ImageRGB::BD8;
+  img.resize(img.w*img.h);
+
+  for (int id = 0; id < smap->nc(); id++)
+    img.set_to_white(id, smap->Get(id)? 100:0);
+
+  for(size_t i=0; i<path_axyv.size(); i++){
+    double v = path_axyv[i](3);
+    if(geom){ //plot rectangles
+      Vector3d axy = path_axyv[i].head<3>();
+      vector<Vector2d> vs_true;
+      geom->GetTrueCorners(vs_true,axy(0));//Get true corners of car relative to it's unrotated origin
+      for_each(vs_true.begin(),vs_true.end(),[&](Vector2d& v){v +=axy.tail<2>();}); //true corners relative to world origin
+      smap->ToGridCoordinates(&vs_true); //convert to grid coordinates
+      vector<bool> temp(smap->nc(), false);
+      double lwm = 0.02; //line width meters
+      int lw = ceil(lwm/smap->cs()[0])+1;//line width in pixels
+      addPoly<bool>(temp, smap->gs()[0], smap->gs()[1], vs_true, true, lw);
+
+      if(i==0 || i==path_axyv.size()-1){
+        vector<Vector2d> vs_safe;
+        geom->GetSafeCorners(vs_safe,axy(0));//Get safe corners of car relative to it's unrotated origin
+        for_each(vs_safe.begin(),vs_safe.end(),[&](Vector2d& v){v +=axy.tail<2>();}); //safe corners relative to world origin
+        smap->ToGridCoordinates(&vs_safe); //convert to grid coordinates
+        addPoly<bool>(temp, smap->gs()[0], smap->gs()[1], vs_safe, true, 1);
+      }
+
+      if(i==0){
+        for (int id = 0; id < smap->nc(); id++)
+          if(temp[id])
+             img.set_to_green(id,img.bitdepth);//Start of path in green
+      }else if(i==path_axyv.size()-1){
+        for (int id = 0; id < smap->nc(); id++)
+          if(temp[id])
+             img.set_to_red(id, img.bitdepth);//End of path in red
+      }else{
+        for (int id = 0; id < smap->nc(); id++){
+          if(temp[id]){
+            if(v >0)
+             img.set_to_blue(id, img.bitdepth);//Points in between in blue
+            else
+              img.set_to_cyan(id, img.bitdepth);//Points in between in cyan
+          }
+        }
+      }
+    }else{ //plot points
+      Vector2d pos( path_axyv[i](1), path_axyv[i](2)) ;
+      int id = smap->Id(pos);
+      if(i==0){
+         img.set_to_green(id,img.bitdepth);//Start of path in green
+      }else if(i==path_axyv.size()-1){
+         img.set_to_red(id, img.bitdepth);//End of path in red
+      }else{
+        if(v >0)
+          img.set_to_blue(id, img.bitdepth);//Points in between in blue
+        else
+          img.set_to_cyan(id, img.bitdepth);//Points in between in cyan
+      }
 
     }
   }
@@ -494,7 +583,7 @@ bool SavePpmWithPrimitives(const dsl::Map<bool, 2>& omap, std::string filename,
   img.resize(img.w*img.h);
 
   for (int id = 0; id < smap->nc(); id++)
-    img.set_rgb(id, smap->Get(id)? 100:0);
+    img.set_to_white(id, smap->Get(id)? 100:0);
 
   for(auto& prim: prims){
     for(size_t i=0; i< prim.size(); i++){

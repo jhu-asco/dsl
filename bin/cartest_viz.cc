@@ -15,8 +15,9 @@ using namespace Eigen;
 using CarPath = GridPath<SE2Cell::PointType, SE2Cell::DataType, SE2Path>;
 using CarTwistPath = dsl::GridPath<SE2Cell::PointType, SE2Cell::DataType, SE2Twist>;
 
-vector<Vector3d> ToVector3dPath(const CarTwistPath &path, double gridcs) {
-  vector<Vector3d> path3d;
+vector<Vector4d> ToAxyvPath(const CarTwistPath &path, double gridcs) {
+  vector<Vector4d> axyvs;
+  Vector4d axyv;
   for (size_t i=0; i<path.connections.size(); i++){
     Vector3d v = path.connections[i];
     Vector3d axy = path.cells[i].c;
@@ -30,10 +31,11 @@ vector<Vector3d> ToVector3dPath(const CarTwistPath &path, double gridcs) {
       se2_exp(dg, (s*i_seg / d) * v);
       g = g_from * dg;
       se2_g2q(axy, g);
-      path3d.push_back(axy);
+      axyv << axy, v(1);
+      axyvs.push_back(axyv);
     }
   }
-  return path3d;
+  return axyvs;
 }
 
 
@@ -213,13 +215,17 @@ int main(int argc, char** argv)
   //***************************************plot***************************************/
   //**********************************************************************************/
 
-  vector<Vector3d> path3d;
+  vector<Vector4d> axyvs;
+
   if(start_set && goal_set){
-    path3d = ToVector3dPath(path,grid.cs()[1]);
+    axyvs = ToAxyvPath(path,grid.cs()[1]);
     cout << "Map and path saved to path.ppm" << endl;
   }else{
-    path3d.push_back(grid.CellCenter(start));
-    path3d.push_back(grid.CellCenter(goal));
+    Vector4d axyv;
+    axyv << grid.CellCenter(start), 1;
+    axyvs.push_back(axyv);
+    axyv << grid.CellCenter(goal), 1;
+    axyvs.push_back(axyv);
     cout << "Map, start and goal (no path available ) saved to path.ppm" << endl;
   }
 
@@ -227,9 +233,9 @@ int main(int argc, char** argv)
   params.GetBool("plot_car", plot_car);
   // save it to image for viewing
   if(plot_car){
-    SavePpmWithPath(*omap, "path.ppm", path3d, 3, &geom);
+    SavePpmWithPath(*omap, "path.ppm", axyvs, 3, &geom);
   }else{
-    SavePpmWithPath(*omap, "path.ppm", path3d, 3);
+    SavePpmWithPath(*omap, "path.ppm", axyvs, 3);
   }
 
   //Display the primitive at start

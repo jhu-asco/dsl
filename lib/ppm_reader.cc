@@ -39,28 +39,78 @@ void ImageRGB::resize(int size){
   bdata.resize(size);
 }
 
-void ImageRGB::set_rgb(int id, uint16_t val){
-  rdata[id] = val;
-  gdata[id] = val;
-  bdata[id] = val;
+void ImageRGB::set_to_white(int id, uint16_t val){
+  set_color(id, val, WHITE);
 }
 
 void ImageRGB::set_to_red(int id, uint16_t val){
-  rdata[id] = val;
-  gdata[id] = 0;
-  bdata[id] = 0;
+  set_color(id, val, RED);
 }
 
 void ImageRGB::set_to_blue(int id, uint16_t val){
-  rdata[id] = 0;
-  gdata[id] = 0;
-  bdata[id] = val;
+  set_color(id, val, BLUE);
 }
 
 void ImageRGB::set_to_green(int id, uint16_t val){
-  rdata[id] = 0;
-  gdata[id] = val;
-  bdata[id] = 0;
+  set_color(id, val, GREEN);
+}
+
+void ImageRGB::set_to_yellow(int id, uint16_t val){
+  set_color(id, val, YELLOW);
+}
+
+void ImageRGB::set_to_cyan(int id, uint16_t val){
+  set_color(id, val, CYAN);
+}
+
+void ImageRGB::set_to_magenta(int id, uint16_t val){
+  set_color(id, val, MAGENTA);
+}
+
+void ImageRGB::set_color(int id, uint16_t val, Color color){
+switch (color) {
+  case RED:
+    rdata[id] = val;
+    gdata[id] = 0;
+    bdata[id] = 0;
+    break;
+  case GREEN:
+    rdata[id] = 0;
+    gdata[id] = val;
+    bdata[id] = 0;
+    break;
+  case BLUE:
+    rdata[id] = 0;
+    gdata[id] = 0;
+    bdata[id] = val;
+    break;
+  case WHITE:
+    rdata[id] = val;
+    gdata[id] = val;
+    bdata[id] = val;
+    break;
+  case YELLOW:
+    rdata[id] = val;
+    gdata[id] = val;
+    bdata[id] = 0;
+    break;
+  case CYAN:
+    rdata[id] = 0;
+    gdata[id] = val;
+    bdata[id] = val;
+    break;
+  case MAGENTA:
+    rdata[id] = val;
+    gdata[id] = 0;
+    bdata[id] = val;
+    break;
+  default:
+    rdata[id] = val;
+    gdata[id] = val;
+    bdata[id] = val;
+    break;
+}
+
 }
 
 bool LoadPpm(ImageRGB &img, const string &filename){
