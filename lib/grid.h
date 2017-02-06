@@ -102,32 +102,6 @@ public:
     cells_.resize(nc_);
   }
 
-  //  /**
-  //   * Initialize the map using state lower bound, state upper bound, and a suggested cell size
-  //   * @param xlb state lower bound
-  //   * @param xub state upper bound
-  //   * @param scs suggested cell size along each dimension. The true cs is the one which results in
-  //   * integer number of grid cells between xlb and xub
-  //   * @param wd indicates if a dimension if wrapped or not. wd[i]=false(flat dim) wd[i]=1(wrapped dim).
-  //   * For wrapped dimension i, the ds[i],i.e. dimension size, is given by xub[i]-xlb[i] (e.g. for angles it ds[i]=2*M_PI)
-  //   */
-  //  Grid(const Vectornd& xlb, const Vectornd& xub, const Vectornd& scs, const Vectornb wd = Vectornb::Zero())
-  //  : n(xlb.size()), xlb(xlb), xub(xub), wd(wd), cells(0){
-  //    ds = xub - xlb;
-  //    nc = 1;
-  //    cgs[0] = 1;
-  //    for (int i = 0; i < n; ++i) {
-  //      assert(xlb[i] < xub[i]);
-  //      assert(scs[i] > 0);
-  //      gs[i] = floor(ds[i] / scs[i]);
-  //      cs[i] = ds[i] / gs[i];
-  //      nc *= gs[i]; // total number of cells
-  //      if(i>0)
-  //        cgs[i] = cgs[i-1]*gs[i-1];
-  //    }
-  //    cells.resize(nc);
-  //  }
-
   /**
    * Initialize the map using a suggested state lower bound, suggested state upper bound, and a suggested cell size.
    *
