@@ -78,6 +78,29 @@ public:
   static const bool cells_store_ptr = UsePtr;
 
   /**
+   * Initialize the grid using the grid size and cell size. The origin lies at the center of very first cell.
+   * All the dimensions are non-wrapped when using this constructor
+   * @param gs grid size
+   * @param cs cell size
+   */
+  Grid(const Vectorni& gs, const Vectornd& cs)
+  : cs_(cs), gs_(gs), wd_(Vectornb::Zero()), cells_(0){
+    xlb_ = (-cs/2);
+    xub_ = gs.template cast<double>().array()*cs.array() - cs/2;
+    ds_ = xub - xlb;
+    nc_ = 1;
+    cgs_[0] = 1;
+    for (int i = 0; i < n_; ++i) {
+      assert(gs[i] > 0);
+      nc_ *= gs[i]; // total number of cells
+      if(i>0)
+        cgs_[i] = cgs_[i-1]*gs[i-1];
+    }
+
+    cells_.resize(nc_);
+  }
+
+  /**
    * Initialize the grid using state lower bound, state upper bound, the number of grid cells
    * @param xlb state lower bound
    * @param xub state upper bound
