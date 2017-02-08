@@ -86,8 +86,8 @@ public:
   Grid(const Vectorni& gs, const Vectornd& cs)
   : cs_(cs), gs_(gs), wd_(Vectornb::Zero()), cells_(0){
     xlb_ = (-cs/2);
-    xub_ = gs.template cast<double>().array()*cs.array() - cs/2;
-    ds_ = xub - xlb;
+    xub_ = gs.template cast<double>().array() * cs.array() - 0.5*cs.array();
+    ds_ = xub_ - xlb_;
     nc_ = 1;
     cgs_[0] = 1;
     for (int i = 0; i < n_; ++i) {
