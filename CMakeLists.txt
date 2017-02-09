@@ -4,7 +4,7 @@ project (dsl)
 include_directories(lib)
 
 SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++11 -pthread")
-ADD_DEFINITIONS(-g -O -Wall -W -Wno-unused-parameter -Wno-unused-variable -std=c++11)
+ADD_DEFINITIONS(-g -O -Wall -Werror -W -Wno-unused-parameter -Wno-unused-variable)
 
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Dynamic D* Lite Graph Search Library")
 SET(CPACK_PACKAGE_VENDOR "Marin Kobilarov")
