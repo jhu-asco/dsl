@@ -50,8 +50,8 @@ int main(int argc, char** argv)
   struct timeval timer;
   IOFormat eigformat(StreamPrecision, DontAlignCols, ", ", ", ", "", "", "(", ")");
 
-  // The problem setup for planning the path of a car on a plane is done as follows:
-  // 1. Load 2D(x and y) occupancy map, or omap, from image file(.ppm).
+  // The problem setup for planning the path of a car on a terrain is done as follows:
+  // 1. Load 2D(x and y) occupancy map, or tmap, from image file(.ppm).
   // 2. Create or load configuration space( yaw, x and y) occupancy map, or cmap.
   //     a.Loading cmap is done from a .cmap file, if already available.
   //     b.Creating cmap is done by taking an omap and doing a Minkowski sum with the shape of the car.
@@ -70,20 +70,20 @@ int main(int argc, char** argv)
   // 8. Plot the results on the occupancy map we read before.
 
   //**********************************************************************************/
-  //************************************omap******************************************/
+  //************************************tmap******************************************/
   //**********************************************************************************/
   cout<<"\nLoading terrain map from .tmap file"<<endl;
   // get filename+ path for the terrain file(.tmap) containing the height and
   //  traversibility of terrain
-  string tmapfile; ;
-  if(!params.GetString("tmap", tmapfile)){
+  string tmap_filename;
+  if(!params.GetString("tmap", tmap_filename)){
     cout<<"There is no string parameter named tmap. Exiting."<<endl;
     return -1;
   }
 
-  dsl::Map<TerrainData,2>::Ptr tmap =LoadTmap(tmapfile);
+  dsl::Map<TerrainData,2>::Ptr tmap =LoadTmap(tmap_filename);
   if(!tmap){
-    cout<<"Unable to load the .tmap file:"<<tmapfile<<endl;
+    cout<<"Unable to load the .tmap file:"<<tmap_filename<<endl;
     return -1;
   }
   cout<<"  Loaded terrain map with"<<endl;
@@ -133,8 +133,7 @@ int main(int argc, char** argv)
     long time = timer_us(&timer);
     printf("  cmap construction time= %ld  us\n", time);
 
-    cmap_filename = tmapfile;
-    ReplaceExtension(cmap_filename, string("cmap"));
+    cmap_filename = ReplaceExtension(tmap_filename, string("cmap"));
     cmap->Save(cmap_filename);
     cout << "  Saved cmap in "<<cmap_filename <<" with"<<endl;
     cout << "    xlb=" << cmap->xlb().transpose().format(eigformat)<<endl;
@@ -255,6 +254,7 @@ int main(int argc, char** argv)
   bool gotprims = connectivity.GetPrims(start,prims);
   SavePpmWithPrimitives(*tmap, "terrain_car_prim.ppm", prims, 3);
   cout << "  Map, with primitives from start saved to terrain_car_prim.ppm" << endl;
+
 
   return 0;
 }

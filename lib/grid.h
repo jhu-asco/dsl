@@ -557,11 +557,10 @@ public:
   Vectornd CellCenter(int id) const{
     Vectornd x;
     Vectorni gidx;
-    if(!Index(gidx,id)){
+    if(!Index(gidx,id))
       x = Vectornd::Constant(std::numeric_limits<double>::quiet_NaN());
-      return false;
-    }
-    x = xlb_.array() +  (gidx.template cast<double>()+Vectornd::Constant(0.5)).array()*cs_.array() ;
+    else
+      x = xlb_.array() +  (gidx.template cast<double>()+Vectornd::Constant(0.5)).array()*cs_.array() ;
     return x;
   }
 

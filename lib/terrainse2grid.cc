@@ -48,12 +48,12 @@ TerrainSE2Grid::TerrainSE2Grid(const Map<bool, 3> &cmap, const Map<TerrainData,2
   //Iterate over all cells
   auto fun = [&](int id, const Vector3i& gidx){
     Vector3d cc; //CellCenter
-    Vector2i gidx2d = gidx.tail<2>();
     bool gotcenter = CellCenter(gidx, &cc);
+    Vector2d cc2d = cc.tail<2>();
     assert(gotcenter);
     bool occ = cmap.Get(cc, false);
     if (!occ) {  //Allocate memory for grid cells if it is not occupied
-      this->Set(id,SE2TerrainCell(id, cc, tmap.Get(gidx2d)));
+      this->Set(id,SE2TerrainCell(id, cc, tmap.Get(cc2d)));
     }
   };
   LoopOver(fun);

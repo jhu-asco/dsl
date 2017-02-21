@@ -5,6 +5,6 @@
 #   tscale: traversibility = tscale*pixel value
 image = terrain.ppm
 cellsize= 0.100000,0.100000
-hscale= 0.7846
+hscale= 0.002
 #hscale= 0.007846
-tscale= 0.0100000
+tscale= 0.1

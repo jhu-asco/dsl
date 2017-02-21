@@ -34,7 +34,7 @@ bool CarTwistConnectivity::operator()(const TypedCell& from,
       continue;
 
     //Get cost and check if path is clear
-    double primcost = cost_.Real(from,*to);
+    double primcost = fwd ? cost_.Real(from,*to) : cost_.Real(*to, from);
     if(std::isnan(primcost)) //path is not clear
       continue;
 
@@ -86,7 +86,7 @@ bool TerrainTwistConnectivity::operator()(const SE2TerrainCell& from,
       continue;
 
     //Get cost and check if path is clear
-    double primcost = cost_.Real(from,*to);
+    double primcost = fwd ? cost_.Real(from,*to) : cost_.Real(*to, from);
     if(std::isnan(primcost)) //path is not clear
       continue;
 
@@ -137,7 +137,7 @@ bool CarPathConnectivity::
       continue;
 
     //Get cost and check if path is clear
-    double primcost = cost_.Real(from,*to);
+    double primcost = fwd ? cost_.Real(from,*to) : cost_.Real(*to, from);
     if(std::isnan(primcost)) //path is not clear
       continue;
 

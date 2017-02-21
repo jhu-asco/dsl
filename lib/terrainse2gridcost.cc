@@ -53,7 +53,8 @@ double TerrainSE2GridCost::Real(const SE2TerrainCell& a, const SE2TerrainCell& b
   for (int i_seg=1; i_seg<n_seg; i_seg++) {
     se2_exp(dg, (d_seg*i_seg / d) * twist);
     Matrix3d g = ga * dg;
-    Vector3d axy; se2_g2q(axy, g);
+    Vector3d axy;
+    se2_g2q(axy, g);
     SE2TerrainCell::Cptr wp = grid_.Get(axy);
     if (!wp) //one of the waypoints is outside the grid.
       return numeric_limits<double>::quiet_NaN();
@@ -61,7 +62,6 @@ double TerrainSE2GridCost::Real(const SE2TerrainCell& a, const SE2TerrainCell& b
     trav_sum += wp->data.traversibility;
     if( (wp->data.height - pot_prev) > 0 )
       delh_pve_sum += wp->data.height - pot_prev;
-
     pot_prev = wp->data.height;
   }
   if( (b.data.height - pot_prev) > 0 )
@@ -72,6 +72,7 @@ double TerrainSE2GridCost::Real(const SE2TerrainCell& a, const SE2TerrainCell& b
   double wl = (twist.array()* wt.array()).matrix().norm();//weighted length
 
   return delh_pve_sum + trav_avg*wl;
+  //return wl*(1+ delh_pve_sum);
 }
 
 double TerrainSE2GridCost::Heur(const SE2TerrainCell& a, const SE2TerrainCell& b) const {
@@ -86,8 +87,8 @@ double TerrainSE2GridCost::Heur(const SE2TerrainCell& a, const SE2TerrainCell& b
   double wl = (twist.array()* wt.array()).matrix().norm();//weighted length
   double delh_pve_sum = (b.data.height - a.data.height) > 0 ?
                         (b.data.height - a.data.height) : 0; // only positive change in height incurs cost
-
   return (1-eps)*(delh_pve_sum + trav_min_ * wl);
+  //return (1-eps)*(wl*(1+ delh_pve_sum));
 }
 
 }

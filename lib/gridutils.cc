@@ -179,7 +179,7 @@ Map<bool, 2>::Ptr LoadOmap(const string& omapfile){
   for (int id = 0; id < img.h*img.w; id++)
     cells[id] = img.rdata[id]? 1:0;
 
-  dsl::Map<bool, 2>::Ptr omap(new Map<bool, 2>(Vector2d(0,0), Vector2d(cs[0]*img.w, cs[1]*img.h), Vector2i(img.w,img.h)));
+  dsl::Map<bool, 2>::Ptr omap(new Map<bool, 2>(Vector2i(img.w, img.h), cs));
   omap->set_cells(cells);
   return omap;
 }
@@ -228,9 +228,9 @@ Map<TerrainData, 2>::Ptr LoadTmap(const string& tmapfile){
    vector<TerrainData> cells(img.h*img.w);
    for (int id = 0; id < img.h*img.w; id++){
      cells[id].height = img.rdata[id]*hscale;
-     cells[id].traversibility = 1 + img.gdata[id]*tscale;
+     cells[id].traversibility = img.gdata[id]*tscale;
    }
-   Map<TerrainData, 2>::Ptr tmap(new Map<TerrainData, 2>(Vector2d(0,0), Vector2d(cs[0]*img.w, cs[1]*img.h), Vector2i(img.w,img.h)));
+   Map<TerrainData, 2>::Ptr tmap(new Map<TerrainData, 2>(Vector2i(img.w, img.h), cs));
    tmap->set_cells(cells);
    return tmap;
 }
@@ -423,8 +423,8 @@ bool SavePpmWithPath(const dsl::Map<TerrainData, 2>& tmap, std::string filename,
     maxh = smap->Get(id).height > maxh ? smap->Get(id).height: maxh;
     maxt = smap->Get(id).traversibility > maxt ? smap->Get(id).traversibility: maxt;
   }
-  double hscale = img.bitdepth/maxh;
-  double tscale = img.bitdepth/maxt;
+  double hscale = maxh < 1e-12 ? 0: img.bitdepth/maxh;
+  double tscale = maxt < 1e-12 ? 0: img.bitdepth/maxt;
 
   for (int id = 0; id < smap->nc(); id++){
     img.rdata[id] = 0.5*smap->Get(id).height*hscale;
@@ -554,8 +554,8 @@ bool SavePpmWithPrimitives(const dsl::Map<TerrainData, 2>& tmap, std::string fil
     maxh = smap->Get(id).height > maxh ? smap->Get(id).height: maxh;
     maxt = smap->Get(id).traversibility > maxt ? smap->Get(id).traversibility: maxt;
   }
-  double hscale = img.bitdepth/maxh;
-  double tscale = img.bitdepth/maxt;
+  double hscale = maxh < 1e-12 ? 0: img.bitdepth/maxh;
+  double tscale = maxt < 1e-12 ? 0: img.bitdepth/maxt;
   for (int id = 0; id < smap->nc(); id++){
     img.rdata[id] = 0.5*smap->Get(id).height*hscale;
     img.gdata[id] = 0.5*smap->Get(id).traversibility*tscale;
