@@ -38,10 +38,12 @@ if(DOXYGEN_FOUND)
   )
 endif(DOXYGEN_FOUND)
 
+include_directories( ${CMAKE_BINARY_DIR}/lib )
+
 add_subdirectory (lib) 
 add_subdirectory (bin) 
-#add_subdirectory (docs)
 
+#add_subdirectory (docs)
 
 INSTALL(FILES dsl.pc
         DESTINATION lib/pkgconfig)

@@ -1,3 +1,5 @@
+PROTOBUF_GENERATE_CPP( PROTO_SRCS PROTO_HDRS grid_data.proto )
+
 add_library(dsl SHARED fibheap.c 
                        search.cc
                        utils.cc
@@ -15,7 +17,7 @@ add_library(dsl SHARED fibheap.c
                        terrainse2gridcost.cc
                        params.cc
                        ppm_reader.cc
-                       grid_data.pb.cc
+                       ${PROTO_SRCS}
 )
 target_link_libraries(dsl ${LIBS})
 
@@ -59,5 +61,5 @@ INSTALL(FILES fibheap.h
               spline.h
               params.h
               ppm_reader.h
-              grid_data.pb.h
+              ${PROTO_HDRS}
               DESTINATION include/dsl)              

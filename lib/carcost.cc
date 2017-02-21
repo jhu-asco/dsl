@@ -7,7 +7,7 @@ using namespace std;
 using namespace Eigen;
 
 CarCost::CarCost(const CarGrid& grid, const Vector3d& wt, double eps )
-:grid_(grid), use_twistnorm_metric_(true), wt_(wt),eps_(eps){
+:grid_(grid), wt_(wt),eps_(eps){
 
   assert(eps > 0 && eps < 1);
   if(!(eps > 0 && eps < 1)){

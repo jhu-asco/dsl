@@ -21,9 +21,8 @@ namespace dsl {
  * moving from a cell to another cell based on some distance metric between 2 SE2Cell, also while checking
  * that the path along the twist is not blocked.
  *
- * Cost metrics: two cost metrics are implemented and is chosen via the use of corresponding constructor
- *   distance_metric =  ||pa-pb|| + ac*dist(aa, ab)), where pa,pb are the positions and aa,ab are the angles
- *   twistnorm_metric = ||weighted_twist||, where weighted_twist = w.diagonal*twist and wt is scaling weight
+ * Cost metrics that is used is the weighted norm of the twist: ||weighted_twist||,
+ * where weighted_twist = w.diagonal*twist and wt is scaling weight
  */
   class CarCost : public GridCost< SE2Cell::PointType, SE2Cell::DataType > {
 public:
@@ -59,9 +58,6 @@ public:
   double Heur(const SE2Cell& a, const SE2Cell& b) const;
 
   const CarGrid& grid_; ///< reference to the grid structure. Enables CarCost to give cost from cell a to b.
-
-  bool use_twistnorm_metric_; ///< if true uses twistnorm_metric else distance_metric
-
   Eigen::Vector3d wt_; ///< weight for weighted norm of the twist between two SE2 cells used by twistnorm_metric
   double eps_ = 1e-6; ///< for Heur cost a factor of (1-eps) is multiplied to final cost to ensure admissability
 };
