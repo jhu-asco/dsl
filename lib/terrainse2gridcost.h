@@ -12,7 +12,7 @@
 #include <Eigen/Dense>
 #include "gridcost.h"
 #include <assert.h>
-#include <terrainse2grid.h>
+#include "terrainse2grid.h"
 
 namespace dsl {
 
