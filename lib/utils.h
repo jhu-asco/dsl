@@ -106,6 +106,43 @@ Eigen::Matrix<T,n+1,1> InsertDimension(const Eigen::Matrix<T,n,1>& in, int dim, 
   return out;
 }
 
+
+/**
+ * Find the barycentre coordinates for a triangle
+ */
+template<typename T>
+class Barycentre3{
+public:
+  using Vector3T = Eigen::Matrix<T,3,1>;
+  Barycentre3(const Vector3T& p0, const Vector3T& p1, const Vector3T& p2 )
+    : p0_(p0), v01_(p1 - p0), v02_(p2 - p0) {
+    d00_ = v01_.dot(v01_);
+    d01_ = v01_.dot(v02_);
+    d11_ = v02_.dot(v02_);
+
+    denom_ = d00_ * d11_ - d01_ * d01_;
+  }
+
+  Vector3T Find(const Vector3T& p){
+    Vector3T v = p - p0_;
+    T d20 = v.dot(v01_);
+    T d21 = v.dot(v02_);
+
+    Vector3T uvw;
+    uvw(1) = (d11_ * d20 - d01_ * d21) / denom_;
+    uvw(2) = (d00_ * d21 - d01_ * d20) / denom_;
+    uvw(0) = 1.0f - uvw(1) - uvw(2);
+
+    return uvw;
+  }
+
+private:
+  Vector3T p0_, v01_, v02_;
+  T d00_, d01_, d11_, denom_;
+};
+using Barycentre3d = Barycentre3<double>;
+using Barycentre3f = Barycentre3<float>;
+
 /**
  * Function that returns a sign for object of any class as long as the operator
  * - and operator < are defined

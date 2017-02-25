@@ -134,11 +134,12 @@ public:
    * integer number of grid cells between xlb and xub
    * @param wd indicates if a dimension if wrapped or not. wd[i]=false(flat dim) wd[i]=1(wrapped dim).
    * For wrapped dimension i, the ds[i],i.e. dimension size, is given by xub[i]-xlb[i] (e.g. for angles it ds[i]=2*M_PI)
-   * @param ss Special Settings for each dimension. If set to true for a wrapped dimension then it the number of cell are
+   * @param ss Special Settings for each dimension.
+   * -If set to true for a wrapped dimension then it the number of cell are
    * multiples of 4 and the xlb and xub are shifted by half cell size. This is useful for making sure, in case of angles,
-   * that when moving forward angles don't change if starting from cells with yaw = -pi,-pi/2, 0, pi/2. If set to true for
-   * flat dimensions it makes sure that 0 lies at a cell center of a cell in the grid( or extrapolated grid if center is not
-   * contained in the grid)
+   * that when moving forward angles don't change if starting from cells with yaw = -pi,-pi/2, 0, pi/2.
+   * -If set to true for flat dimensions it makes sure that 0 lies at a cell center of a cell in the grid
+   * (or extrapolated grid if center is not contained in the grid). Also cell size(cs) is equal to scs.
    */
   Grid(const Vectornd& sxlb, const Vectornd& sxub, const Vectornd& scs,
        const Vectornb& wd = Vectornb::Zero(), const Vectornb& ss = Vectornb::Zero())
@@ -472,8 +473,9 @@ public:
    */
   bool Valid(const Vectorni& gidx) const{
     for(size_t i=0; i< n_; i++){
-      if(gidx[i]<0 || gidx[i]>=gs_[i])
+      if(gidx[i]<0 || gidx[i]>=gs_[i]){
         return false;
+      }
     }
     return true;
   }

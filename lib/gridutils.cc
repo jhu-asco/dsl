@@ -7,12 +7,10 @@
 #include "gridutils.h"
 #include <numeric>
 #include "params.h"
-#include "ppm_reader.h"
 #include <thread>
 #include "utilsimg.h"
 
 namespace dsl {
-
 using namespace Eigen;
 using namespace std;
 using Vector2b = Matrix<bool,2,1>;
@@ -64,49 +62,71 @@ bool SavePpm(const dsl::Map<bool, 2> &map, const string& filename) {
   return true;
 }
 
-bool SavePpm(const dsl::Map<TerrainData, 2> &tmap, const string& filename) {
+bool SavePpm(const dsl::Map<TerrainData, 2> &tmap, const string& filename, ImageRGB* img, double* hscale, double* tscale) {
   if(filename.compare(filename.size() - 4, 4, ".ppm")){
     cout<<"File doesn't have .ppm extension"<<endl;
     return false;
   }
 
-  //save the image file
-  ImageRGB img;
-  img.w = tmap.gs()[0];
-  img.h = tmap.gs()[1];
-  img.bitdepth = ImageRGB::BD16;
-  img.resize(img.w*img.h);
+  bool null_ptr_params = !img && !hscale && !tscale;
+  ImageRGB img_temp;
+  double hscale_temp, tscale_temp;
+  if(null_ptr_params){
+    img = &img_temp;
+    hscale = &hscale_temp;
+    tscale = &tscale_temp;
+  }
 
+  //save the image file
+  img->w = tmap.gs()[0];
+  img->h = tmap.gs()[1];
+  img->bitdepth = ImageRGB::BD16;
+  img->resize(img->w*img->h);
+
+  //set the height in green channel
   double maxh = numeric_limits<double_t>::lowest(); //max height
-  double maxt = numeric_limits<double_t>::lowest(); //max traversibility
+  double minh = numeric_limits<double_t>::max(); //min height
   for (int id = 0; id < tmap.nc(); id++){
     maxh = tmap.Get(id).height > maxh ? tmap.Get(id).height: maxh;
-    maxt = tmap.Get(id).traversibility > maxt ? tmap.Get(id).traversibility: maxt;
+    minh = tmap.Get(id).height < minh ? tmap.Get(id).height: minh;
   }
-  double hscale = img.bitdepth/maxh;
-  double tscale = img.bitdepth/maxt;
+  *hscale = (double)(img->bitdepth)/(maxh - minh);
+  for (int id = 0; id < tmap.nc(); id++){
+    img->gdata[id] = 0.5*(tmap.Get(id).height - minh) * (*hscale); //green height
+  }
+
+  //Set the traversibility in both blue and red channel
+  double maxt = numeric_limits<double_t>::lowest(); //max traversibility
+  for (int id = 0; id < tmap.nc(); id++){
+    if(!std::isnan(tmap.Get(id).traversibility))
+      maxt = tmap.Get(id).traversibility > maxt ? tmap.Get(id).traversibility: maxt;
+  }
+  *tscale = (double)(img->bitdepth)/maxt;//mint = 0
 
   for (int id = 0; id < tmap.nc(); id++){
-    img.rdata[id] = 0.5*tmap.Get(id).height*hscale;
-    img.gdata[id] = 0.5*tmap.Get(id).traversibility*tscale;
-
+    if(std::isnan(tmap.Get(id).traversibility)){
+      img->bdata[id] = 0;
+      img->rdata[id] = img->bitdepth;
+    }else{
+      img->bdata[id] = 0.5*tmap.Get(id).traversibility * (*tscale); //blue traversibility
+      img->rdata[id] = 0;
+    }
   }
 
-  if(!SavePpm(img,filename)){
+  if(!SavePpm(*img,filename)){
     cout<<"Had problems saving the image file"<<endl;
     return false;
   }
 
+  if(null_ptr_params){
+    img = 0;
+    tscale = 0;
+    hscale = 0;
+  }
   return true;
 }
 
 bool SavePpm(const dsl::Map<bool, 3> &cmap, string folder) {
-
-  int slices = cmap.gs()[0];
-  int width  = cmap.gs()[1];
-  int height = cmap.gs()[2];
-
-  char data[width*height*3];//rgb channels
 
   if(folder.back() != '/')
     folder = folder+'/';
@@ -123,27 +143,15 @@ bool SavePpm(const dsl::Map<bool, 3> &cmap, string folder) {
   fs.close();
 
   dsl::Map<bool, 3>::SlicePtr omap;
-
-  for( int idx_a = 0; idx_a < slices; idx_a++){
+  for( int idx_a = 0; idx_a < cmap.gs()[0]; idx_a++){
     filename = folder+file+to_string(idx_a)+ext;
-    fs.open(filename, std::fstream::out);
-    assert(fs.is_open());
-    if(!fs.is_open())
-      continue;
-
     if(!omap)
       omap = cmap.GetSlice(idx_a, 0);
     else
       cmap.GetSlice(omap.get( ), idx_a, 0); //no reallocation of memory
 
-    fs << "P6" << std::endl << width << " " << height << std::endl << "255" << std::endl;
-    int ind = 0;
-    for (int i = 0; i < width * height; i++, ind += 3) {
-      data[ind] = data[ind + 1] = data[ind + 2] = (char)(omap->Get(i) * 100);
-    }
-    assert(ind == 3*width*height);
-    fs.write(data, ind);
-    fs.close();
+    if(!SavePpm(*omap, filename))
+      return false;
   }
   return true;
 }
@@ -227,8 +235,10 @@ Map<TerrainData, 2>::Ptr LoadTmap(const string& tmapfile){
 
    vector<TerrainData> cells(img.h*img.w);
    for (int id = 0; id < img.h*img.w; id++){
-     cells[id].height = img.rdata[id]*hscale;
-     cells[id].traversibility = img.gdata[id]*tscale;
+     cells[id].height = img.gdata[id]*hscale;        //green is height
+     cells[id].traversibility = img.bdata[id]*tscale;//blue is traversibility
+     if(img.rdata[id])                               //red is whether a cell is occupied or not
+       cells[id].traversibility = numeric_limits<double>::quiet_NaN();
    }
    Map<TerrainData, 2>::Ptr tmap(new Map<TerrainData, 2>(Vector2i(img.w, img.h), cs));
    tmap->set_cells(cells);
@@ -266,30 +276,9 @@ bool saveTmap(Map<TerrainData, 2>& tmap, const string& tmapfile){
   //save the image file
   std::string map_img_filename = ReplaceExtension(tmapfile, ".ppm");
   ImageRGB img;
-  img.w = tmap.gs()[0];
-  img.h = tmap.gs()[1];
-  img.bitdepth = ImageRGB::BD16;
-  img.resize(img.w*img.h);
-
-  double maxh = numeric_limits<double_t>::lowest(); //max height
-  double maxt = numeric_limits<double_t>::lowest(); //max traversibility
-  for (int id = 0; id < tmap.nc(); id++){
-    maxh = tmap.Get(id).height > maxh ? tmap.Get(id).height: maxh;
-    maxt = tmap.Get(id).traversibility > maxt ? tmap.Get(id).traversibility: maxt;
-  }
-  double hscale = img.bitdepth/maxh;
-  double tscale = img.bitdepth/maxt;
-
-  for (int id = 0; id < tmap.nc(); id++){
-    img.rdata[id] = 0.5*tmap.Get(id).height*hscale;
-    img.gdata[id] = 0.5*tmap.Get(id).traversibility*tscale;
-
-  }
-
-  if(!SavePpm(img,map_img_filename)){
-    cout<<"Had problems saving the image file"<<endl;
+  double hscale, tscale;
+  if(!SavePpm(tmap, map_img_filename, &img, &hscale, &tscale))
     return false;
-  }
 
   //save the text file
   ofstream file(tmapfile, std::ofstream::out);
@@ -412,24 +401,30 @@ bool SavePpmWithPath(const dsl::Map<TerrainData, 2>& tmap, std::string filename,
 
   //The image to be saved
   ImageRGB img;
-  img.w = smap->gs()[0];
-  img.h = smap->gs()[1];
-  img.bitdepth = ImageRGB::BD16;
-  img.resize(img.w*img.h);
+  double hscale, tscale;
+  if(!SavePpm(*smap, filename, &img, &hscale, &tscale))
+    return false;
 
-  double maxh = numeric_limits<double_t>::lowest(); //max height
-  double maxt = numeric_limits<double_t>::lowest(); //max traversibility
-  for (int id = 0; id < smap->nc(); id++){
-    maxh = smap->Get(id).height > maxh ? smap->Get(id).height: maxh;
-    maxt = smap->Get(id).traversibility > maxt ? smap->Get(id).traversibility: maxt;
-  }
-  double hscale = maxh < 1e-12 ? 0: img.bitdepth/maxh;
-  double tscale = maxt < 1e-12 ? 0: img.bitdepth/maxt;
-
-  for (int id = 0; id < smap->nc(); id++){
-    img.rdata[id] = 0.5*smap->Get(id).height*hscale;
-    img.gdata[id] = 0.5*smap->Get(id).traversibility*tscale;
-  }
+//  //The image to be saved
+//  ImageRGB img;
+//  img.w = smap->gs()[0];
+//  img.h = smap->gs()[1];
+//  img.bitdepth = ImageRGB::BD16;
+//  img.resize(img.w*img.h);
+//
+//  double maxh = numeric_limits<double_t>::lowest(); //max height
+//  double maxt = numeric_limits<double_t>::lowest(); //max traversibility
+//  for (int id = 0; id < smap->nc(); id++){
+//    maxh = smap->Get(id).height > maxh ? smap->Get(id).height: maxh;
+//    maxt = smap->Get(id).traversibility > maxt ? smap->Get(id).traversibility: maxt;
+//  }
+//  double hscale = maxh < 1e-12 ? 0: img.bitdepth/maxh;
+//  double tscale = maxt < 1e-12 ? 0: img.bitdepth/maxt;
+//
+//  for (int id = 0; id < smap->nc(); id++){
+//    img.rdata[id] = 0.5*smap->Get(id).height*hscale;
+//    img.gdata[id] = 0.5*smap->Get(id).traversibility*tscale;
+//  }
 
   for(size_t i=0; i<path.size(); i++){
     if(geom){
@@ -543,25 +538,29 @@ bool SavePpmWithPrimitives(const dsl::Map<TerrainData, 2>& tmap, std::string fil
 
   //The image to be saved
   ImageRGB img;
-  img.w = smap->gs()[0];
-  img.h = smap->gs()[1];
-  img.bitdepth = ImageRGB::BD16;
-  img.resize(img.w*img.h);
+  double hscale, tscale;
+  if(!SavePpm(*smap, filename, &img, &hscale, &tscale))
+    return false;
 
-  double maxh = numeric_limits<double_t>::lowest(); //max height
-  double maxt = numeric_limits<double_t>::lowest(); //max traversibility
-  for (int id = 0; id < smap->nc(); id++){
-    maxh = smap->Get(id).height > maxh ? smap->Get(id).height: maxh;
-    maxt = smap->Get(id).traversibility > maxt ? smap->Get(id).traversibility: maxt;
-  }
-  double hscale = maxh < 1e-12 ? 0: img.bitdepth/maxh;
-  double tscale = maxt < 1e-12 ? 0: img.bitdepth/maxt;
-  for (int id = 0; id < smap->nc(); id++){
-    img.rdata[id] = 0.5*smap->Get(id).height*hscale;
-    img.gdata[id] = 0.5*smap->Get(id).traversibility*tscale;
-  }
-
-  char data[smap->nc()*3];
+//  //The image to be saved
+//  ImageRGB img;
+//  img.w = smap->gs()[0];
+//  img.h = smap->gs()[1];
+//  img.bitdepth = ImageRGB::BD16;
+//  img.resize(img.w*img.h);
+//
+//  double maxh = numeric_limits<double_t>::lowest(); //max height
+//  double maxt = numeric_limits<double_t>::lowest(); //max traversibility
+//  for (int id = 0; id < smap->nc(); id++){
+//    maxh = smap->Get(id).height > maxh ? smap->Get(id).height: maxh;
+//    maxt = smap->Get(id).traversibility > maxt ? smap->Get(id).traversibility: maxt;
+//  }
+//  double hscale = maxh < 1e-12 ? 0: img.bitdepth/maxh;
+//  double tscale = maxt < 1e-12 ? 0: img.bitdepth/maxt;
+//  for (int id = 0; id < smap->nc(); id++){
+//    img.rdata[id] = 0.5*smap->Get(id).height*hscale;
+//    img.gdata[id] = 0.5*smap->Get(id).traversibility*tscale;
+//  }
 
   for(auto& prim: prims){
     for(size_t i=0; i< prim.size(); i++){

@@ -7,6 +7,7 @@
 #include <vector>
 #include <sys/time.h>
 #include <Eigen/Dense>
+#include "ppm_reader.h"
 
 namespace dsl {
 
@@ -32,8 +33,11 @@ bool SavePpm(const dsl::Map<bool, 2> &map, const std::string& filename);
  * Save a 2D terrain map to a .ppm file
  * @param map The 2D TerrainData map
  * @param filename filename to save the image to
+ * @param img optional image that can be updated
+ * @param hscale optional height scale information that can be updated
+ * @param tscale optional traversibility scale information that can be updated
  */
-bool SavePpm(const dsl::Map<TerrainData, 2> &map, const std::string& filename);
+bool SavePpm(const dsl::Map<TerrainData, 2> &map, const std::string& filename, ImageRGB* img=0, double* hscale = 0, double* tscale = 0);
 
 /**
  * Save all the slices of an 3D occupancy grid as a series of .ppm file, one for each angle
@@ -162,6 +166,7 @@ bool SavePpmWithPrimitives(const dsl::Map<TerrainData, 2>& tmap, std::string fil
   * @param theta angle of car
   */
  void DilateMap(std::vector<bool>& dilated, const Map<bool,2>& omap, const CarGeom& geom, double theta);
+
 
 }
 
