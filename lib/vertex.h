@@ -24,6 +24,10 @@ class Graph;
 template < class Tv, class Te >
 class Search;
 
+template < class Tv, class Te >
+class LpAstar;
+
+
 /**
  *  Generic graph vertex containing a list of incoming and outgoing edges
  *  as well as information used for graph search algorithms.
@@ -95,6 +99,8 @@ private:
 
   friend class Graph< Tv, Te >;
   friend class Search< Tv, Te >;
+  friend class LpAstar< Tv, Te >;
+
 };
 
 template < class Tv, class Te >

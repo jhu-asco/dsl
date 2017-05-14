@@ -173,7 +173,7 @@ public:
    * this also resets the planner
    * @param v goal vertex
    */
-  void SetGoal(const Vertex< Tv, Te >& v);
+  void AddGoal(Vertex< Tv, Te >& v);
 
   /**
    * Change the cost of edge e
@@ -233,11 +233,11 @@ public:
 
   void SetDstarMin(bool dstarMin) { this->dstarMin = dstarMin; }
 
-  void SetGoalBiad(bool goalBias) { this->goalBias = goalBias; }
+  void SetGoalBias(bool goalBias) { this->goalBias = goalBias; }
 
   bool GetDstarMin() const { return dstarMin; }
 
-  bool GetGoalBiad() const { return goalBias; }
+  bool GetGoalBias() const { return goalBias; }
 
 private:
 
@@ -263,13 +263,21 @@ private:
     return std::abs(a - b) < eps;
   }
 
+  bool InGoalSet(const Vertex< Tv, Te> &v) {
+    return (goalSet.find(v.id) != goalSet.end());
+  }
+
   Graph< Tv, Te >& graph; ///< graph
   const Cost< Tv >& cost; ///< cost interface
 
   std::vector< Edge< Tv, Te >* > changedEdges; ///< newly changed edges
 
   Vertex< Tv, Te >* start; ///< start state
-  Vertex< Tv, Te >* goal;  ///< goal state
+  std::map< int, Vertex< Tv, Te >* > startSet; ///< all vertices
+
+  std::map< int, Vertex< Tv, Te >* > goalSet; ///< all vertices
+
+  //  Vertex< Tv, Te >* goal;  ///< goal state
   Vertex< Tv, Te >* last;  ///< last state
 
   double km;          ///< km variable
@@ -297,7 +305,6 @@ Search< Tv, Te >::Search(Graph< Tv, Te >& graph, const Cost< Tv >& cost)
   : graph(graph),
     cost(cost),
     start(0),
-    goal(0),
     last(0),
     km(0),
     eps(1e-10),
@@ -329,20 +336,22 @@ void Search< Tv, Te >::SetStart(const Vertex< Tv, Te >& s) {
 }
 
 template < class Tv, class Te >
-void Search< Tv, Te >::SetGoal(const Vertex< Tv, Te >& s) {
+void Search< Tv, Te >::AddGoal(Vertex< Tv, Te >& goal) {
   if (!start) {
     std::cout << "[W] Search::SetGoal: start should be set first!" << std::endl;
     return;
   }
 
+  goalSet[goal.id] = &goal;
+  
   // reset planner
-  Reset();
+  if (!goalSet.size())
+    Reset();
   // set goal
-  goal = (Vertex< Tv, Te >*)&s;
-  goal->rhs = 0;
-  goal->key[0] = cost.Heur(start->data, goal->data);
-  goal->key[1] = 0;
-  InsertExt(*goal, goal->key);
+  goal.rhs = 0;
+  goal.key[0] = cost.Heur(start->data, goal.data);
+  goal.key[1] = 0;
+  InsertExt(goal, goal.key);
 }
 
 template < class Tv, class Te >
@@ -418,7 +427,8 @@ void Search< Tv, Te >::ComputeShortestPath() {
       for (ei = u->in.begin(); ei != u->in.end(); ++ei) {
         edge = (Edge< Tv, Te >*)ei->second;
         s = edge->from;
-        if (s != goal)
+        //        if (s != goal)
+        if (!InGoalSet(*s))
           s->rhs = DSL_MIN(s->rhs, edge->cost + u->g);
         UpdateVertex(*s);
       }
@@ -431,13 +441,15 @@ void Search< Tv, Te >::ComputeShortestPath() {
         s = edge->from;
 
         if (Eq(s->rhs, edge->cost + gOld))
-          if (s != goal)
+          //          if (s != goal)
+          if (!InGoalSet(*s))
             MinSucc(&s->rhs, *s);
 
         UpdateVertex(*s);
       }
 
-      if (u != goal)
+      //      if (u != goal)
+      if (!InGoalSet(*u))
         MinSucc(&u->rhs, *u);
       UpdateVertex(*u);
     }
@@ -460,7 +472,9 @@ double Search< Tv, Te >::Plan(std::vector< Edge< Tv, Te >* >& path) {
     cost += edge->cost;
     path.push_back(edge);
     cur = cur->next;
-  } while (cur != goal);
+    //  } while (cur != goal);
+  } while (!InGoalSet(*cur));
+
   return cost;
 }
 
@@ -485,13 +499,14 @@ int Search< Tv, Te >::Plan() {
       v = edge->to;
 
       if (edge->costChange < 0) {
-        if (u != goal)
+        if (!InGoalSet(*u)) // if (u != goal)
           // new cost
           u->rhs = DSL_MIN(u->rhs, edge->cost + v->g);
       } else {
         // old cost
         if (Eq(u->rhs, edge->cost - edge->costChange + v->g)) {
-          if (u != goal) {
+          //          if (u != goal) {
+          if (!InGoalSet(*u)) {
             MinSucc(&u->rhs, *u);
           }
         }
@@ -512,8 +527,9 @@ int Search< Tv, Te >::Plan() {
     next->prev = cur;
     cur = next;
     count++;
-  } while (cur != goal);
-
+    //  } while (cur != goal);
+  } while (!InGoalSet(*cur));
+    
   return count;
 }
 
@@ -532,7 +548,7 @@ Vertex< Tv, Te >* Search< Tv, Te >::MinSucc(double* minRhs,
 
     double val = edge->cost + s_->g;
 
-    if (goalBias) {
+    /*    if (goalBias) {
       if (val < minVal || (val == minVal && minSucc &&
                            cost.Real(s_->data, goal->data) <
                                cost.Real(minSucc->data, goal->data))) {
@@ -540,11 +556,12 @@ Vertex< Tv, Te >* Search< Tv, Te >::MinSucc(double* minRhs,
         minSucc = s_;
       }
     } else {
+    */
       if (val < minVal) {
         minVal = val;
         minSucc = s_;
       }
-    }
+      // }
   }
   if (minRhs)
     *minRhs = minVal;

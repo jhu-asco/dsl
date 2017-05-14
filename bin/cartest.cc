@@ -130,7 +130,7 @@ int main(int argc, char** argv)
   printf("graph construction time= %ld  us\n", time);
 
   search.SetStart(start);
-  search.SetGoal(goal);
+  search.AddGoal(goal);
 
   cout << "Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges." << endl;
 

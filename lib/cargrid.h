@@ -33,8 +33,8 @@ struct CarGeom {
 
   void Raster(const Eigen::Vector2d &cs, std::vector<Eigen::Vector2d> &points) const {
     points.clear();
-    for (double x = 0; x < l; x += cs[0])
-      for (double y = 0; y < b; y += cs[1])
+    for (double x = 0; x <= l; x += cs[0])
+      for (double y = 0; y <= b; y += cs[1])
         points.push_back(Eigen::Vector2d(x + ox, y + oy));
   }
 

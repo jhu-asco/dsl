@@ -121,7 +121,7 @@ int main(int argc, char** argv)
   prim_cfg.lmax = gcs(1)*10;
   prim_cfg.nl = 2 ;
   prim_cfg.amax = 1.57; //primitives turn by atmost pi/2 radians
-  prim_cfg.na = 2*kseg+1;
+  prim_cfg.na = kseg;
   CarConnectivity2 connectivity(grid, prim_cfg);
 
 
@@ -141,7 +141,7 @@ int main(int argc, char** argv)
   printf("graph construction time= %ld  us\n", time);
 
   search.SetStart(start);
-  search.SetGoal(goal);
+  search.AddGoal(goal);
 
   cout << "Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges." << endl;
 

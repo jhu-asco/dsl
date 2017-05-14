@@ -161,14 +161,9 @@ void Graph< Tv, Te >::RemoveEdge(Edge< Tv, Te >& e, bool update, bool del) {
     e.costChange = DSL_DBL_MAX - cost;
     e.cost = DSL_DBL_MAX;
 
-    //    cout << e.costChange << " " << e.cost << " " << e.cost - e.costChange
-    //    << endl;
-    //    cout << "u->rhs=" << u->rhs << " v->g=" << v->g << " cost=" << cost <<
-    //    endl;
-
     // update the start vertex
     if (u && u->openListNode && v && v->openListNode) {
-      if (search->Eq(u->rhs, cost + v->g) && u != search->goal) {
+      if (search->Eq(u->rhs, cost + v->g) && !search->InGoalSet(*u)) { 
         search->MinSucc(&u->rhs, *u);
       }
       search->UpdateVertex(*u);

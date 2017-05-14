@@ -124,7 +124,7 @@ public:
    * @param x euclidean point vector
    * @return true on success
    */
-  bool SetGoal(const PointType& x);
+  bool AddGoal(const PointType& x);
 
   /**
    * Expand successors or predecessors of a given vertex. This is mostly used
@@ -402,7 +402,7 @@ template < class PointType, class DataType, class ConnectionType >
 }
 
 template < class PointType, class DataType, class ConnectionType >
-    bool GridSearch< PointType, DataType, ConnectionType >::SetGoal(const PointType& x) {
+    bool GridSearch< PointType, DataType, ConnectionType >::AddGoal(const PointType& x) {
   if (!grid.Valid(x)) {
     std::cout << "[W] GridSearch:SetGoal: invalid x=" << x.transpose()
               << std::endl;
@@ -427,7 +427,7 @@ template < class PointType, class DataType, class ConnectionType >
     graph.AddVertex(*vertexMap[id]);
   }
 
-  Search< Cell<PointType, DataType> , ConnectionType  >::SetGoal(*vertexMap[id]);
+  Search< Cell<PointType, DataType> , ConnectionType  >::AddGoal(*vertexMap[id]);
 
   return true;
 }

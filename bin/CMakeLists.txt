@@ -2,6 +2,8 @@ link_directories(${DSL_BINARY_DIR}/lib)
 
 
 add_executable(test2d test2d.cc)
+add_executable(test2d_multigoal test2d_multigoal.cc)
+
 #add_executable(test test.cc)
 #add_executable(test3d test3d.cc)
 add_executable(cartest cartest.cc)
@@ -11,6 +13,8 @@ add_executable(test_cargrid test_cargrid.cc)
 #add_executable(carwithgeomtest carwithgeomtest.cc)
 
 target_link_libraries(test2d dsl)
+target_link_libraries(test2d_multigoal dsl)
+
 #target_link_libraries(test3d dsl)
 target_link_libraries(cartest dsl)
 target_link_libraries(cartest2 dsl)

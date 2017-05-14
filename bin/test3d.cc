@@ -209,7 +209,7 @@ int main(int argc, char** argv)
   int goaly = width/2.+2;//width/4 - 10;
   int goalz = 15;
   gdsl.SetStart(Vector3d(startx, starty, startz));
-  gdsl.SetGoal(Vector3d(goalx, goaly, goalz));
+  gdsl.AddGoal(Vector3d(goalx, goaly, goalz));
   printf("start (%d,%d,%d) \n", startx, starty, startz);
   printf("goal (%d,%d,%d) \n", goalx, goaly, goalz);
   

@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "gridsearch.h"
+
+#include "gridlpastar.h"
 #include "grid2d.h"
 #include "gridcost.h"
 #include "traversabilitycost.h"
@@ -41,12 +43,16 @@ int main(int argc, char** argv)
   TraversabilityCost<Vector2d, double> cost;
   // GridCost<Vector2d, double> cost;
   Grid2dConnectivity connectivity(grid);
-  GridSearch<Vector2d, double, Vector2d> search(grid, connectivity, cost, false);
+  //GridSearch<Vector2d, double, Vector2d> search(grid, connectivity, cost, false);
+  GridLpAstar<Vector2d, double, Vector2d> search(grid, connectivity, cost, false);
   GridPath<Vector2d, double, Vector2d> path, optPath;
 
-  search.SetStart(Vector2d(1, height/2));
-  search.SetGoal(Vector2d(width - 2, height/2));
 
+  search.SetStart(Vector2d(1, height/2));
+  search.AddGoal(Vector2d(width - 2, height/2));
+
+  std::cout  << "Added start and goal" << std::endl;
+  
   // plan
   struct timeval timer;
   timer_start(&timer);
