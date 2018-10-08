@@ -124,7 +124,7 @@ void Graph< Tv, Te >::RemoveVertex(Vertex< Tv, Te >& v, bool re, bool del) {
   // remove from list of vertices
   vertices.erase(v.id);
 
-  if (search && search->last)
+  if (search && search->last())
     search->Remove(v);
 
   if (del)
@@ -143,7 +143,7 @@ void Graph< Tv, Te >::AddEdge(Edge< Tv, Te >& e) {
   edges[e.id] = &e;
 
   // if there's an active search
-  if (search && search->last) {
+  if (search && search->last()) {
     double cost = e.cost;
     e.cost = DSL_DBL_MAX;
     search->ChangeCost(e, cost);
@@ -153,7 +153,7 @@ void Graph< Tv, Te >::AddEdge(Edge< Tv, Te >& e) {
 template < class Tv, class Te >
 void Graph< Tv, Te >::RemoveEdge(Edge< Tv, Te >& e, bool update, bool del) {
   // if there's an active search
-  if (update && search && search->last) {
+  if (update && search && search->last()) {
     Vertex< Tv, Te >* u = e.from;
     Vertex< Tv, Te >* v = e.to;
 
@@ -163,7 +163,7 @@ void Graph< Tv, Te >::RemoveEdge(Edge< Tv, Te >& e, bool update, bool del) {
 
     // update the start vertex
     if (u && u->openListNode && v && v->openListNode) {
-      if (search->Eq(u->rhs, cost + v->g) && !search->InGoalSet(*u)) { 
+      if (search->Eq(u->rhs, cost + v->g) && !search->InGoalSet(*u)) {
         search->MinSucc(&u->rhs, *u);
       }
       search->UpdateVertex(*u);

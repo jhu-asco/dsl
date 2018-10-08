@@ -22,7 +22,7 @@ template < class Tv, class Te >
 class Graph;
 
 template < class Tv, class Te >
-class Search;
+class Dstar;
 
 template < class Tv, class Te >
 class LpAstar;
@@ -98,7 +98,7 @@ private:
   static int s_id; ///< id counter
 
   friend class Graph< Tv, Te >;
-  friend class Search< Tv, Te >;
+  friend class Dstar< Tv, Te >;
   friend class LpAstar< Tv, Te >;
 
 };

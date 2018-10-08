@@ -1,4 +1,4 @@
-add_library(dsl SHARED fibheap.c 
+add_library(dsl SHARED fibheap.c
                        search.cc
                        utils.cc
                        utilsimg.cc
@@ -29,6 +29,8 @@ INSTALL(FILES fibheap.h
               graph.h
               cost.h
               search.h
+              lpastar.h
+              dstar.h
               utils.h
               utilsimg.h
               cell.h
@@ -49,4 +51,4 @@ INSTALL(FILES fibheap.h
               gridsearch.h
               spline.h
               params.h
-              DESTINATION include/dsl)              
+              DESTINATION include/dsl)

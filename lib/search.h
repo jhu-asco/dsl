@@ -9,16 +9,9 @@
 #ifndef DSL_SEARCH_H
 #define DSL_SEARCH_H
 
-#include <vector>
-#include <cmath>
-#include <stdlib.h>
-#include <stdio.h>
-#include <assert.h>
-#include <unistd.h>
-#include <iostream>
+#include <functional>
 #include "graph.h"
-#include "cost.h"
-#include "fibheap.h"
+#include <vector>
 
 /*! \mainpage D*Lite
  * \section Documentation
@@ -118,38 +111,15 @@
 
 namespace dsl {
 
+enum class Method { kDstar, kLpAstar};
+
 template < class Tv, class Te = Empty >
 class Search {
 public:
-  /**
-   * Initialize dsl with a graph and a cost interface
-   * @param graph graph (the method will modify the nodes in the graph
-   *                     by changing certain search-related parameters
-   *                     stored at the nodes, the data or the original
-   *                     edge costs would not be changed)
-   * @param cost cost interface
-   */
-  Search(Graph< Tv, Te >& graph, const Cost< Tv >& cost);
 
-  virtual ~Search();
+  using ExpandCallback = std::function<bool(Vertex< Tv, Te >& from, bool fwd)>;
 
-  /**
-   *  Reset the planner to its initial state
-   *  this can be used for example if the goal state was changed
-   *  but the graph structure is the same
-   *  This is usually called internally at init and with every SetGoal()
-   */
-  void Reset();
-
-  /**
-   * Plan an initial path from start to goal, or if any cost
-   * changes are detected since it was last called (any
-   * calls to ChangeCost()) then it replans.
-   * The generated path can be obtained by following the next
-   * pointers from start vertex until goal vertex is reached
-   * @return total number of vertices along the path
-   */
-  int Plan();
+   virtual ~Search() {};
 
   /**
    * Plan an initial path from start to goal, or if any cost
@@ -160,507 +130,46 @@ public:
    * @param path the optimal path
    * @return total cost
    */
-  double Plan(std::vector< Edge< Tv, Te >* >& path);
+   virtual double Plan(std::vector< Edge< Tv, Te >* >& path) = 0;
+
+  /**
+   * Plan an initial path from start to goal, or if any cost
+   * changes are detected since it was last called (any
+   * calls to ChangeCost()) then it replans.
+   * The generated path can be obtained by following the next
+   * pointers from start vertex until goal vertex is reached
+   * This function is implemented by the specific method used
+   * @return total number of vertices along the path
+   */
+   virtual int Plan() = 0;
 
   /**
    * Set start state
+   * This function is implemented by the specific method used
    * @param v start vertex
    */
-  void SetStart(const Vertex< Tv, Te >& v);
+  virtual void SetStart(const Vertex< Tv, Te >& v) = 0;
 
   /**
    * Set goal state
    * this also resets the planner
+   * This function is implemented by the specific method used
    * @param v goal vertex
    */
-  void AddGoal(Vertex< Tv, Te >& v);
+  virtual void AddGoal(Vertex< Tv, Te >& v) = 0;
 
-  /**
-   * Change the cost of edge e
-   * @param e edge
-   * @param cost new cost
-   */
-  void ChangeCost(Edge< Tv, Te >& e, double cost);
+  virtual void ChangeCost(Edge< Tv, Te >& edge, double cost) = 0;
 
-  /**
-   * Change the cost of either all incoming or all outgoing edges
-   * connected to verte x
-   * @param v vertex
-   * @param cost new cost
-   * @param in when to modify incoming edges or outgoing edges
-   */
-  void ChangeCost(Vertex< Tv, Te >& v, double cost, bool in = true);
+  virtual void ChangeCost(Vertex< Tv, Te >& vertex, double cost, bool in) = 0;
 
-  /**
-   * Set epsilon: this is used to compare cell costs
-   * @param eps precision (1e-10 by default)
-   */
-  void SetEps(double eps) {
-    this->eps = eps;
-  }
+  // function invoked for every new expanded node during the exploration
+  virtual void setExpandCallback(ExpandCallback expand_callback) = 0;
 
-  /**
-   * Expand the predecessors or successors of a vertex. This is useful for
-   * on-the-fly graph expansion during search. An implementation
-   * is not required since the graph can also be built in advance before
-   * search, and no subsequent search-triggered expansion is necessary.
-   * This is called after the vertex v is placed on the heap for the first time
-   * with fwd=false since D* searches backwards from the goal.
-   * @param v vertex
-   * @param fwd if true expand forward, i.e. successors, otherwise expand
-   * predecessors
-   * @return true on success
-   */
-  virtual bool Expand(Vertex< Tv, Te >& v, bool fwd = true) {
-    return true;
-  }
+  // optional pointer to the last start state (only applicable to D*)
+  // Since D* replans for a new start, it uses this to updates it heuristic
+  virtual Vertex< Tv, Te >* last() { return 0; }
 
-  /**
-   * Number of vertices
-   * @return number of vertices
-   */
-  int Vertices() const {
-    return graph.vertices.size();
-  }
-
-  /**
-   * Number of edges
-   * @return number of edges
-   */
-  int Edges() const {
-    return graph.edges.size();
-  }
-
-  void SetDstarMin(bool dstarMin) { this->dstarMin = dstarMin; }
-
-  void SetGoalBias(bool goalBias) { this->goalBias = goalBias; }
-
-  bool GetDstarMin() const { return dstarMin; }
-
-  bool GetGoalBias() const { return goalBias; }
-
-private:
-
-  void UpdateVertex(Vertex< Tv, Te >& u);
-  void ComputeShortestPath();
-  Vertex< Tv, Te >* MinSucc(double* minRhs, const Vertex< Tv, Te >& v);
-  double* CalculateExtKey(double* key, Vertex< Tv, Te >& v);
-  double* CalculateKey(Vertex< Tv, Te >& v);
-  void Insert(Vertex< Tv, Te >& v);
-  void InsertExt(Vertex< Tv, Te >& v, double* key);
-  void Update(Vertex< Tv, Te >& v);
-  void Remove(Vertex< Tv, Te >& v);
-  Vertex< Tv, Te >* Top();
-  double* TopKey();
-
-  /**
-   * Compare two doubles for equality
-   * @param a first number
-   * @param b second number
-   * @return \f$|a-b| < eps\f$
-   */
-  bool Eq(double a, double b) const {
-    return std::abs(a - b) < eps;
-  }
-
-  bool InGoalSet(const Vertex< Tv, Te> &v) {
-    return (goalSet.find(v.id) != goalSet.end());
-  }
-
-  Graph< Tv, Te >& graph; ///< graph
-  const Cost< Tv >& cost; ///< cost interface
-
-  std::vector< Edge< Tv, Te >* > changedEdges; ///< newly changed edges
-
-  Vertex< Tv, Te >* start; ///< start state
-  std::map< int, Vertex< Tv, Te >* > startSet; ///< all vertices
-
-  std::map< int, Vertex< Tv, Te >* > goalSet; ///< all vertices
-
-  //  Vertex< Tv, Te >* goal;  ///< goal state
-  Vertex< Tv, Te >* last;  ///< last state
-
-  double km;          ///< km variable
-  fibheap_t openList; ///< fibonacci heap
-
-  double eps; ///< epsilon for cost comparision
-
-  bool dstarMin; ///< whether to use focussed D* -style min extraction: this was
-  /// discovered to reduce vertex expansion (false by default)
-  bool goalBias; ///< whether to employ goal bias heuristic: this can speed-up
-  /// the search in easier environments (false by default)
-
-  friend class Graph< Tv, Te >;
 };
-
-#define DSL_MIN(a, b) ((a < b) ? (a) : (b))
-
-// these are needed by fibheap
-extern int FIBHEAPKEY_SIZE;
-extern fibheapkey_t FIBHEAPKEY_MIN;
-extern "C" int fibkey_compare(fibheapkey_t a, fibheapkey_t b);
-
-template < class Tv, class Te >
-Search< Tv, Te >::Search(Graph< Tv, Te >& graph, const Cost< Tv >& cost)
-  : graph(graph),
-    cost(cost),
-    start(0),
-    last(0),
-    km(0),
-    eps(1e-10),
-    dstarMin(false),
-    goalBias(false) {
-  openList = fibheap_new();
-}
-
-template < class Tv, class Te >
-Search< Tv, Te >::~Search() {
-  fibheap_delete(openList);
-  changedEdges.clear();
-}
-
-template < class Tv, class Te >
-void Search< Tv, Te >::Reset() {
-  typename std::map< int, Vertex< Tv, Te >* >::iterator vi;
-  for (vi = graph.vertices.begin(); vi != graph.vertices.end(); ++vi) {
-    vi->second->Reset();
-  }
-  fibheap_clear(openList);
-  km = 0;
-  last = 0;
-}
-
-template < class Tv, class Te >
-void Search< Tv, Te >::SetStart(const Vertex< Tv, Te >& s) {
-  start = (Vertex< Tv, Te >*)&s;
-}
-
-template < class Tv, class Te >
-void Search< Tv, Te >::AddGoal(Vertex< Tv, Te >& goal) {
-  if (!start) {
-    std::cout << "[W] Search::SetGoal: start should be set first!" << std::endl;
-    return;
-  }
-
-  goalSet[goal.id] = &goal;
-  
-  // reset planner
-  if (!goalSet.size())
-    Reset();
-  // set goal
-  goal.rhs = 0;
-  goal.key[0] = cost.Heur(start->data, goal.data);
-  goal.key[1] = 0;
-  InsertExt(goal, goal.key);
-}
-
-template < class Tv, class Te >
-void Search< Tv, Te >::ChangeCost(Edge< Tv, Te >& edge, double cost) {
-  if (Eq(cost, edge.cost))
-    return;
-  edge.costChange = cost - edge.cost;
-  edge.cost = cost;
-  changedEdges.push_back(&edge);
-}
-
-template < class Tv, class Te >
-void Search< Tv, Te >::ChangeCost(Vertex< Tv, Te >& vertex,
-                                  double cost,
-                                  bool in) {
-  typename std::map< int, Edge< Tv, Te >* >::iterator ei;
-  if (in) {
-    for (ei = vertex.in.begin(); ei != vertex.in.end(); ++ei) {
-      ChangeCost(*ei->second, cost);
-    }
-  } else {
-    for (ei = vertex.out.begin(); ei != vertex.out.end(); ++ei) {
-      ChangeCost(*ei->second, cost);
-    }
-  }
-}
-
-template < class Tv, class Te >
-void Search< Tv, Te >::UpdateVertex(Vertex< Tv, Te >& u) {
-  if (u.g != u.rhs && u.t == Vertex< Tv, Te >::OPEN) {
-    Update(u);
-  } else if (u.g != u.rhs && u.t != Vertex< Tv, Te >::OPEN) {
-    Insert(u);
-  } else if (u.g == u.rhs && u.t == Vertex< Tv, Te >::OPEN) {
-    Remove(u);
-  }
-}
-
-template < class Tv, class Te >
-void Search< Tv, Te >::ComputeShortestPath() {
-  Vertex< Tv, Te >* u;
-  Vertex< Tv, Te >* s;
-  double kold[2];
-  double gOld;
-  typename std::map< int, Edge< Tv, Te >* >::iterator ei;
-  Edge< Tv, Te >* edge;
-
-  graph.search = this;
-
-  if (fibheap_empty(openList)) {
-    std::cerr << "[W] Search::ComputeShortestPath: openList is empty -- most "
-                 "likely this means that a there is no path between start and "
-                 "goal!" << std::endl;
-    return;
-  }
-
-  while (TopKey() && (fibkey_compare(TopKey(), CalculateKey(*start)) < 0 ||
-                      start->rhs != start->g)) {
-    u = Top();
-
-    // expand backwards
-    Expand(*u, false);
-
-    kold[0] = u->key[0];
-    kold[1] = u->key[1];
-
-    if (fibkey_compare(kold, CalculateKey(*u)) < 0) {
-      Update(*u);
-    } else if (u->g > u->rhs) {
-      u->g = u->rhs;
-      Remove(*u);
-
-      for (ei = u->in.begin(); ei != u->in.end(); ++ei) {
-        edge = (Edge< Tv, Te >*)ei->second;
-        s = edge->from;
-        //        if (s != goal)
-        if (!InGoalSet(*s))
-          s->rhs = DSL_MIN(s->rhs, edge->cost + u->g);
-        UpdateVertex(*s);
-      }
-    } else {
-      gOld = u->g;
-      u->g = DSL_DBL_MAX;
-
-      for (ei = u->in.begin(); ei != u->in.end(); ++ei) {
-        edge = (Edge< Tv, Te >*)ei->second;
-        s = edge->from;
-
-        if (Eq(s->rhs, edge->cost + gOld))
-          //          if (s != goal)
-          if (!InGoalSet(*s))
-            MinSucc(&s->rhs, *s);
-
-        UpdateVertex(*s);
-      }
-
-      //      if (u != goal)
-      if (!InGoalSet(*u))
-        MinSucc(&u->rhs, *u);
-      UpdateVertex(*u);
-    }
-  }
-}
-
-template < class Tv, class Te >
-double Search< Tv, Te >::Plan(std::vector< Edge< Tv, Te >* >& path) {
-  path.clear();
-  Plan();
-  Vertex< Tv, Te >* cur = start;
-  double cost = 0;
-  do {
-    Edge< Tv, Te >* edge = cur->Find(*cur->next, false);
-    if (!edge) {
-      path.clear();
-      return -1;
-    }
-
-    cost += edge->cost;
-    path.push_back(edge);
-    cur = cur->next;
-    //  } while (cur != goal);
-  } while (!InGoalSet(*cur));
-
-  return cost;
-}
-
-template < class Tv, class Te >
-int Search< Tv, Te >::Plan() {
-  Vertex< Tv, Te >* cur = start;
-  Vertex< Tv, Te >* u, *v;
-  int count = 1;
-
-  assert(start);
-
-  if (!last)
-    last = start;
-
-  if (changedEdges.size()) {
-    km += (cost.Heur(last->data, start->data));
-    last = start;
-    typename std::vector< Edge< Tv, Te >* >::iterator ei;
-    for (ei = changedEdges.begin(); ei != changedEdges.end(); ++ei) {
-      Edge< Tv, Te >* edge = *ei;
-      u = edge->from;
-      v = edge->to;
-
-      if (edge->costChange < 0) {
-        if (!InGoalSet(*u)) // if (u != goal)
-          // new cost
-          u->rhs = DSL_MIN(u->rhs, edge->cost + v->g);
-      } else {
-        // old cost
-        if (Eq(u->rhs, edge->cost - edge->costChange + v->g)) {
-          //          if (u != goal) {
-          if (!InGoalSet(*u)) {
-            MinSucc(&u->rhs, *u);
-          }
-        }
-      }
-      UpdateVertex(*u);
-    }
-    changedEdges.clear();
-  }
-
-  ComputeShortestPath();
-
-  do {
-    Vertex< Tv, Te >* next = MinSucc(0, *cur);
-    cur->next = next;
-    if (!next) {
-      break;
-    }
-    next->prev = cur;
-    cur = next;
-    count++;
-    //  } while (cur != goal);
-  } while (!InGoalSet(*cur));
-    
-  return count;
-}
-
-template < class Tv, class Te >
-Vertex< Tv, Te >* Search< Tv, Te >::MinSucc(double* minRhs,
-                                            const Vertex< Tv, Te >& s) {
-  double minVal = DSL_DBL_MAX;
-  Vertex< Tv, Te >* minSucc = NULL;
-  Vertex< Tv, Te >* s_;
-  typename std::map< int, Edge< Tv, Te >* >::const_iterator ei;
-  Edge< Tv, Te >* edge;
-
-  for (ei = s.out.begin(); ei != s.out.end(); ++ei) {
-    edge = (Edge< Tv, Te >*)ei->second;
-    s_ = edge->to;
-
-    double val = edge->cost + s_->g;
-
-    /*    if (goalBias) {
-      if (val < minVal || (val == minVal && minSucc &&
-                           cost.Real(s_->data, goal->data) <
-                               cost.Real(minSucc->data, goal->data))) {
-        minVal = val;
-        minSucc = s_;
-      }
-    } else {
-    */
-      if (val < minVal) {
-        minVal = val;
-        minSucc = s_;
-      }
-      // }
-  }
-  if (minRhs)
-    *minRhs = minVal;
-  return minSucc;
-}
-
-template < class Tv, class Te >
-double* Search< Tv, Te >::CalculateExtKey(double* key, Vertex< Tv, Te >& s) {
-  double m = DSL_MIN(s.g, s.rhs);
-  if (m == DSL_DBL_MAX) {
-    key[0] = DSL_DBL_MAX;
-    key[1] = DSL_DBL_MAX;
-  } else {
-    assert(start);
-    key[0] = m + cost.Heur(start->data, s.data) + km;
-    key[1] = m;
-  }
-
-  return key;
-}
-
-template < class Tv, class Te >
-double* Search< Tv, Te >::CalculateKey(Vertex< Tv, Te >& s) {
-  return CalculateExtKey(s.key, s);
-}
-
-template < class Tv, class Te >
-void Search< Tv, Te >::Insert(Vertex< Tv, Te >& s) {
-  InsertExt(s, CalculateExtKey(s.key, s));
-}
-
-template < class Tv, class Te >
-void Search< Tv, Te >::InsertExt(Vertex< Tv, Te >& s, double* key) {
-  if (dstarMin) {
-    s.r = start;
-  } else {
-    s.openListNode = fibheap_insert(openList, (void*)key, &s);
-    s.t = Vertex< Tv, Te >::OPEN;
-  }
-}
-
-template < class Tv, class Te >
-void Search< Tv, Te >::Update(Vertex< Tv, Te >& s) {
-
-  double key[2];
-  // assert(s.t == Vertex<Tv, Te>::OPEN);
-  CalculateExtKey(key, s);
-
-  if (dstarMin) {
-    s.r = start;
-  }
-
-  if (fibkey_compare(key, s.key) > 0) {
-    fibheap_delete_node(openList, s.openListNode);
-    s.openListNode = fibheap_insert(openList, key, &s);
-  } else if (!fibkey_compare(key, s.key)) {
-    return;
-  } else {
-    fibheap_replace_key(openList, s.openListNode, key);
-  }
-  // copy back to s's own key
-  // s->openListNode->key = s->key;
-  s.key[0] = key[0];
-  s.key[1] = key[1];
-}
-
-template < class Tv, class Te >
-void Search< Tv, Te >::Remove(Vertex< Tv, Te >& s) {
-  if (s.t == Vertex< Tv, Te >::CLOSED)
-    return;
-
-  s.t = Vertex< Tv, Te >::CLOSED;
-  if (s.openListNode)
-    fibheap_delete_node(openList, s.openListNode);
-}
-
-template < class Tv, class Te >
-Vertex< Tv, Te >* Search< Tv, Te >::Top() {
-  if (dstarMin) {
-    Vertex< Tv, Te >* s;
-    while ((s = (Vertex< Tv, Te >*)fibheap_min(openList))) {
-      if (s->r != start)
-        Update(*s);
-      else
-        return s;
-    }
-    return NULL;
-  } else {
-    return (Vertex< Tv, Te >*)fibheap_min(openList);
-  }
-}
-
-template < class Tv, class Te >
-double* Search< Tv, Te >::TopKey() {
-  Vertex< Tv, Te >* s = Top();
-  if (!s)
-    return NULL;
-  return s->key;
-}
 }
 
 #endif
