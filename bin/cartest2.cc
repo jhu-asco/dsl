@@ -16,7 +16,7 @@ using CarPath = GridPath<Vector3d, Matrix3d, SE2Path>;
 vector<Vector2d> ToVector2dPath(const CarPath &path) {
   vector<Vector2d> path2d;
   for (auto&& connection : path.connections)
-    for (auto&& g : connection)      
+    for (auto&& g : connection)
       path2d.push_back(g.topRightCorner<2,1>());
   return path2d;
 }
@@ -46,7 +46,7 @@ int main(int argc, char** argv)
   // get map
   string cmapName;
   bool cmapValid = params.GetString("cmap", cmapName);
-  
+
   // occupancy cell size
   Vector3d ocs;
   params.GetVector3d("ocs", ocs);
@@ -57,7 +57,7 @@ int main(int argc, char** argv)
 
   Vector4d whxy;
   bool useGeom = params.GetVector4d("geom", whxy);
-  
+
   // load an occupancy map from ppm file
   dsl::Map<bool, 2> omap = load(mapName.c_str(), ocs.tail<2>());
 
@@ -70,9 +70,9 @@ int main(int argc, char** argv)
 
   // configuration-space map
   dsl::Map<bool, 3> *cmap = 0;
-  
+
   //  CarGrid::MakeMap(omap, cmap);
-  // for non-point geometry comment this out 
+  // for non-point geometry comment this out
   if (!cmapValid) {
     cmap = new dsl::Map<bool, 3>(xlb, xub, ocs);
     std::cout << "Making cmap... " << std::endl;
@@ -81,24 +81,24 @@ int main(int argc, char** argv)
       CarGeom geom(whxy(0), whxy(1), whxy(2), whxy(3));
       CarGrid::MakeMap(geom, omap, *cmap);
     } else {
-      CarGrid::MakeMap(omap, *cmap);      
+      CarGrid::MakeMap(omap, *cmap);
     }
-    
+
     cmapName = mapName;
     replaceExt(cmapName, string("cmap"));
     dsl::Map<bool,3>::Save(*cmap, cmapName.c_str());
     std::cout << "Saved cmap " << cmapName << " with xlb=" << cmap->xlb.transpose() << " xub=" << cmap->xub.transpose() << " gs=" << cmap->gs.transpose() << std::endl;
-    
+
   } else {
     cmap = dsl::Map<bool,3>::Load(cmapName.c_str());
     std::cout << "Loaded map with xlb=" << cmap->xlb.transpose() << " xub=" << cmap->xub.transpose() << " gs=" << cmap->gs.transpose() << std::endl;
   }
-  
+
   CarGrid grid(*cmap, gcs);
 
   // create cost and set custom angular cost mixing factor ac
   CarCost cost;
-  params.GetDouble("ac", cost.ac);    
+  params.GetDouble("ac", cost.ac);
 
 
   double dt = .25;
@@ -106,7 +106,7 @@ int main(int argc, char** argv)
   double kmax = 0.57;
   int kseg = 4;
   bool onlyfwd = false;
-  params.GetDouble("dt", dt);  
+  params.GetDouble("dt", dt);
   params.GetDouble("vx", vx);
   params.GetDouble("kmax", kmax);
   params.GetInt("kseg", kseg);
@@ -133,8 +133,8 @@ int main(int argc, char** argv)
   bool initExpand = false;
   params.GetBool("initExpand", initExpand);
 
-  
-  GridSearch<Vector3d, Matrix3d, SE2Path> search(grid, connectivity, cost, initExpand);
+
+  GridSearch<Vector3d, Matrix3d, SE2Path> search(grid, connectivity, cost, Method::kDstar, initExpand);
   CarPath path;
 
   long time = timer_us(&timer);
@@ -143,7 +143,7 @@ int main(int argc, char** argv)
   search.SetStart(start);
   search.AddGoal(goal);
 
-  cout << "Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges." << endl;
+  cout << "Created a graph with " << search.GetGraph().vertices.size() << " vertices and " << search.GetGraph().edges.size() << " edges." << endl;
 
   cout << "Planning a path..." << endl;
   // plan
@@ -153,8 +153,8 @@ int main(int argc, char** argv)
   printf("plan path time= %ld  us\n", time);
   printf("path: edges=%lu len=%f\n", path.cells.size(), path.cost);
 
-  cout << "Graph has " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
-  
+  cout << "graph has " << search.GetGraph().vertices.size() << " vertices and " << search.GetGraph().edges.size() << " edges." << endl;
+
   // save it to image for viewing
   vector<Vector2d> path2d = ToVector2dPath(path);
   save(dmap, "path1.ppm", &path2d);
