@@ -100,30 +100,17 @@ int main(int argc, char** argv)
   CarCost cost;
   params.GetDouble("ac", cost.ac);
 
-
-  double dt = .25;
-  double vx = 4;
-  double kmax = 0.57;
-  int kseg = 4;
-  bool onlyfwd = false;
-  params.GetDouble("dt", dt);
-  params.GetDouble("vx", vx);
-  params.GetDouble("kmax", kmax);
-  params.GetInt("kseg", kseg);
-  params.GetBool("onlyfwd", onlyfwd);
-
-
   // load car connectivity and set custom parameters
   dsl::CarPrimitiveCfg prim_cfg;
-  prim_cfg.fwdonly = onlyfwd;
-  prim_cfg.tphioverlmax = kmax;
+  prim_cfg.fwdonly = true;
+  prim_cfg.tphioverlmax = 0.58;
   prim_cfg.lmin = gcs(1)*2;
   prim_cfg.lmax = gcs(1)*10;
-  prim_cfg.nl = 2 ;
+  prim_cfg.nl = 3 ;
   prim_cfg.amax = 1.57; //primitives turn by atmost pi/2 radians
-  prim_cfg.na = kseg;
-  CarConnectivity2 connectivity(grid, prim_cfg);
+  prim_cfg.na = 15;
 
+  CarConnectivity2 connectivity(grid, prim_cfg);
 
   cout << "Creating a graph..." << endl;
   // create planner

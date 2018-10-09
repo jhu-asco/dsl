@@ -110,35 +110,28 @@ bool CarConnectivity2::SetPrimitives(double dt, CarPrimitiveCfg& cfg){
                 continue;
             Matrix3d gend; se2_exp(gend,Vector3d(w*tpert, u*tpert, 0));
             Vector3d xyzend(gend(0,2),gend(1,2),0);
-            Vector3d idxd = igorg_to_car * xyzend;
-            Vector3i idxi(round(idxd(0)),round(idxd(1)),round(idxd(2)));
-            if((uint)idxi(1)>grid_nc-1 || (uint)idxi(0)>grid_nc-1)
+            Vector3i idxi = (igorg_to_car * xyzend).cast<int>();
+            if((uint)idxi(2)>grid_nc-1 || (uint)idxi(1)>grid_nc-1){
+                cout<<"idx out of bounds of megagrid:"<<idxi.transpose()<<endl;
                 continue;
+            }
 
-            if(grid_seen(idxi(1), idxi(0))==true)
+            if(grid_seen(idxi(2), idxi(1))==true)
                 continue;
             else
-              grid_seen(idxi(1), idxi(0))=true;
+              grid_seen(idxi(2), idxi(1))=true;
 
             Vector3d xyzend_snapped = igorg_to_car.inverse()* (idxi.cast<double>()) ;
             Vector2d wtend= xy2wt(xyzend_snapped(0), xyzend_snapped(1),u);
             double wend = wtend(0); double tend = wtend(1);
-            Vector3d vfp(wend*tend, u*tend,0);
-            Vector3d vfn(-wend*tend, u*tend,0);
-            Vector3d vbp(wend*tend, -u*tend,0);
-            Vector3d vbn(-wend*tend, -u*tend,0);
+            Vector3d vp(wend*tend, u*tend,0);
+            Vector3d vn(-wend*tend, u*tend,0);
 
             if(abs(wend)<1e-10){
-                vss[idx_a].push_back(vfp);
-                if(!cfg.fwdonly)
-                  vss[idx_a].push_back(vbp);
+                vss[idx_a].push_back(vp);
             }else{
-              vss[idx_a].push_back(vfp);
-              vss[idx_a].push_back(vfn);
-              if(!cfg.fwdonly){
-                vss[idx_a].push_back(vbp);
-                vss[idx_a].push_back(vbn);
-              }
+              vss[idx_a].push_back(vp);
+              vss[idx_a].push_back(vn);
             }
         }
     }
