@@ -165,6 +165,16 @@ public:
   // function invoked for every new expanded node during the exploration
   virtual void setExpandCallback(ExpandCallback expand_callback) = 0;
 
+  virtual void Remove(Vertex< Tv, Te >& v) = 0;
+
+  virtual bool InGoalSet(const Vertex< Tv, Te >& v) const = 0;
+
+  virtual bool Eq(double a, double b) const = 0;
+
+  virtual Vertex< Tv, Te >* MinSucc(double* minRhs, const Vertex< Tv, Te >& v) = 0;
+
+  virtual void UpdateVertex(Vertex< Tv, Te >& u) = 0;
+
   // optional pointer to the last start state (only applicable to D*)
   // Since D* replans for a new start, it uses this to updates it heuristic
   virtual Vertex< Tv, Te >* last() { return 0; }

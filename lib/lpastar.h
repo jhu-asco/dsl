@@ -225,7 +225,7 @@ public:
     return graph.edges.size();
   }
 
-  bool InGoalSet(const Vertex< Tv, Te> &v) {
+  bool InGoalSet(const Vertex< Tv, Te> &v) const {
     return (goalSet.find(v.id) != goalSet.end());
   }
 
@@ -531,6 +531,42 @@ template < class Tv, class Te >
     }
   }
   return v;
+}
+
+
+template < class Tv, class Te >
+Vertex< Tv, Te >* LpAstar< Tv, Te >::MinSucc(double* minRhs,
+                                            const Vertex< Tv, Te >& s) {
+  double minVal = DSL_DBL_MAX;
+  Vertex< Tv, Te >* minSucc = NULL;
+  Vertex< Tv, Te >* s_;
+  typename std::map< int, Edge< Tv, Te >* >::const_iterator ei;
+  Edge< Tv, Te >* edge;
+
+  for (ei = s.out.begin(); ei != s.out.end(); ++ei) {
+    edge = (Edge< Tv, Te >*)ei->second;
+    s_ = edge->to;
+
+    double val = edge->cost + s_->g;
+
+    /*    if (goalBias) {
+      if (val < minVal || (val == minVal && minSucc &&
+                           cost.Real(s_->data, goal->data) <
+                               cost.Real(minSucc->data, goal->data))) {
+        minVal = val;
+        minSucc = s_;
+      }
+    } else {
+    */
+      if (val < minVal) {
+        minVal = val;
+        minSucc = s_;
+      }
+      // }
+  }
+  if (minRhs)
+    *minRhs = minVal;
+  return minSucc;
 }
 
 

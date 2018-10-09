@@ -230,7 +230,20 @@ public:
 
   bool GetGoalBias() const { return goalBias; }
 
-private:
+
+  /**
+   * Compare two doubles for equality
+   * @param a first number
+   * @param b second number
+   * @return \f$|a-b| < eps\f$
+   */
+  bool Eq(double a, double b) const {
+    return std::abs(a - b) < eps;
+  }
+
+  bool InGoalSet(const Vertex< Tv, Te> &v) const {
+    return (goalSet.find(v.id) != goalSet.end());
+  }
 
   void UpdateVertex(Vertex< Tv, Te >& u);
   void ComputeShortestPath();
@@ -244,19 +257,7 @@ private:
   Vertex< Tv, Te >* Top();
   double* TopKey();
 
-  /**
-   * Compare two doubles for equality
-   * @param a first number
-   * @param b second number
-   * @return \f$|a-b| < eps\f$
-   */
-  bool Eq(double a, double b) const {
-    return std::abs(a - b) < eps;
-  }
-
-  bool InGoalSet(const Vertex< Tv, Te> &v) {
-    return (goalSet.find(v.id) != goalSet.end());
-  }
+private:
 
   ExpandCallback expand_callback;
 
