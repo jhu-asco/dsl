@@ -68,7 +68,7 @@ int main(int argc, char** argv)
   assert(argc == 2);
   int width, height; 
   char* chmap = load_map(&width, &height, argv[1]);
-  GridPath path, optPath;
+  GridPath path, opt_path;
   int x, y;
   char mapPath[width*height];
   struct timeval timer;
@@ -85,11 +85,11 @@ int main(int argc, char** argv)
   // create planner
   GridCost gcost;
   GridSearch gdsl(width, height, gcost, map);
-  gdsl.SetStart(0, height/2);
-  gdsl.SetGoal(width - 1, height/2);
+  gdsl.setStart(0, height/2);
+  gdsl.setGoal(width - 1, height/2);
   // plan
   timer_start(&timer);
-  gdsl.Plan(path);
+  gdsl.plan(path);
   time = timer_us(&timer);
   printf("plan path time= %ld\n", time);
   printf("path: count=%lu len=%f\n", path.cells.size(), path.len);
@@ -112,17 +112,17 @@ int main(int argc, char** argv)
 
   
   // follow path until (28,18)
-  gdsl.SetStart(28,18);
+  gdsl.setStart(28,18);
 
   // simulate closing the narrow passage
   if (0) {
     // by increasing the cost drastically
-    gdsl.SetCost(29,18,1000);
-    gdsl.SetCost(30,18,1000);
-    gdsl.SetCost(31,18,1000);
+    gdsl.setCost(29,18,1000);
+    gdsl.setCost(30,18,1000);
+    gdsl.setCost(31,18,1000);
   } else {
     // a better way: by simply removing the passage
-    gdsl.RemoveVertex(30,18);
+    gdsl.removeVertex(30,18);
   }
 
   // this is just for display
@@ -131,7 +131,7 @@ int main(int argc, char** argv)
 
   // replan
   timer_start(&timer);
-  gdsl.Plan(path);
+  gdsl.plan(path);
   time = timer_us(&timer);
   printf("replan path time= %ld us\n", time);
   printf("path: count=%lu len=%f\n", path.cells.size(), path.len);
@@ -140,11 +140,11 @@ int main(int argc, char** argv)
 
   /*
   // bypass the old vertex
-  gdsl.AddEdge(29,18,31,18);
+  gdsl.addEdge(29,18,31,18);
   
   // replan
   timer_start(&timer);
-  gdsl.Plan(path);
+  gdsl.plan(path);
   time = timer_ns(&timer);
   printf("replan path time= %ld\n", time);
   printf("path: count=%d len=%f\n", path.count, path.len);
@@ -153,20 +153,20 @@ int main(int argc, char** argv)
 
   // optimize path (experimental)
   timer_start(&timer);
-  gdsl.OptPath(path, optPath);
+  gdsl.straightPath(path, opt_path);
   time = timer_us(&timer);
   printf("opt path time= %ld us\n", time);
-  printf("optPath: count=%lu len=%f\n", optPath.cells.size(), optPath.len);
+  printf("opt_path: count=%lu len=%f\n", opt_path.cells.size(), opt_path.len);
   
   for (unsigned int i = 0; i < path.cells.size(); ++i) {
     // printf("(%d,%d) ", path.cells[i].p[0], path.cells[i].p[1]);
     mapPath[path.cells[i].p[1]*width + path.cells[i].p[0]] = 2;
   }
   printf("\n");
-  for (unsigned int i = 0; i < optPath.cells.size(); ++i) {
-    // printf("(%d,%d) ", optPath.cells[i].p[0], optPath.cells[i].p[1]);
+  for (unsigned int i = 0; i < opt_path.cells.size(); ++i) {
+    // printf("(%d,%d) ", opt_path.cells[i].p[0], opt_path.cells[i].p[1]);
     // fflush(stdout);
-    mapPath[optPath.cells[i].p[1]*width + optPath.cells[i].p[0]] = 3;
+    mapPath[opt_path.cells[i].p[1]*width + opt_path.cells[i].p[0]] = 3;
   }
   printf("\n");
   for (y = 0; y < height; ++y) {

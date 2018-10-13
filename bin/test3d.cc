@@ -20,7 +20,7 @@ void save_ply(double* map, int length, int width, int height, const char* filena
   int i,j,k;
   int numPts = 0;
   FILE* file = fopen(filename, "w");
-  
+
   for(k = 0; k < height; k++){
     for(j = 0; j < width; j++){
       for(i = 0; i < length; i++){
@@ -67,7 +67,7 @@ void save_map_with_path(unsigned const char* map, unsigned int width, unsigned i
   fclose(file);
 }
 
-void save_map_with_cells(unsigned const char* map, unsigned int width, unsigned int height, 
+void save_map_with_cells(unsigned const char* map, unsigned int width, unsigned int height,
   GridPath<3>& gp, const char* filename)
 {
   std::vector<Vector3d> path;
@@ -76,7 +76,7 @@ void save_map_with_cells(unsigned const char* map, unsigned int width, unsigned 
     path.push_back(gp.cells[i].c);
   }
   save_map_with_path(map, width, height, path, filename);
- 
+
 }
 
 void save_map(const char* map, int width, int height, const char* filename)
@@ -136,12 +136,12 @@ unsigned char* load_heightmap(unsigned int* length, unsigned int* width, const c
 
 
 
-void timer_start(struct timeval *time) 
+void timer_start(struct timeval *time)
 {
   gettimeofday(time,(struct timezone*)0);
 }
 
-long timer_us(struct timeval *time) 
+long timer_us(struct timeval *time)
 {
   struct timeval now;
   gettimeofday(&now,(struct timezone*)0);
@@ -158,11 +158,11 @@ int main(int argc, char** argv)
     return 0;
   }
   assert(argc >= 2);
-  unsigned int length, width, height = 50; 
+  unsigned int length, width, height = 50;
   unsigned char* chmap; // = load_map(&width, &height, argv[1]);
   //if(argc == 3 && string(argv[2]) == "--height")
   chmap = load_heightmap(&length, &width, argv[1]);
-  
+
   cout << "Height map loaded" << endl;
   cout << "length=" << length << endl;
   cout << "width=" << width << endl;
@@ -183,18 +183,18 @@ int main(int argc, char** argv)
   }
 
   for(j = 0; j < height; ++j){
-    for (i = 0; i < length*width; ++i){ 
+    for (i = 0; i < length*width; ++i){
       //cout << j*length*width + i << " " << (height > int(chmap[i]*50/255)) << " " << height << " " << int(chmap[i]*50/255) << endl;
       map[j*length*width + i] = (j > int(chmap[i])*50/255 ? 0 : 1000);
     }
   }
-  save_ply(map, length, width, height, "map.ply"); 
+  save_ply(map, length, width, height, "map.ply");
   cout << "Internal map created" << endl;
 
   // this is just for display
   memcpy(mapPath, chmap, length*width);
   cout << "Copied display map" << endl;
-  
+
   // create planner
   Grid3d grid(length, width, height, map, 1, 1, 1, 1, 1e16);
   GridCost<3> cost;
@@ -208,17 +208,17 @@ int main(int argc, char** argv)
   int goalx = 5*length/8.;
   int goaly = width/2.+2;//width/4 - 10;
   int goalz = 15;
-  gdsl.SetStart(Vector3d(startx, starty, startz));
-  gdsl.AddGoal(Vector3d(goalx, goaly, goalz));
+  gdsl.setStart(Vector3d(startx, starty, startz));
+  gdsl.addGoal(Vector3d(goalx, goaly, goalz));
   printf("start (%d,%d,%d) \n", startx, starty, startz);
   printf("goal (%d,%d,%d) \n", goalx, goaly, goalz);
-  
+
 
   cout << "Setup planner" << endl;
 
   // plan
   timer_start(&timer);
-  gdsl.Plan(path);
+  gdsl.plan(path);
   time = timer_us(&timer);
   printf("plan path time= %ld\n", time);
   printf("path: count=%lu len=%f\n", path.cells.size(), path.cost);
@@ -228,10 +228,10 @@ int main(int argc, char** argv)
     printf("(%f,%f,%f) \n", path.cells[i].c[0], path.cells[i].c[1], path.cells[i].c[2]);
   }
 
-  gdsl.SplinePath(path, splinePath, /*splineCells,*/ .1);
+  gdsl.splinePath(path, splinePath, /*splineCells,*/ .1);
   /*
   printf("\n");
-  
+
   for (y = 0; y < height; ++y) {
     for (x = 0; x < width; ++x) {
       printf("%d ", mapPath[y*width + x]);
@@ -248,29 +248,29 @@ int main(int argc, char** argv)
 
   /*
   // follow path until (28,18)
-  gdsl.SetStart(28,18);
+  gdsl.setStart(28,18);
 
   // simulate closing the narrow passage
   if (0) {
     // one way
-    gdsl.SetCost(29,18,1000);
-    gdsl.SetCost(30,18,1000);
-    gdsl.SetCost(31,18,1000);
+    gdsl.setCost(29,18,1000);
+    gdsl.setCost(30,18,1000);
+    gdsl.setCost(31,18,1000);
   } else {
     // a better way
-    //    gdsl.RemoveVertex(29,18);
-    gdsl.RemoveVertex(30,18);
-    //    gdsl.RemoveVertex(31,18);
+    //    gdsl.removeVertex(29,18);
+    gdsl.removeVertex(30,18);
+    //    gdsl.removeVertex(31,18);
   }
   */
   // this is just for display
   /*
   memcpy(mapPath, chmap, width*height);
-  gdsl.OptPath(path,optPath);
+  gdsl.straightPath(path,opt_path);
 
   for (i = 0; i < path.count; ++i) {
     //printf("(%d,%d) ", path.pos[2*i], path.pos[2*i+1]);
-    mapPath[optPath.pos[3*i+1]*length + optPath.pos[3*i]] = 2;
+    mapPath[opt_path.pos[3*i+1]*length + opt_path.pos[3*i]] = 2;
   }
   save_map(mapPath, length, width, "optpath1.ppm");
   */
@@ -278,7 +278,7 @@ int main(int argc, char** argv)
   /*
   // replan
   timer_start(&timer);
-  gdsl.Plan(path);
+  gdsl.plan(path);
   time = timer_us(&timer);
   printf("replan path time= %ld us\n", time);
   printf("path: count=%d len=%f\n", path.count, path.cost);
@@ -287,11 +287,11 @@ int main(int argc, char** argv)
 
   /*
   // bypass the old vertex
-  gdsl.AddEdge(29,18,31,18);
-  
+  gdsl.addEdge(29,18,31,18);
+
   // replan
   timer_start(&timer);
-  gdsl.Plan(path);
+  gdsl.plan(path);
   time = timer_ns(&timer);
   printf("replan path time= %ld\n", time);
   printf("path: count=%d len=%f\n", path.count, path.cost);
@@ -300,20 +300,20 @@ int main(int argc, char** argv)
   /*
   // optimize path (experimental)
   timer_start(&timer);
-  gdsl.OptPath(path, optPath);
+  gdsl.straightPath(path, opt_path);
   time = timer_us(&timer);
   printf("opt path time= %ld us\n", time);
-  printf("optPath: count=%d len=%f\n", optPath.count, optPath.cost);
-  
+  printf("opt_path: count=%d len=%f\n", opt_path.count, opt_path.cost);
+
   for (i = 0; i < path.count; ++i) {
     printf("(%d,%d) ", path.pos[2*i], path.pos[2*i+1]);
     mapPath[path.pos[2*i+1]*width + path.pos[2*i]] = 2;
   }
   printf("\n");
-  for (i = 0; i < optPath.count; ++i) {
-    printf("(%d,%d) ", optPath.pos[2*i], optPath.pos[2*i+1]);
+  for (i = 0; i < opt_path.count; ++i) {
+    printf("(%d,%d) ", opt_path.pos[2*i], opt_path.pos[2*i+1]);
     fflush(stdout);
-    mapPath[optPath.pos[2*i+1]*width + optPath.pos[2*i]] = 3;
+    mapPath[opt_path.pos[2*i+1]*width + opt_path.pos[2*i]] = 3;
   }
   printf("\n");
   for (y = 0; y < height; ++y) {

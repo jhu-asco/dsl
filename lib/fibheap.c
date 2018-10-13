@@ -105,7 +105,7 @@ fibnode_t b;
   return fibheap_compare(heap, &a, b);
 }
 
-/* Insert DATA, with priority KEY, into HEAP.  */
+/* insert DATA, with priority KEY, into HEAP.  */
 fibnode_t fibheap_insert(heap, key, data) fibheap_t heap;
 fibheapkey_t key;
 void* data;
@@ -119,7 +119,7 @@ void* data;
   node->data = data;
   memcpy(node->key, key, FIBHEAPKEY_SIZE);
 
-  /* Insert it into the root list.  */
+  /* insert it into the root list.  */
   fibheap_ins_root(heap, node);
 
   /* If their was no minimum, or this key is less than the min,
@@ -332,7 +332,7 @@ static fibnode_t fibheap_extr_min_node(heap) fibheap_t heap;
   return ret;
 }
 
-/* Insert NODE into the root list of HEAP.  */
+/* insert NODE into the root list of HEAP.  */
 static void fibheap_ins_root(heap, node) fibheap_t heap;
 fibnode_t node;
 {

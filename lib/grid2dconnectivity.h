@@ -6,10 +6,10 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_GRID2DCONNECTIVITY_H
-#define DSL_GRID2DCONNECTIVITY_H
+#pragma once
 
 #include "lineconnectivity.h"
+#include "grid2d.h"
 
 namespace dsl {
 
@@ -19,9 +19,7 @@ namespace dsl {
  * The costs are the Euclidean distances b/n the cell centers.
  */
   class Grid2dConnectivity : public LineConnectivity< Eigen::Vector2d, double> {
- public:
-    Grid2dConnectivity(const Grid< Eigen::Vector2d, double >& grid);
+  public:
+    Grid2dConnectivity(const Grid2d& grid);
   };
 }
-
-#endif

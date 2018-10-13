@@ -58,7 +58,7 @@ void save(const dsl::Map<bool, 2> &map, const char* filename, const std::vector<
 
   if (path) {
     for (auto&& p : *path) {
-      int id = map.Id(p);
+      int id = map.computeId(p);
       int id3 = 3*id;
       data[id3] = 255; data[id3+1] = 0; data[id3 + 2] = 0;
     }

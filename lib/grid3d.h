@@ -6,12 +6,13 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_GRID3D_H
-#define DSL_GRID3D_H
+#pragma once
 
 #include "grid.h"
 
 namespace dsl {
+
+using Cell3d = Cell< Eigen::Vector3d, double>;
 
 /**
  * A 3d grid with coordinates (x,y,z)
@@ -29,8 +30,8 @@ public:
    * @param sx x-scale of each grid cell
    * @param sy y-scale of each grid cell
    * @param sz z-scale of each grid cell
-   * @param costScale multiple the value of each grid cell by costScale
-   * @param maxCost any cell cost above maxCost is considered obstacle and not
+   * @param cost_scale multiple the value of each grid cell by cost_scale
+   * @param max_cost any cell cost above max_cost is considered obstacle and not
    * added to the graph
    */
   Grid3d(int length,
@@ -40,9 +41,7 @@ public:
          double sx,
          double sy,
          double sz,
-         double costScale,
-         double maxCost = 1);
+         double cost_scale,
+         double max_cost = 1);
 };
 }
-
-#endif

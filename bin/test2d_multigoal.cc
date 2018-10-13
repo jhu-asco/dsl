@@ -46,9 +46,9 @@ int main(int argc, char** argv)
   GridSearch<Vector2d, double, Vector2d> search(grid, connectivity, cost, Method::kDstar);
   // to try LpAStar forward search uncomment below and comment out the preceding line
   // GridSearch<Vector2d, double, Vector2d> search(grid, connectivity, cost, Method::kLpAstar);
-  GridPath<Vector2d, double, Vector2d> path, optPath;
+  GridPath<Vector2d, double, Vector2d> path, opt_path;
 
-  search.SetStart(Vector2d(1, height/2));
+  search.setStart(Vector2d(1, height/2));
 
   // create a goal region with size goalWidth x goalHeight on the far right middle
   double goalWidth = 10;
@@ -58,12 +58,12 @@ int main(int argc, char** argv)
   double y_start = 1;
   for (double x = x_start; x < std::min(x_start + goalWidth, (double)width); x += 1)
     for (double y = y_start; y < std::min(y_start + goalHeight, (double)height); y += 1)
-      search.AddGoal(Vector2d(x, y));
+      search.addGoal(Vector2d(x, y));
 
   // plan
   struct timeval timer;
   timer_start(&timer);
-  search.Plan(path);
+  search.plan(path);
   long time = timer_us(&timer);
   printf("plan path time= %ld\n", time);
   printf("path: count=%lu len=%f\n", path.cells.size(), path.cost);
@@ -71,7 +71,7 @@ int main(int argc, char** argv)
   // print results
   vector<Cell<Vector2d, double> >::iterator it;
   for (it = path.cells.begin(); it != path.cells.end(); ++it) {
-    int id = grid.Id(it->c);
+    int id = grid.computeId(it->c);
     mapPath[id] = 2;
   }
   printf("\n");

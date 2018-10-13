@@ -8,11 +8,9 @@ namespace dsl {
 using Eigen::Vector2d;
 using Eigen::Vector3d;
 using Eigen::Matrix3d;
-using std::vector;
-
 
 CarConnectivity::CarConnectivity(const CarGrid& grid,
-                                 const vector<Eigen::Vector3d> &vs,
+                                 const std::vector<Eigen::Vector3d> &vs,
                                  double dt) : grid(grid), vs(vs), dt(dt)
 {
 }
@@ -26,10 +24,10 @@ CarConnectivity::CarConnectivity(const CarGrid& grid,
                                  int kseg,
                                  bool onlyfwd)
     : grid(grid) {
-  SetPrimitives(dt, vx, kmax, kseg, onlyfwd);
+  setPrimitives(dt, vx, kmax, kseg, onlyfwd);
 }
 
-bool CarConnectivity::SetPrimitives(double dt, double vx, double kmax, int kseg, bool onlyfwd) {
+bool CarConnectivity::setPrimitives(double dt, double vx, double kmax, int kseg, bool onlyfwd) {
   if (dt <= 0)
     return false;
 
@@ -53,7 +51,7 @@ bool CarConnectivity::SetPrimitives(double dt, double vx, double kmax, int kseg,
   return true;
 }
 
-bool CarConnectivity::Flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
+bool CarConnectivity::flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
                            const Matrix3d& g0,
                            const Vector3d& v) const {
 
@@ -64,15 +62,16 @@ bool CarConnectivity::Flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
     SE2Cell* to = nullptr;
     SE2Path path;
     path.clear();
-    for (int i_seg=1; i_seg<=n_seg; i_seg++) {
+    for (int i_seg = 1; i_seg <= n_seg; i_seg++) {
       Vector3d axy;
       Matrix3d g, dg;
       se2_exp(dg, (s*i_seg / d) * v);
       g = g0 * dg;
       se2_g2q(axy, g);
-      to = grid.Get(axy);
-      if (!to)
+      to = grid.data(axy);
+      if (!to) {
         return false;
+      }
       path.push_back(g);
     }
 
@@ -88,32 +87,20 @@ bool CarConnectivity::
   se2_q2g(g0, from.c);
 
   paths.clear();
-  //  vector< Vector3d >::const_iterator it;
   for (const auto& s : vs) {
-    // reverse time if fwd=false
     std::tuple<SE2Cell*, SE2Path, double> pathTuple;
-    if (!Flow(pathTuple, g0, (fwd ? dt : -dt) * s))
+    // reverse time if fwd=false
+    if (!flow(pathTuple, g0, (fwd ? dt : -dt) * s)) {
       continue;
-
+    }
     assert(std::get<0>(pathTuple));
-
 
     // the path will now end inside the last cell but not exactly at the center,
     // which is a good enough
     // approximation if the cells are small
-
-    // For exact trajectory generation to the center, we need to use more
-    // complex inverse kinematics
-    // which can be accomplished by uncommenting the following
-    //    GenTraj(path.data, g0, path.cells.back().data, w,vx, vx, w,vx, dt/5);
-
     if (!std::get<1>(pathTuple).size())
       continue;
 
-    // overwrite cost
-    //    path.cost = cost; //.Real(path.cells.front(), path.cells.back());
-
-    //    path.fwd = fwd;
     paths.push_back(pathTuple);
   }
   return true;

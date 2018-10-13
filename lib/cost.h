@@ -6,8 +6,7 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_COST_H
-#define DSL_COST_H
+#pragma once
 
 namespace dsl {
 /**
@@ -38,7 +37,7 @@ public:
    * @param vb second vertex data
    * @return heuristic distance (optimal cost)
    */
-  virtual double Heur(const VertexData& va, const VertexData& vb) const = 0;
+  virtual double heur(const VertexData& va, const VertexData& vb) const = 0;
 
   /**
    * Real best possible distance b/n two vertices.
@@ -48,8 +47,6 @@ public:
    * @param vb second vertex data
    * @return real minimum possible cost b/n va and vb
    */
-  virtual double Real(const VertexData& va, const VertexData& vb) const = 0;
+  virtual double real(const VertexData& va, const VertexData& vb) const = 0;
 };
 }
-
-#endif

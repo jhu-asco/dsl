@@ -29,8 +29,8 @@ public:
    */
   CarCost(double ac = 1, double eps = 1e-6);
 
-  double Heur(const SE2Cell& a, const SE2Cell& b) const;
-  double Real(const SE2Cell& a, const SE2Cell& b) const;
+  double heur(const SE2Cell& a, const SE2Cell& b) const;
+  double real(const SE2Cell& a, const SE2Cell& b) const;
 
   double ac = 1; ///< angular cost coefficient, default is 1 (the total cost is
   /// proportional to |pa-pb| + ac*dist(aa, ab) ), where pa,pb are the

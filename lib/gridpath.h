@@ -6,11 +6,10 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_GRIDPATH_H
-#define DSL_GRIDPATH_H
+#pragma once
 
-#include "cell.h"
 #include <vector>
+#include "cell.h"
 
 namespace dsl {
 
@@ -27,21 +26,14 @@ namespace dsl {
  *
  */
 template <class PointType, class DataType, class ConnectionType>
-class GridPath {
-public:
-  GridPath() : cost(0), fwd(0) {};
+struct GridPath {
 
-   std::vector< Cell<PointType, DataType> > cells; ///< list of cells along path
+  std::vector< Cell<PointType, DataType> > cells; ///< list of cells along path
 
-   std::vector< ConnectionType > connections; ///< list of connections
+  std::vector< ConnectionType > connections; ///< list of connections
 
-   // PathData data; ///< generic data stored along path; typically this represents a
-  /// path/trajectory passing through the cells
+  double cost = 0; ///< cost of path
 
-  double cost; ///< cost of path
-
-  bool fwd; ///< generated forward or backward
+  bool fwd = false; ///< generated forward or backward
 };
 }
-
-#endif

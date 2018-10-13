@@ -6,8 +6,7 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_GRID_H
-#define DSL_GRID_H
+#pragma once
 
 #include "cell.h"
 #include <Eigen/Dense>
@@ -31,8 +30,8 @@ template < class PointType, class DataType = EmptyData>
  struct Grid {
 
  using Vectorni =  Eigen::Matrix< int, PointType::SizeAtCompileTime, 1 >;
- using TypedCell = Cell<PointType, DataType>;
-   
+ using CellType = Cell<PointType, DataType>;
+
   /**
    * Initialize the grid using state lower bound, state upper bound, the number
    * of grid cells
@@ -49,9 +48,9 @@ template < class PointType, class DataType = EmptyData>
       assert(gs[i] > 0);
       nc *= gs[i]; // total number of cells
       cs[i] = (xub[i] - xlb[i]) / gs[i];
-    }    
-    cells = new TypedCell*[nc];
-    memset(cells, 0, nc * sizeof(TypedCell*)); // initialize all of them nil
+    }
+    cells = new CellType*[nc];
+    memset(cells, 0, nc * sizeof(CellType*)); // initialize all of them nil
   }
 
     /**
@@ -72,13 +71,13 @@ template < class PointType, class DataType = EmptyData>
       nc *= gs[i]; // total number of cells
     }
 
-    cells = new TypedCell*[nc];
-    memset(cells, 0, nc * sizeof(TypedCell*)); // initialize all of them nil
+    cells = new CellType*[nc];
+    memset(cells, 0, nc * sizeof(CellType*)); // initialize all of them nil
   }
 
   Grid(const Grid &grid) : n(grid.n), xlb(grid.xlb), xub(grid.xub), ds(grid.ds), cs(grid.cs), gs(grid.gs), nc(grid.nc) {
-     cells = new TypedCell*[nc];
-     memcpy(cells, grid.cells, nc * sizeof(TypedCell*)); // initialize all of them nil
+     cells = new CellType*[nc];
+     memcpy(cells, grid.cells, nc * sizeof(CellType*)); // initialize all of them nil
    }
 
   virtual ~Grid() {
@@ -90,7 +89,7 @@ template < class PointType, class DataType = EmptyData>
    * @param x point
    * @return true if within bounds
    */
-  virtual bool Valid(const PointType& x, double eps = 1e-10) const {
+  virtual bool valid(const PointType& x, double eps = 1e-10) const {
     for (int i = 0; i < x.size(); ++i) {
       if (x[i] < xlb[i] + eps)
         return false;
@@ -105,21 +104,20 @@ template < class PointType, class DataType = EmptyData>
    * @param x point
    * @return a computed id
    */
-  int Id(const PointType& x) const {
-
-       // unroll loop for n=1,2,3,4 for efficiency
+  int computeId(const PointType& x) const {
+    // unroll loop for n=1,2,3,4 for efficiency
     if (n==1)
-      return Index(x, 0);
+      return index(x, 0);
 
     if (n==2)
-      return Index(x, 0) + gs[0]*Index(x, 1);
+      return index(x, 0) + gs[0]*index(x, 1);
 
     if (n==3)
-      return Index(x, 0) + gs[0]*Index(x, 1) + gs[0]*gs[1]*Index(x, 2);
+      return index(x, 0) + gs[0]*index(x, 1) + gs[0]*gs[1]*index(x, 2);
 
     if (n==4) {
       int cum = gs[0]*gs[1];
-      return Index(x, 0) + gs[0]*Index(x, 1) + cum*Index(x, 2) + cum*gs[2]*Index(x, 3);
+      return index(x, 0) + gs[0]*index(x, 1) + cum*index(x, 2) + cum*gs[2]*index(x, 3);
     }
 
     int cum = 1; // cumulative offset for next dimension
@@ -140,11 +138,11 @@ template < class PointType, class DataType = EmptyData>
    * @param i coordinate index
    * @return index into cell array
    */
-  int Index(const PointType& x, int i) const {
+  int index(const PointType& x, int i) const {
     return floor((x[i] - xlb[i]) / (xub[i] - xlb[i]) * gs[i]);
   }
 
-   
+
   /**
    * Get the cell at position x
    * @param x point
@@ -152,11 +150,11 @@ template < class PointType, class DataType = EmptyData>
    * if checkValid=0 but dangerous)
    * @return pointer to a cell or 0 if cell does not exist
    */
-   TypedCell* Get(const PointType& x, bool checkValid = true) const {
+   CellType* data(const PointType& x, bool checkValid = true) const {
     if (checkValid)
-      if (!Valid(x))
+      if (!valid(x))
         return 0;
-    return Get(Id(x));
+    return data(computeId(x));
   }
 
   /**
@@ -164,7 +162,7 @@ template < class PointType, class DataType = EmptyData>
    * @param id a non-negative id
    * @return pointer to a cell or 0 if cell does not exist
    */
-   TypedCell* Get(int id) const {
+   CellType* data(int id) const {
     assert(id >= 0);
     if (id >= nc)
       return 0;
@@ -172,7 +170,7 @@ template < class PointType, class DataType = EmptyData>
   }
 
   int n;      ///< grid dimension
-  
+
   PointType xlb; ///< state lower bound
   PointType xub; ///< state upper bound
   PointType ds;  ///< dimensions (ds=xub-xlb)
@@ -180,8 +178,6 @@ template < class PointType, class DataType = EmptyData>
   Vectorni gs;  ///< number of cells per dimension
 
   int nc = 0;        ///< number of cells in grid
-  TypedCell** cells = nullptr; ///< array of cell data
+  CellType** cells = nullptr; ///< array of cell data
 };
 }
-
-#endif

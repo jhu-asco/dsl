@@ -8,14 +8,14 @@
 
 #pragma once
 
+#include <vector>
+#include <iostream>
 #include "lpastar.h"
 #include "dstar.h"
 #include "gridcost.h"
 #include "gridconnectivity.h"
 #include "gridpath.h"
 #include "grid.h"
-#include <vector>
-#include <iostream>
 
 /**
  *  Grid based D*-Lite, extends graph-based D* Lite.
@@ -36,12 +36,12 @@
  *  The planner is used as follows:
  *
  *  1) GridSearch(grid, connectivity, cost)
- *  2) SetStart(Vector2d(x, y))
- *  3) SetGoal(Vector2d(x, y))
- *  4) Plan(path)
+ *  2) setStart(Vector2d(x, y))
+ *  3) setGoal(Vector2d(x, y))
+ *  4) plan(path)
  *  5) follow path until map changes are observed
- *  6) for each change: SetCost(Vector2d(x, y), cost)
- *  7) SetStart(Vector2d(x,y)) -- change the start to the current robot position
+ *  6) for each change: setCost(Vector2d(x, y), cost)
+ *  7) setStart(Vector2d(x,y)) -- change the start to the current robot position
  *  8) goto 4
  *
  *
@@ -49,8 +49,6 @@
  */
 
 namespace dsl {
-
-using std::vector;
 
 /**
  * Grid Planner that can compute the optimal path between two given cells on a
@@ -70,8 +68,8 @@ public:
   using CellVertex = Vertex< GridVertexData, GridEdgeData>;
   using CellEdge = Edge< GridVertexData, GridEdgeData>;
 
-  using TypedCell = Cell<PointType, DataType>;
-  using TypedGrid = Grid<PointType, DataType>;
+  using CellType = Cell<PointType, DataType>;
+  using GridType = Grid<PointType, DataType>;
 
   /**
    * The planner requires a grid, its connectivity, and a cost interface. By
@@ -85,6 +83,7 @@ public:
    * @param grid grid
    * @param connectivity connectivity interface
    * @param cost cost interface
+   * @param method method (Dstar or LpAstar)
    * @param expand whether to construct/expand the whole graph at init
    * @param trackEdgesThroughCell whether to keep a list of edges passing
    * through each cell, this is useful for changing the costs these edges if the
@@ -104,28 +103,28 @@ public:
    * @param x position
    * @param cost cost
    */
-  bool SetCost(const PointType& x, double cost);
+  bool setCost(const PointType& x, double cost);
 
   /**
    * Get the cost of an individual cell
    * @param x position
    * @return cost
    */
-  double GetCost(const PointType& x) const;
+  double getCost(const PointType& x) const;
 
   /**
    * Set start location in the map
    * @param x euclidean point vector
    * @return true on success
    */
-  bool SetStart(const PointType& x);
+  bool setStart(const PointType& x);
 
   /**
    * Set goal location in the map
    * @param x euclidean point vector
    * @return true on success
    */
-  bool AddGoal(const PointType& x);
+  bool addGoal(const PointType& x);
 
   /**
    * Expand successors or predecessors of a given vertex. This is mostly used
@@ -138,39 +137,39 @@ public:
    * expand predecessors
    * @return true on success
    */
-  bool Expand(CellVertex& from, bool fwd = true);
+  bool expand(CellVertex& from, bool fwd = true);
 
   /**
    * Compute path b/n start and goal vertices
    * these vertices should be already set
    * @param path the resulting path
-   * @param removeDuplicateCells remove duplicate consecutive cells (this might
+   * @param remove_duplicate_cells remove duplicate consecutive cells (this might
    * appear if two consecutive edges
    * contain cells in a way that the last cell of the first edge overlaps with
    * the first cell of the next edge)
    * @return true on success
    */
-  bool Plan(GridPath< PointType, DataType, ConnectionType >& path, bool removeDuplicateCells = true);
+  bool plan(GridPath< PointType, DataType, ConnectionType >& path, bool remove_duplicate_cells = true);
 
   /**
    * Useful method to get the graph vertex at position x
    * @param x position
    * @return corresponding vertex or 0 if none there
    */
-  CellVertex* GetVertex(const PointType& x) const;
+  CellVertex* getVertex(const PointType& x) const;
 
   /**
    * Useful method to remove a vertex at position x
    * @param x Euclidean point vector
    */
-  bool RemoveCell(const PointType& x);
+  bool removeCell(const PointType& x);
 
   /**
    * Useful method for adding edges b/n vertices
    * @param x1 start point
    * @param x2 end point
    */
-  bool AddEdge(const PointType& x1, const PointType& x2);
+  bool addEdge(const PointType& x1, const PointType& x2);
 
   Search<GridVertexData, GridEdgeData> *search;
 
@@ -213,66 +212,68 @@ template < class PointType, class DataType, class ConnectionType >
     cost(cost),
     trackEdgesThroughCell(trackEdgesThroughCell) {
 
-    switch(method) {
-      case Method::kDstar:
-        search = new Dstar<GridVertexData, GridEdgeData>(graph, cost);
-        break;
-      case Method::kLpAstar:
-        search = new LpAstar<GridVertexData, GridEdgeData>(graph, cost);
-        break;
-      default:
-        std::cerr << "[E] GridSearch::GridSearch: wront type" << (int)method;
-        return;
-     }
+  switch(method) {
+    case Method::kDstar:
+      search = new Dstar<GridVertexData, GridEdgeData>(graph, cost);
+      break;
+    case Method::kLpAstar:
+      search = new LpAstar<GridVertexData, GridEdgeData>(graph, cost);
+      break;
+    default:
+      std::cerr << "[E] GridSearch::GridSearch: wront type" << (int)method;
+      return;
+  }
 
-    auto expand_callback = [this](CellVertex& from, bool fwd) {return this->Expand(from, fwd);};
-    search->setExpandCallback(expand_callback);
+  auto expand_callback =
+    [this](CellVertex& from, bool fwd) {return this->expand(from, fwd);};
+  search->setExpandCallback(expand_callback);
 
-      vertexMap = new CellVertex* [grid.nc];
-      memset(vertexMap, 0, grid.nc * sizeof(CellVertex*));
+  vertexMap = new CellVertex* [grid.nc];
+  memset(vertexMap, 0, grid.nc * sizeof(CellVertex*));
 
   if (expand) {
     for (int i = 0; i < grid.nc; ++i) {
-      const TypedCell *cell = grid.Get(i);
+      const CellType *cell = grid.data(i);
       if (cell) {
         vertexMap[i] = new CellVertex(*cell);
-        graph.AddVertex(*vertexMap[i]);
+        graph.addVertex(*vertexMap[i]);
       }
     }
 
     // expand the successors of each vertex
     for (int i = 0; i < grid.nc; ++i) {
-      const TypedCell *cell = grid.Get(i);
+      const CellType *cell = grid.data(i);
       if (cell) {
         CellVertex* from = vertexMap[i];
         assert(from);
 
         // generate successor paths
-        std::vector< std::tuple<TypedCell*, ConnectionType, double> > paths;
+        std::vector< std::tuple<CellType*, ConnectionType, double> > paths;
         connectivity(*cell, paths);
 
         for (auto&& path : paths) {
           // find cell where the end of the path falls
-          TypedCell *toCell = std::get<0>(path);
+          CellType *to_cell = std::get<0>(path);
 
-          CellVertex* to = vertexMap[toCell->id];
+          CellVertex* to = vertexMap[to_cell->id];
 
           if (!to)
             continue;
 
-          // path.cost = cost.Real(from->data, to->data);
+          // path.cost = cost.real(from->data, to->data);
           ConnectionType &connection = std::get<1>(path);
           double &cost = std::get<2>(path);
 
           CellEdge* edge = new CellEdge(connection, from, to, cost);
-          graph.AddEdge(*edge);
+          graph.addEdge(*edge);
 
           /*
+          TODO(marin): re-enable this functionality if it is needed
           if (trackEdgesThroughCell) {
             // iterate through path and add the new edge to the list
             // of edges passing through each cell of the path
             for (auto&& cells : path.cells) {
-              int id = grid.Id(cells.first);
+              int id = grid.computeId(cells.first);
               //              typename map< int, vector< CellEdge* > >::iterator etcit;
               auto etcit = edgesThroughCell.find(id);
               if (etcit == edgesThroughCell.end()) {
@@ -286,46 +287,46 @@ template < class PointType, class DataType, class ConnectionType >
           }
           */
         }
-        from->predExpanded = true;
-        from->succExpanded = true;
+        from->pred_expanded = true;
+        from->succ_expanded = true;
       }
     }
   }
 }
 
 template < class PointType, class DataType, class ConnectionType >
-    bool GridSearch< PointType, DataType, ConnectionType>::Expand(CellVertex& from, bool fwd) {
+    bool GridSearch< PointType, DataType, ConnectionType>::expand(CellVertex& from, bool fwd) {
   // if this is true then all vertices have already been expanded at
   // construction
-  if (fwd && from.succExpanded)
+  if (fwd && from.succ_expanded)
     return true;
 
-  if (!fwd && from.predExpanded)
+  if (!fwd && from.pred_expanded)
     return true;
 
   // cell must exist
-  const Cell<PointType, DataType>* cell = grid.Get(from.data.id);
+  const Cell<PointType, DataType>* cell = grid.data(from.data.id);
   assert(cell);
 
-  std::vector< std::tuple<TypedCell*, ConnectionType, double> > paths;
+  std::vector< std::tuple<CellType*, ConnectionType, double> > paths;
   connectivity(*cell, paths, fwd);
 
   for (auto&& path : paths) {
 
-    TypedCell *toCell = std::get<0>(path);
-    assert(toCell);
+    CellType *to_cell = std::get<0>(path);
+    assert(to_cell);
 
-    int id = toCell->id;
+    int id = to_cell->id;
 
     // if this vertex doesn't exist, create it and add to graph
     if (!vertexMap[id]) {
-      vertexMap[id] = new CellVertex(*toCell);
-      graph.AddVertex(*vertexMap[id]);
+      vertexMap[id] = new CellVertex(*to_cell);
+      graph.addVertex(*vertexMap[id]);
     }
     CellVertex* to = vertexMap[id];
 
     // if fwd and incoming edge from->to exists, then do not create a new one
-    if (from.Find(*to, !fwd))
+    if (from.find(*to, !fwd))
       continue;
 
     ConnectionType &connection = std::get<1>(path);
@@ -333,14 +334,15 @@ template < class PointType, class DataType, class ConnectionType >
 
     CellEdge* edge = fwd ? new CellEdge(connection, &from, to, cost) :
                            new CellEdge(connection, to, &from, cost);
-    graph.AddEdge(*edge);
+    graph.addEdge(*edge);
 
     /*
+    TODO(marin): re-enable this functionality if it is needed
     if (trackEdgesThroughCell) {
       // iterate through path and add the new edge to the list
       // of edges passing through each cell of the path
       for (auto cell : path.cell) {
-        int id = grid.Id(cell.first);
+        int id = grid.computeId(cell.first);
         typename map< int, vector< CellEdge* > >::iterator etcit;
         etcit = edgesThroughCell.find(id);
         if (etcit == edgesThroughCell.end()) {
@@ -356,9 +358,9 @@ template < class PointType, class DataType, class ConnectionType >
   }
 
   if (fwd)
-    from.succExpanded = true;
+    from.succ_expanded = true;
   else
-    from.predExpanded = true;
+    from.pred_expanded = true;
 
   return true;
 }
@@ -378,17 +380,17 @@ template < class PointType, class DataType, class ConnectionType >
 }
 
 template < class PointType, class DataType, class ConnectionType >
-    bool GridSearch< PointType, DataType, ConnectionType >::SetStart(const PointType& x) {
-  if (!grid.Valid(x)) {
+    bool GridSearch< PointType, DataType, ConnectionType >::setStart(const PointType& x) {
+  if (!grid.valid(x)) {
     std::cout << "[W] GridSearch:SetStart: invalid x=" << x.transpose()
               << std::endl;
     return false;
   }
 
-  int id = grid.Id(x);
+  int id = grid.computeId(x);
 
   // cell must exist
-  const Cell<PointType, DataType >* cell = grid.Get(id);
+  const Cell<PointType, DataType >* cell = grid.data(id);
   if (!cell) {
     std::cout << "[W] GridSearch:SetStart: cell at=" << x.transpose() << " does not exist!"
               << std::endl;
@@ -400,28 +402,28 @@ template < class PointType, class DataType, class ConnectionType >
   // if it's not added previously add it
   if (!vertexMap[id]) {
     vertexMap[id] = new CellVertex(*cell);
-    graph.AddVertex(*vertexMap[id]);
+    graph.addVertex(*vertexMap[id]);
   }
 
-  search->SetStart(*vertexMap[id]);
+  search->setStart(*vertexMap[id]);
 
   return true;
 }
 
 template < class PointType, class DataType, class ConnectionType >
-    bool GridSearch< PointType, DataType, ConnectionType >::AddGoal(const PointType& x) {
-  if (!grid.Valid(x)) {
-    std::cout << "[W] GridSearch:SetGoal: invalid x=" << x.transpose()
+    bool GridSearch< PointType, DataType, ConnectionType >::addGoal(const PointType& x) {
+  if (!grid.valid(x)) {
+    std::cout << "[W] GridSearch:setGoal: invalid x=" << x.transpose()
               << std::endl;
     return false;
   }
 
-  int id = grid.Id(x);
+  int id = grid.computeId(x);
   assert(id >= 0 && id < grid.nc);
 
-  const TypedCell* cell = grid.Get(id);
+  const CellType* cell = grid.data(id);
   if (!cell) {
-    std::cout << "[W] GridSearch:SetGoal: cell at=" << x.transpose() << " does not exist!"
+    std::cout << "[W] GridSearch:setGoal: cell at=" << x.transpose() << " does not exist!"
               << std::endl;
     return false;
   }
@@ -431,29 +433,29 @@ template < class PointType, class DataType, class ConnectionType >
   // if it's not added previously add it
   if (!vertexMap[id]) {
     vertexMap[id] = new CellVertex(*cell);
-    graph.AddVertex(*vertexMap[id]);
+    graph.addVertex(*vertexMap[id]);
   }
 
-  search->AddGoal(*vertexMap[id]);
+  search->addGoal(*vertexMap[id]);
 
   return true;
 }
 
 template < class PointType, class DataType, class ConnectionType >
-    bool GridSearch< PointType, DataType, ConnectionType >::RemoveCell(const PointType& x) {
-  int id = grid.Id(x);
+    bool GridSearch< PointType, DataType, ConnectionType >::removeCell(const PointType& x) {
+  int id = grid.computeId(x);
   if (id < 0 || id >= grid.nc) {
-    std::cout << "[W] GridSearch::RemoveCell: id=" << id << " out of bounds!" << std::endl;
+    std::cout << "[W] GridSearch::removeCell: id=" << id << " out of bounds!" << std::endl;
     return false;
   }
 
   CellVertex* v = vertexMap[id];
   if (v) {
-    graph.RemoveVertex(*v);
+    graph.removeVertex(*v);
     delete v;
     vertexMap[id] = 0;
   } else {
-    std::cout << "[W] GridSearch::RemoveCell: vertex with id=" << id << " doesnt exist!" << std::endl;
+    std::cout << "[W] GridSearch::removeCell: vertex with id=" << id << " doesnt exist!" << std::endl;
     return false;
   }
 
@@ -465,6 +467,7 @@ template < class PointType, class DataType, class ConnectionType >
   }
 
   /*
+  TODO(marin): re-enable this functionality if it is needed
   // if edges through cells are tracked, then go through them and remove them
   if (trackEdgesThroughCell) {
     typename map< int, vector< CellEdge* > >::iterator ceit =
@@ -473,7 +476,7 @@ template < class PointType, class DataType, class ConnectionType >
       vector< CellEdge* > edges = ceit->second;
       typename vector< CellEdge* >::iterator ei;
       for (ei = edges.begin(); ei != edges.end(); ++ei) {
-        this->graph.RemoveEdge(**ei);
+        this->graph.removeEdge(**ei);
       }
     }
     edgesThroughCell.erase(id);
@@ -483,20 +486,20 @@ template < class PointType, class DataType, class ConnectionType >
 }
 
 template <class PointType, class DataType, class ConnectionType>
-    bool GridSearch< PointType, DataType, ConnectionType>::Plan(GridPath< PointType, DataType, ConnectionType >& path,
-                                                                bool removeDuplicateCells) {
+    bool GridSearch< PointType, DataType, ConnectionType>::plan(GridPath< PointType, DataType, ConnectionType >& path,
+                                                                bool remove_duplicate_cells) {
   path.cells.clear();
   path.cost = 0;
 
   std::vector< CellEdge* > edgePath;
 
-  if (search->Plan(edgePath) < 0)
+  if (search->plan(edgePath) < 0)
     return false;
 
   for (auto&& edge : edgePath) {
     // insert in reverse if connectivity was expanded backwards
 
-    /* TODO: marin (this should not be necessary, unless the ConnectionType's are also reversed
+    /* TODO(marin) (this should not be necessary, unless the ConnectionType's are also reversed (e.g. if the primitives are generated backwards for some reason)
     if (edge->data.fwd)
       path.cells.insert(
           path.cells.end(), edge->data.cells.begin(), edge->data.cells.end());
@@ -511,8 +514,8 @@ template <class PointType, class DataType, class ConnectionType>
   path.cells.push_back(edgePath.back()->to->data);
 
 
-  if (removeDuplicateCells && path.cells.size() > 1) {
-    std::vector< TypedCell > cells;
+  if (remove_duplicate_cells && path.cells.size() > 1) {
+    std::vector< CellType > cells;
     cells.push_back(path.cells.front());
     for (auto cit = path.cells.begin(); (cit + 1) != path.cells.end(); ++cit) {
       if ((cit->c - (cit + 1)->c).norm() > 1e-10)
@@ -528,14 +531,15 @@ template <class PointType, class DataType, class ConnectionType>
 
 
 template < class PointType, class DataType, class ConnectionType>
-    double GridSearch< PointType, DataType, ConnectionType>::GetCost(const PointType& x) const {
-  int id = grid.Id(x);
-  if (id < 0 || id >= grid.nc)
+    double GridSearch< PointType, DataType, ConnectionType>::getCost(const PointType& x) const {
+  int id = grid.computeId(x);
+  if (id < 0 || id >= grid.nc) {
     return 0;
+  }
 
-  Cell< PointType, DataType >* cell = grid.Get(id);
+  Cell< PointType, DataType >* cell = grid.data(id);
   if (!cell) {
-    std::cout << "[W] GridSearch::GetCost: no cell at position "
+    std::cout << "[W] GridSearch::getCost: no cell at position "
               << x.transpose() << std::endl;
     return 0;
   }
@@ -544,15 +548,14 @@ template < class PointType, class DataType, class ConnectionType>
 
 
 template < class PointType, class DataType, class ConnectionType >
-    bool GridSearch< PointType, DataType, ConnectionType>::SetCost(const PointType& x, double cost) {
-  int id = grid.Id(x);
-  if (id < 0 || id >= grid.nc)
+    bool GridSearch< PointType, DataType, ConnectionType>::setCost(const PointType& x, double cost) {
+  int id = grid.computeId(x);
+  if (id < 0 || id >= grid.nc) {
     return false;
+  }
 
-  Cell<PointType, DataType >* cell = grid.Get(id);
+  Cell<PointType, DataType >* cell = grid.data(id);
   if (!cell) {
-    // std::cout << "[W] GridSearch::SetCost: no cell at position " <<
-    // x.transpose() << std::endl;
     return false;
   }
   assert(id == cell->id);
@@ -563,7 +566,7 @@ template < class PointType, class DataType, class ConnectionType >
     if (ceit != edgesThroughCell.end()) {
       std::vector< CellEdge* > edges = ceit->second;
       for (auto& edge : edges) {
-        search->ChangeCost(*edge, cost);
+        search->changeCost(*edge, cost);
       }
     }
   }
@@ -573,33 +576,43 @@ template < class PointType, class DataType, class ConnectionType >
 
   // if vertex hasn't been added yet, then we simply return successfully since
   // the search hasn't naturally explored this area previously
-  if (!vertex)
+  if (!vertex) {
     return true;
+  }
 
   // fix edges are not tracked, then at best we can modify the once incoming and
   // outgoing from the cell
   // if edges are tracked this is already done above
   if (!trackEdgesThroughCell) {
     for (auto& edge : vertex->in) {
-      search->ChangeCost(*edge.second, cost);
+      search->changeCost(*edge.second, cost);
     }
 
     for (auto& edge : vertex->out) {
-      search->ChangeCost(*edge.second, cost);
+      search->changeCost(*edge.second, cost);
     }
   }
   return true;
 }
 
 template < class PointType, class DataType, class ConnectionType >
-    bool GridSearch<PointType, DataType, ConnectionType>::AddEdge(const PointType& x1, const PointType& x2) {
-  CellVertex* from = GetVertex(x1);
-  CellVertex* to = GetVertex(x2);
+    Vertex< Cell<PointType, DataType>, ConnectionType>* GridSearch<PointType, DataType, ConnectionType>::getVertex(const PointType& x) const {
+  int id = grid.computeId(x);
+  if (id < 0 || id >= grid.nc) {
+    return 0;
+  }
+  return vertexMap[id];
+}
+
+template < class PointType, class DataType, class ConnectionType >
+    bool GridSearch<PointType, DataType, ConnectionType>::addEdge(const PointType& x1, const PointType& x2) {
+  CellVertex* from = getVertex(x1);
+  CellVertex* to = getVertex(x2);
   if (!from || !to)
     return false;
 
-  CellEdge* edge = new CellEdge(from, to, cost.Real(from->data, to->data));
-  graph.AddEdge(*edge);
+  CellEdge* edge = new CellEdge(from, to, cost.real(from->data, to->data));
+  graph.addEdge(*edge);
   return true;
 }
 }

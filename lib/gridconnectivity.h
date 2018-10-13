@@ -6,8 +6,7 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_GRIDCONNECTIVITY_H
-#define DSL_GRIDCONNECTIVITY_H
+#pragma once
 
 #include "gridpath.h"
 #include <tuple>
@@ -17,23 +16,23 @@ namespace dsl {
   template < class PointType, class DataType, class ConnectionType>
 class GridConnectivity {
 public:
+
+  using CellType = Cell<PointType, DataType>;
+
   /**
    * Connectivity operator providing primitive paths from a given vertex. This
    * function should generate connections from the given vertex and store them
-   * in
-   * the paths object.
+   * in the paths object.
    * @param from starting vertex
    * @param paths generated paths
    * @param fwd true if generated forward in time
    * @return true on success
    */
-  virtual bool operator()(const Cell<PointType, DataType>& from,
-                          std::vector< std::tuple<Cell<PointType, DataType>*, ConnectionType, double> >& toCells,
+  virtual bool operator()(const CellType& from,
+                          std::vector< std::tuple<CellType*, ConnectionType, double> >& to_cells,
                           bool fwd = true) const = 0;
 
-  virtual bool Free(const DataType &data) const = 0;
+  virtual bool free(const DataType &data) const = 0;
 
 };
 }
-
-#endif

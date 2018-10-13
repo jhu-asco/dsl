@@ -6,12 +6,13 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_GRID2D_H
-#define DSL_GRID2D_H
+#pragma once
 
 #include "grid.h"
 
 namespace dsl {
+
+using Cell2d = Cell< Eigen::Vector2d, double>;
 
 /**
  * A 2d grid with coordinates (x,y)
@@ -26,7 +27,7 @@ public:
    * @param map the map
    * @param sx x-scale of each grid cell
    * @param sy y-scale of each grid cell
-   * @param maxCost any cell cost above maxCost is considered obstacle and not
+   * @param max_cost any cell cost above max_cost is considered obstacle and not
    * added to the graph
    */
   Grid2d(int width,
@@ -34,8 +35,6 @@ public:
          const double* map,
          double sx,
          double sy,
-         double maxCost = 1);
+         double max_cost = 1);
 };
 }
-
-#endif

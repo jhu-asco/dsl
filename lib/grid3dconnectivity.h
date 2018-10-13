@@ -6,10 +6,10 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_GRID3DCONNECTIVITY_H
-#define DSL_GRID3DCONNECTIVITY_H
+#pragma once
 
 #include "lineconnectivity.h"
+#include "grid3d.h"
 
 namespace dsl {
 
@@ -20,8 +20,6 @@ namespace dsl {
  */
   class Grid3dConnectivity : public LineConnectivity< Eigen::Vector3d, double > {
 public:
-    Grid3dConnectivity(const Grid< Eigen::Vector3d, double >& grid);
+    Grid3dConnectivity(const Grid3d& grid);
 };
 }
-
-#endif

@@ -6,8 +6,7 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_MAP_H
-#define DSL_MAP_H
+#pragma once
 
 #include <iostream>
 #include <fstream>
@@ -41,7 +40,7 @@ public:
       nc *= gs[i]; // total number of cells
       cs[i] = (xub[i] - xlb[i]) / gs[i];
     }
-    
+
     cells = new T[nc];
     memset(cells, 0, nc * sizeof(T)); // initialize all of them to nil
   }
@@ -55,7 +54,7 @@ public:
    */
   Map(const Vectornd& xlb, const Vectornd& xub, const Vectornd& cs)
     : xlb(xlb), xub(xub), cs(cs) {
-    ds = xub - xlb;    
+    ds = xub - xlb;
     nc = 1;
     for (int i = 0; i < n; ++i) {
       assert(xlb[i] <= xub[i]);
@@ -63,7 +62,7 @@ public:
       gs[i] = floor((xub[i] - xlb[i]) / cs[i]);
       nc *= gs[i]; // total number of cells
     }
-    
+
     cells = new T[nc];
     memset(cells, 0, nc * sizeof(T)); // initialize all of them to nil
   }
@@ -73,17 +72,17 @@ public:
     memcpy(cells, map.cells, nc*sizeof(T));
   }
 
-  
+
   virtual ~Map() {
     delete[] cells;
   }
-  
+
   /**
    * Check if point x is whitin map bounds
    * @param x point
    * @return true if within bounds
    */
-  virtual bool Valid(const Vectornd& x, double eps = 1e-10) const {
+  virtual bool valid(const Vectornd& x, double eps = 1e-10) const {
     for (int i = 0; i < x.size(); ++i) {
       if (x[i] < xlb[i] + eps)
         return false;
@@ -98,30 +97,30 @@ public:
    * @param x point
    * @return a computed id
    */
-  int Id(const Vectornd& x) const {
+  int computeId(const Vectornd& x) const {
 
     // unroll loop for n=1,2,3,4 for efficiency
     if (n==1)
-      return Index(x, 0);
+      return index(x, 0);
 
     if (n==2)
-      return Index(x, 0) + gs[0]*Index(x, 1);
+      return index(x, 0) + gs[0]*index(x, 1);
 
     if (n==3)
-      return Index(x, 0) + gs[0]*Index(x, 1) + gs[0]*gs[1]*Index(x, 2);
+      return index(x, 0) + gs[0]*index(x, 1) + gs[0]*gs[1]*index(x, 2);
 
     if (n==4) {
       int cum = gs[0]*gs[1];
-      return Index(x, 0) + gs[0]*Index(x, 1) + cum*Index(x, 2) + cum*gs[2]*Index(x, 3);
+      return index(x, 0) + gs[0]*index(x, 1) + cum*index(x, 2) + cum*gs[2]*index(x, 3);
     }
-    
+
     // general for any n
     int cum = 1; // cumulative offset for next dimension
 
     int id = 0;
     for (int i = 0; i < x.size(); ++i) {
       // index of i-th dimension
-      id += cum * Index(x, i);
+      id += cum * index(x, i);
       if (i < n - 1)
         cum *= gs[i];
     }
@@ -134,7 +133,7 @@ public:
    * @param i coordinate index
    * @return index into cell array
    */
-  int Index(const Vectornd& x, int i) const {
+  int index(const Vectornd& x, int i) const {
     return floor((x[i] - xlb[i]) / ds[i] * gs[i]);
   }
 
@@ -144,11 +143,11 @@ public:
    * @param i coordinate index
    * @return index into cell array
    */
-  int Index(double xi, int i) const {
+  int index(double xi, int i) const {
     return floor((xi - xlb[i]) / ds[i] * gs[i]);
   }
 
-  
+
   /**
    * Get the cell at position x
    * @param x point
@@ -156,12 +155,12 @@ public:
    * if checkValid=0 but dangerous)
    * @return contents of cell
    */
-  T Get(const Vectornd& x, bool checkValid = true) const {
+  T data(const Vectornd& x, bool checkValid = true) const {
     if (checkValid)
-      if (!Valid(x))
+      if (!valid(x))
         return empty;
 
-    int id = Id(x);
+    int id = computeId(x);
     assert(id >= 0);
     if (id >= nc)
       return empty;
@@ -175,37 +174,37 @@ public:
    * if checkValid=0 but dangerous)
    * @return contents of cell
    */
-  void Set(const Vectornd& x, const T& data, bool checkValid = true)  {
+  void setData(const Vectornd& x, const T& data, bool checkValid = true)  {
     if (checkValid)
-      if (!Valid(x))
+      if (!valid(x))
         return;
 
-    int id = Id(x);
+    int id = computeId(x);
     if (id<0 || id>=nc)
       std::cout << "id=" << id << " x=" << x.transpose() << " xlb=" << xlb.transpose() << " xub=" << xub.transpose() << std::endl;
     assert(id >= 0 && id < nc);
     cells[id] = data;
   }
 
-  
+
   /**
    * Get the cell at a given cell id
    * @param id a non-negative id
    * @return pointer to a cell or 0 if cell does not exist
    */
-  T Get(int id) const {
+  T data(int id) const {
     assert(id >= 0);
     if (id >= nc)
       return 0;
     return cells[id];
   }
-  
+
   /**
    * Get the cell at a given cell id
    * @param id a non-negative id
    * @return pointer to a cell or 0 if cell does not exist
    */
-  void Set(int id, const T& data) {
+  void setData(int id, const T& data) {
     assert(id >= 0);
     if (id >= nc)
       return;
@@ -213,22 +212,22 @@ public:
   }
 
 
-  static void Save(const Map<T,n>& map, const char* filename) {
+  static void save(const Map<T,n>& map, const char* filename) {
     std::ofstream fs(filename, std::fstream::out | std::ios::binary);
     assert(fs.is_open());
-    
+
     for (int i = 0; i < map.xlb.size(); ++i)
       fs.write((char*)&map.xlb[i], sizeof(double));
     for (int i = 0; i < map.xub.size(); ++i)
       fs.write((char*)&map.xub[i], sizeof(double));
     for (int i = 0; i < map.gs.size(); ++i)
       fs.write((char*)&map.gs[i], sizeof(double));
-    
+
     fs.write((char*)map.cells, map.nc*sizeof(T));
     fs.close();
   }
 
-  static Map<T,n>* Load(const char* filename) {
+  static Map<T,n>* load(const char* filename) {
     std::ifstream fs (filename, std::fstream::in | std::ios::binary);
     assert(fs.is_open());
     Vectornd xlb, xub;
@@ -246,7 +245,7 @@ public:
     fs.close();
     return map;
   }
-  
+
   Vectornd xlb; ///< state lower bound
   Vectornd xub; ///< state upper bound
   Vectornd ds;  ///< dimensions (ds=xub-xlb)
@@ -259,5 +258,3 @@ public:
   T empty;  ///< empty data
 };
 }
-
-#endif

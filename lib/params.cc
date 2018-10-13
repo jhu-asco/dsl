@@ -48,7 +48,7 @@ static void Tokenize(const string& str,
 {
   // Skip delimiters at beginning.
   string::size_type lastPos = str.find_first_not_of(delimiters, 0);
-  // Find first "non-delimiter".
+  // find first "non-delimiter".
   string::size_type pos     = str.find_first_of(delimiters, lastPos);
   
   while (string::npos != pos || string::npos != lastPos)
@@ -57,7 +57,7 @@ static void Tokenize(const string& str,
       tokens.push_back(str.substr(lastPos, pos - lastPos));
       // Skip delimiters.  Note the "not_of"
       lastPos = str.find_first_not_of(delimiters, pos);
-      // Find next "non-delimiter"
+      // find next "non-delimiter"
       pos = str.find_first_of(delimiters, lastPos);
     }
 }
@@ -71,17 +71,17 @@ Params::Params()
 
 Params::Params(const char *fileName)
 {
-  Load(fileName);
+  load(fileName);
 }
 
 Params::Params(FILE *file)
 {
-  Load(file);
+  load(file);
 }
 
 Params::Params(iostream &io)
 {
-  Load(io);
+  load(io);
 }
 
 
@@ -90,14 +90,14 @@ Params::~Params()
   valueMap.clear();
 }
 
-void Params::Load(const char *fileName)
+void Params::load(const char *fileName)
 {
   FILE *file = fopen(fileName, "r");
   if (!file) {
     cout << "[W] Params::Load: failed to load file " << fileName << endl;
     return;
   }
-  Load(file);
+  load(file);
   fclose(file);
 }
 
@@ -132,7 +132,7 @@ void Params::Parse(char *line)
   valueMap[sname] = svalue;
 }
 
-void Params::Load(FILE *file)
+void Params::load(FILE *file)
 {
   char line[256];
   while(fgets(line, 256, file)) {
@@ -140,7 +140,7 @@ void Params::Load(FILE *file)
   }
 }
 
-void Params::Load(iostream &io)
+void Params::load(iostream &io)
 {
   char line[256];
   while(io.getline(line, 256)) {
@@ -149,23 +149,23 @@ void Params::Load(iostream &io)
 }
 
 
-void Params::Save(const char *fileName) const
+void Params::save(const char *fileName) const
 {
   FILE *file = fopen(fileName, "w+");
   if (!file) {
     cout << "[W] Params::Load: failed to save to file " << fileName << endl;
     return;
   }
-  Save(file);
+  save(file);
   fclose(file);
 }
 
-void Params::Save(FILE *file) const
+void Params::save(FILE *file) const
 {
   Print(file);
 }
 
-void Params::Save(iostream &io) const
+void Params::save(iostream &io) const
 {
   Print(io);
 }

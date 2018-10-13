@@ -6,8 +6,7 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_VERTEX_H
-#define DSL_VERTEX_H
+#pragma once
 
 #include <map>
 #include <float.h>
@@ -37,8 +36,12 @@ class LpAstar;
  *  Author: Marin Kobilarov
  */
 template < class Tv, class Te = bool>
-class Vertex {
-public:
+struct Vertex {
+
+  enum class Label {kNew, kOpen, kClosed};
+
+  using VertexT = Vertex< Tv, Te >;
+
   /**
    * Initialize the vertex
    */
@@ -51,48 +54,43 @@ public:
    */
   Vertex(const Tv& data);
 
-  virtual ~Vertex();
+  virtual ~Vertex() = default;
 
   /**
-   *  Reset to initial conditions (only the id is kept)
+   *  reset to initial conditions (only the id is kept)
    */
-  void Reset();
+  void reset();
 
   /**
-   * Finds an edge that connects this
+   * finds an edge that connects this
    * vertex with a given vertex v
    * @param v vertex v
    * @param in whether to look among incoming or outgoing edges
    * @return the edge or 0 if none
    */
-  Edge< Tv, Te >* Find(const Vertex< Tv, Te >& v, bool in) const;
+  Edge< Tv, Te >* find(const VertexT& v, bool in) const;
 
   int id; ///< vertex id (set internally)
 
   Tv data; ///< vertex data
 
-  bool succExpanded; ///< is the vertex expanded
-  bool predExpanded; ///< is the vertex expanded
+  bool succ_expanded; ///< is the vertex expanded
+  bool pred_expanded; ///< is the vertex expanded
 
   std::map< int, Edge< Tv, Te >* > in;  ///< map of incoming edges
   std::map< int, Edge< Tv, Te >* > out; ///< map of outgoing edges
 
-  Vertex< Tv, Te >* next; ///< next state in a path (used for tracing paths)
-  Vertex< Tv, Te >* prev; ///< previous state in a path (used for tracing paths)
+  VertexT* next; ///< next state in a path (used for tracing paths)
+  VertexT* prev; ///< previous state in a path (used for tracing paths)
 
-protected:
   double rhs; ///< dsl g heuristic values (used internally)
   double g;   ///< dsl rhs heuristic values (used internally)
 
-  static const int NEW = 0;    ///< open list label NEW
-  static const int OPEN = 1;   ///< open list label OPEN
-  static const int CLOSED = 2; ///< open list label CLOSED
-
-  int t;                  ///< label (one of NEW,OPEN,CLOSED)
-  fibnode_t openListNode; ///< heap node associated to this vertex
+  Label t;                ///< label
+  fibnode_t open_list_node; ///< heap node associated to this vertex
   double key[2];          ///< heap key
 
-  Vertex< Tv, Te >* r; ///< pointer to a state (from focussed D*)
+  VertexT* r; ///< pointer to a state (from focussed D*)
 
 private:
   static int s_id; ///< id counter
@@ -108,55 +106,45 @@ int Vertex< Tv, Te >::s_id = 0;
 
 template < class Tv, class Te >
 Vertex< Tv, Te >::Vertex()
-  : id(s_id), succExpanded(false), predExpanded(false) {
-  Reset();
+  : id(s_id), succ_expanded(false), pred_expanded(false) {
+  reset();
   ++s_id;
 }
 
 template < class Tv, class Te >
 Vertex< Tv, Te >::Vertex(const Tv& data)
-  : id(s_id), data(data), succExpanded(false), predExpanded(false) {
-  Reset();
+  : id(s_id), data(data), succ_expanded(false), pred_expanded(false) {
+  reset();
   ++s_id;
 }
 
 template < class Tv, class Te >
-Vertex< Tv, Te >::~Vertex() {
-  in.clear();
-  out.clear();
-}
-
-template < class Tv, class Te >
-void Vertex< Tv, Te >::Reset() {
+void Vertex< Tv, Te >::reset() {
   next = 0;
   prev = 0;
   rhs = g = DSL_DBL_MAX;
-  t = Vertex< Tv, Te >::NEW;
-  openListNode = 0;
+  t = Vertex< Tv, Te >::Label::kNew;
+  open_list_node = 0;
   key[0] = key[1] = DSL_DBL_MAX;
-
   r = 0;
 }
 
 template < class Tv, class Te >
-Edge< Tv, Te >* Vertex< Tv, Te >::Find(const Vertex< Tv, Te >& v,
+Edge< Tv, Te >* Vertex< Tv, Te >::find(const Vertex< Tv, Te >& v,
                                        bool in) const {
-  typename std::map< int, Edge< Tv, Te >* >::const_iterator it;
-
-  if (in)
-    for (it = this->in.begin(); it != this->in.end(); ++it) {
+  if (in) {
+    for (auto it = this->in.begin(); it != this->in.end(); ++it) {
       Edge< Tv, Te >* e = it->second;
       if (e->from == &v)
         return e;
     }
-  else
-    for (it = this->out.begin(); it != this->out.end(); ++it) {
+  } else {
+    for (auto it = this->out.begin(); it != this->out.end(); ++it) {
       Edge< Tv, Te >* e = it->second;
       if (e->to == &v)
         return e;
     }
+  }
   return 0;
 }
 }
-
-#endif

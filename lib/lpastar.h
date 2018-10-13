@@ -19,102 +19,11 @@
 #include "fibheap.h"
 #include "search.h"
 
-/*! \mainpage D*Lite
- * \section Documentation
- * \subsection Intro
- *
- * General implementation of the D*-Lite planner. The algorithm
- * finds the shortest path in a directed graph using A* search
- * and has the ability to quickly replan if any edge costs along the
- * path have changed (using dynamic A*, or D*). A typical
- * application is a robotic vehicle with limited sensing radius that needs
- * to optimally reach a goal in a partially known environment.
- * The robot starts to
- * travel towards the goal and as its sensors refine the terrain map
- * the remaining path is efficiently adjusted or replanned using D*.
- * The package provides a general implementation based
- * on an underlying directed graph (graph ops are done using a fibonacci heap
- * for faster key modifications)
- * as well as a grid/lattice-based implementation (derived from the graph-based
- *one) for
- * search in an environment composed of cells of different "traversibility
- *cost."
- *
- * The library is easy to use and extend. Included is a test executable
- * that demonstrates a typical path planning scenario.
- *
- * The original code was written in 2004 and updated in 2015 to support
- *arbitrary n-dimensional grids
- * and generic data types stored vertices and edges, so that vertices and edges
- *can be regarded as "containers".
- *
- * \subsection Build requirements
- *  g++; cmake
- *
- * \subsection Installation
- *
- * - Get the source and cd into main directory
- * - To compile:
- * - $mkdir build; cd build; cmake ..; make
- * - To test (from main projec directory)
- * -- 1) 2d point test
- * -- $build/bin/test2d bin/map.ppm (look at the generated ppm images to view the
- *result)
- * -- 2) kinematic car test
- * -- $build/bin/cartest bin/lanes.cfg (look at the generated ppm images to view the
- *result)
- *
- * \subsection Class Reference
- * <a href="../../docs/html/hierarchy.html">Class hierarchy</a>
- *
- * \subsection Usage
- *  The underlying structure is a regular directed graph
- *  of vertices and edges that can be added and removed during operation
- *  This implementation serves mostly as a base class for specific
- *  type of problems. Thus it does not define a "real distance" and
- *  "heuristic distance" functions between vertices but allows the user to
- *  supply a cost interface which defines them.
- *
- *  The implementation follows the D*-Lite paper by S.Koenig and M. Likhachev
- *  with several optimizations:
- *
- *  - restructuring of some of the internals allows for reduced
- *    number of heap accesses and edge iterations;
- *  - a fibonacci heap for faster O(1) key decrease
- *  - a "Focussed D*" type of heap extraction is used which
- *      was discovered to be more effective than the current D*-Lite Top()
- *      by empirical results this modification results in more than 30% speedup
- *      in time processing (for more complex, i.e. maze-like environments),
- *      results in reduced number of total explored states,
- *      as well as total number of heap accesses. In essense, the gain in
- *      efficiency comes from delaying certain heap operations.
- *      For simple environments there's no siginificant difference
- *  - the ability to dynamically add/remove vertices and edges to enable
- *      anytime and incremental implemnetation
- *
- *
- *   The planner is usually used as follows:
- *   - 0. Create a graph
- *   - 1. Create a cost interface
- *   - 2. Initialize the search using Search(graph, cost)
- *   - 3. Set start vertex using SetStart()
- *   - 4. Set goal vertex using SetGoal()
- *   - 5. Find the optimal path Plan()
- *   - 6. follow the generated path until some changes in the graph are observed
- *   - 7. ChangeCost() -- for every changed cost
- *   - 8. SetStart() -- to set the current position
- *   - 9. goto 5 to replan path
- *
- *
- * \subsection Example
- *  see directory test
- * \subsection Author
- *  Copyright (C) 2004, 2015 Marin Kobilarov
- * \subsection Keywords
- * D*, D*-Lite, D-star, "D star", "A*", "D* Lite", "Heuristic LpAstar", "grid
- *planning"
+/*
+Life-long planning A* implementation. This is a forward search with
+multiple goals, and supports cost changes.
+See search.h for more info.
  */
-
 namespace dsl {
 
 template < class Tv, class Te = Empty >
@@ -137,37 +46,37 @@ public:
 
 
   /**
-   *  Reset the planner to its initial state
+   *  reset the planner to its initial state
    *  this can be used for example if the goal state was changed
    *  but the graph structure is the same
-   *  This is usually called internally at init and with every SetGoal()
+   *  This is usually called internally at init and with every setGoal()
    */
-  virtual void Reset();
+  virtual void reset();
 
   /**
    * Plan an initial path from start to goal, or if any cost
    * changes are detected since it was last called (any
-   * calls to ChangeCost()) then it replans.
-   * Internally calls Plan()
+   * calls to changeCost()) then it replans.
+   * Internally calls plan()
    * The generated path is set in the provided vector
    * @param path the optimal path
    * @return total cost
    */
-   double Plan(std::vector< Edge< Tv, Te >* >& path);
+   double plan(std::vector< Edge< Tv, Te >* >& path) override;
 
 
   /**
    * Plan an initial path from start to goal, or if any cost
    * changes are detected since it was last called (any
-   * calls to ChangeCost()) then it replans.
+   * calls to changeCost()) then it replans.
    * The generated path can be obtained by following the next
    * pointers from start vertex until goal vertex is reached
    * @return total number of vertices along the path
    */
-  int Plan();
+  int plan() override;
 
 
-  virtual void setExpandCallback(ExpandCallback expand_callback) {
+  void setExpandCallback(ExpandCallback expand_callback) override {
     this->expand_callback = expand_callback;
   }
 
@@ -176,21 +85,21 @@ public:
    * Set start state
    * @param v start vertex
    */
-  void SetStart(const Vertex< Tv, Te >& v);
+  void setStart(const Vertex< Tv, Te >& v) override;
 
   /**
    * Set goal state
    * this also resets the planner
    * @param v goal vertex
    */
-  void AddGoal(Vertex< Tv, Te >& v);
+  void addGoal(Vertex< Tv, Te >& v) override;
 
   /**
    * Change the cost of edge e
    * @param e edge
    * @param cost new cost
    */
-  void ChangeCost(Edge< Tv, Te >& e, double cost);
+  void changeCost(Edge< Tv, Te >& e, double cost) override;
 
   /**
    * Change the cost of either all incoming or all outgoing edges
@@ -199,13 +108,17 @@ public:
    * @param cost new cost
    * @param in when to modify incoming edges or outgoing edges
    */
-  void ChangeCost(Vertex< Tv, Te >& v, double cost, bool in = true);
+  void changeCost(Vertex< Tv, Te >& v, double cost, bool in = true) override;
+
+  bool inGoalSet(const Vertex< Tv, Te> &v) const override {
+    return (goal_set.find(v.id) != goal_set.end());
+  }
 
   /**
    * Set epsilon: this is used to compare cell costs
    * @param eps precision (1e-10 by default)
    */
-  void SetEps(double eps) {
+  void setEps(double eps) {
     this->eps = eps;
   }
 
@@ -213,7 +126,7 @@ public:
    * Number of vertices
    * @return number of vertices
    */
-  int Vertices() const {
+  int vertexCount() const {
     return graph.vertices.size();
   }
 
@@ -221,32 +134,27 @@ public:
    * Number of edges
    * @return number of edges
    */
-  int Edges() const {
+  int edgeCount() const {
     return graph.edges.size();
   }
 
-  bool InGoalSet(const Vertex< Tv, Te> &v) const {
-    return (goalSet.find(v.id) != goalSet.end());
-  }
-
-
 private:
 
-  void UpdateVertex(Vertex< Tv, Te >& u);
-  void ComputeShortestPath();
-  Vertex< Tv, Te >* MinSucc(double* minRhs, const Vertex< Tv, Te >& v);
-  double MinPredRhs(const Vertex< Tv, Te >& u);
-  Vertex< Tv, Te >* MinPred(const Vertex< Tv, Te >& u);
-  double GoalSetHeur(const Vertex< Tv, Te >& s);
+  void updateVertex(Vertex< Tv, Te >& u);
+  void computeShortestPath();
+  Vertex< Tv, Te >* minSucc(double* minRhs, const Vertex< Tv, Te >& v);
+  double minPredRhs(const Vertex< Tv, Te >& u);
+  Vertex< Tv, Te >* minPred(const Vertex< Tv, Te >& u);
+  double goalSetHeur(const Vertex< Tv, Te >& s);
 
-  double* CalculateExtKey(double* key, Vertex< Tv, Te >& v);
-  double* CalculateKey(Vertex< Tv, Te >& v);
-  void Insert(Vertex< Tv, Te >& v);
-  void InsertExt(Vertex< Tv, Te >& v, double* key);
-  void Update(Vertex< Tv, Te >& v);
-  void Remove(Vertex< Tv, Te >& v);
-  Vertex< Tv, Te >* Top();
-  double* TopKey();
+  double* calculateExtKey(double* key, Vertex< Tv, Te >& v);
+  double* calculateKey(Vertex< Tv, Te >& v);
+  void insert(Vertex< Tv, Te >& v);
+  void insertExt(Vertex< Tv, Te >& v, double* key);
+  void update(Vertex< Tv, Te >& v);
+  void remove(Vertex< Tv, Te >& v);
+  Vertex< Tv, Te >* top();
+  double* topKey();
 
   /**
    * Compare two doubles for equality
@@ -254,34 +162,32 @@ private:
    * @param b second number
    * @return \f$|a-b| < eps\f$
    */
-  bool Eq(double a, double b) const {
+  bool nearEqual(double a, double b) const override {
     return std::abs(a - b) < eps;
   }
-
 
   ExpandCallback expand_callback;
 
   Graph< Tv, Te >& graph; ///< graph
   const Cost< Tv >& cost; ///< cost interface
 
-  std::vector< Edge< Tv, Te >* > changedEdges; ///< newly changed edges
+  std::vector< Edge< Tv, Te >* > changed_edges; ///< newly changed edges
 
   Vertex< Tv, Te >* start; ///< start state
 
-  std::map< int, Vertex< Tv, Te >* > goalSet; ///< all vertices
+  std::map< int, Vertex< Tv, Te >* > goal_set; ///< all vertices
 
-  fibheap_t openList; ///< fibonacci heap
+  fibheap_t open_list; ///< fibonacci heap
 
   double eps; ///< epsilon for cost comparision
 
   Vertex< Tv, Te >* last = 0;  ///< last state
 
   Vertex< Tv, Te >* goal = nullptr; ///< the first goal found state
+
   friend class Graph< Tv, Te >;
 };
 
-
-#define DSL_MIN(a, b) ((a < b) ? (a) : (b))
 
 // these are needed by fibheap
 extern int FIBHEAPKEY_SIZE;
@@ -294,58 +200,58 @@ LpAstar< Tv, Te >::LpAstar(Graph< Tv, Te >& graph, const Cost< Tv >& cost)
     cost(cost),
     start(0),
     eps(1e-10) {
-  openList = fibheap_new();
+  open_list = fibheap_new();
 }
 
 template < class Tv, class Te >
 LpAstar< Tv, Te >::~LpAstar() {
-  fibheap_delete(openList);
-  changedEdges.clear();
+  fibheap_delete(open_list);
+  changed_edges.clear();
 }
 
 template < class Tv, class Te >
-void LpAstar< Tv, Te >::Reset() {
+void LpAstar< Tv, Te >::reset() {
   typename std::map< int, Vertex< Tv, Te >* >::iterator vi;
   for (vi = graph.vertices.begin(); vi != graph.vertices.end(); ++vi) {
-    vi->second->Reset();
+    vi->second->reset();
   }
-  fibheap_clear(openList);
+  fibheap_clear(open_list);
 }
 
 
 template < class Tv, class Te >
-void LpAstar< Tv, Te >::ChangeCost(Edge< Tv, Te >& edge, double cost) {
-  if (Eq(cost, edge.cost))
+void LpAstar< Tv, Te >::changeCost(Edge< Tv, Te >& edge, double cost) {
+  if (nearEqual(cost, edge.cost))
     return;
-  edge.costChange = cost - edge.cost;
+  edge.cost_change = cost - edge.cost;
   edge.cost = cost;
-  changedEdges.push_back(&edge);
+  changed_edges.push_back(&edge);
 }
 
 template < class Tv, class Te >
-void LpAstar< Tv, Te >::ChangeCost(Vertex< Tv, Te >& vertex,
+void LpAstar< Tv, Te >::changeCost(Vertex< Tv, Te >& vertex,
                                   double cost,
                                   bool in) {
   typename std::map< int, Edge< Tv, Te >* >::iterator ei;
   if (in) {
     for (ei = vertex.in.begin(); ei != vertex.in.end(); ++ei) {
-      ChangeCost(*ei->second, cost);
+      changeCost(*ei->second, cost);
     }
   } else {
     for (ei = vertex.out.begin(); ei != vertex.out.end(); ++ei) {
-      ChangeCost(*ei->second, cost);
+      changeCost(*ei->second, cost);
     }
   }
 }
 
 template < class Tv, class Te >
-double LpAstar< Tv, Te >::Plan(std::vector< Edge< Tv, Te >* >& path) {
+double LpAstar< Tv, Te >::plan(std::vector< Edge< Tv, Te >* >& path) {
   path.clear();
-  Plan();
+  plan();
   Vertex< Tv, Te >* cur = start;
   double cost = 0;
   do {
-    Edge< Tv, Te >* edge = cur->Find(*cur->next, false);
+    Edge< Tv, Te >* edge = cur->find(*cur->next, false);
     if (!edge) {
       path.clear();
       return -1;
@@ -354,21 +260,20 @@ double LpAstar< Tv, Te >::Plan(std::vector< Edge< Tv, Te >* >& path) {
     cost += edge->cost;
     path.push_back(edge);
     cur = cur->next;
-  } while (!InGoalSet(*cur));
+  } while (!inGoalSet(*cur));
 
   return cost;
 }
 
 
 template < class Tv, class Te >
-void LpAstar< Tv, Te >::SetStart(const Vertex< Tv, Te >& s) {
+void LpAstar< Tv, Te >::setStart(const Vertex< Tv, Te >& s) {
   start = (Vertex< Tv, Te >*)&s;
-  LpAstar<Tv, Te>::Reset();
+  LpAstar<Tv, Te>::reset();
 }
 
 template < class Tv, class Te >
-void LpAstar< Tv, Te >::AddGoal(Vertex< Tv, Te >& goal) {
-  //  this->goal = &goal;
+void LpAstar< Tv, Te >::addGoal(Vertex< Tv, Te >& goal) {
 
   if (!start) {
     std::cout << "[E] LpAstart::AddGoal: start should be set before goal!" << std::endl;
@@ -377,42 +282,42 @@ void LpAstar< Tv, Te >::AddGoal(Vertex< Tv, Te >& goal) {
 
   // set goal
   start->rhs = 0;
-  if (goalSet.empty()) {
-    start->key[0] = cost.Heur(start->data, goal.data);
+  if (goal_set.empty()) {
+    start->key[0] = cost.heur(start->data, goal.data);
     // insert the once there is at least one goal
-    Insert(*start);
+    insert(*start);
   } else {
-    start->key[0] = std::min(start->key[0], cost.Heur(start->data, goal.data));
+    start->key[0] = std::min(start->key[0], cost.heur(start->data, goal.data));
   }
 
-  goalSet[goal.id] = &goal;
+  goal_set[goal.id] = &goal;
 }
 
 
 template < class Tv, class Te >
-void LpAstar< Tv, Te >::UpdateVertex(Vertex< Tv, Te >& u) {
+void LpAstar< Tv, Te >::updateVertex(Vertex< Tv, Te >& u) {
   if (&u != start)
-    u.rhs = MinPredRhs(u);
+    u.rhs = minPredRhs(u);
 
-  if (u.t == Vertex< Tv, Te >::OPEN) {
-    Remove(u);
+  if (u.t == Vertex< Tv, Te >::Label::kOpen) {
+    remove(u);
   }
 
   if (u.g != u.rhs) {
-    Insert(u);
+    insert(u);
   }
 }
 
 template < class Tv, class Te >
-void LpAstar< Tv, Te >::ComputeShortestPath() {
+void LpAstar< Tv, Te >::computeShortestPath() {
   Vertex< Tv, Te >* u;
   Vertex< Tv, Te >* s;
   Edge< Tv, Te >* edge;
 
-  //graph.search = this;
+  graph.search = this;
 
-  if (fibheap_empty(openList)) {
-    std::cerr << "[W] LpAstar::ComputeShortestPath: openList is empty -- most "
+  if (fibheap_empty(open_list)) {
+    std::cerr << "[W] LpAstar::computeShortestPath: open_list is empty -- most "
                  "likely this means that a there is no path between start and "
                  "goal!" << std::endl;
     return;
@@ -420,13 +325,13 @@ void LpAstar< Tv, Te >::ComputeShortestPath() {
 
   while(1) {
 
-    if (!TopKey())
+    if (!topKey())
       break;
 
     bool done = false;
-    for (auto &gi : goalSet) {
+    for (auto &gi : goal_set) {
       goal = gi.second;
-      if (fibkey_compare(TopKey(), CalculateKey(*goal)) >= 0 &&
+      if (fibkey_compare(topKey(), calculateKey(*goal)) >= 0 &&
           goal->rhs == goal->g) {
         done = true;
         break;
@@ -435,12 +340,13 @@ void LpAstar< Tv, Te >::ComputeShortestPath() {
     if (done)
       break;
 
-    u = Top();
-    Remove(*u);
+    u = top();
+    remove(*u);
 
     // expand forward
-    if (expand_callback)
+    if (expand_callback) {
       expand_callback(*u, true);
+    }
 
     if (u->g > u->rhs) {
       u->g = u->rhs;
@@ -448,7 +354,7 @@ void LpAstar< Tv, Te >::ComputeShortestPath() {
       for (auto& ei : u->out) {
         edge = (Edge< Tv, Te >*)ei.second;
         s = edge->to;
-        UpdateVertex(*s);
+        updateVertex(*s);
       }
     } else {
       u->g = DSL_DBL_MAX;
@@ -456,37 +362,37 @@ void LpAstar< Tv, Te >::ComputeShortestPath() {
       for (auto &ei : u->out) {
         edge = (Edge< Tv, Te >*)ei.second;
         s = edge->to;
-        UpdateVertex(*s);
+        updateVertex(*s);
       }
-      UpdateVertex(*u);
+      updateVertex(*u);
     }
   }
 }
 
 
 template < class Tv, class Te >
-int LpAstar< Tv, Te >::Plan() {
+int LpAstar< Tv, Te >::plan() {
   Vertex< Tv, Te >* v;
   int count = 1;
 
   assert(start);
 
-  if (changedEdges.size()) {
+  if (changed_edges.size()) {
     typename std::vector< Edge< Tv, Te >* >::iterator ei;
-    for (ei = changedEdges.begin(); ei != changedEdges.end(); ++ei) {
+    for (ei = changed_edges.begin(); ei != changed_edges.end(); ++ei) {
       Edge< Tv, Te >* edge = *ei;
       v = edge->to;
 
-      UpdateVertex(*v);
+      updateVertex(*v);
     }
-    changedEdges.clear();
+    changed_edges.clear();
   }
 
-  ComputeShortestPath();
+  computeShortestPath();
 
   Vertex< Tv, Te >* cur = goal;
   do {
-    Vertex< Tv, Te >* prev = MinPred(*cur);
+    Vertex< Tv, Te >* prev = minPred(*cur);
     if (!prev) {
       break;
     }
@@ -499,7 +405,7 @@ int LpAstar< Tv, Te >::Plan() {
 }
 
 template < class Tv, class Te >
-double LpAstar< Tv, Te >::MinPredRhs(const Vertex< Tv, Te >& u) {
+double LpAstar< Tv, Te >::minPredRhs(const Vertex< Tv, Te >& u) {
   double minVal = DSL_DBL_MAX;
   for (auto& ei : u.in) {
     Edge< Tv, Te >* edge = (Edge< Tv, Te >*)ei.second;
@@ -516,7 +422,7 @@ double LpAstar< Tv, Te >::MinPredRhs(const Vertex< Tv, Te >& u) {
 
 
 template < class Tv, class Te >
-    Vertex<Tv, Te>* LpAstar< Tv, Te >::MinPred(const Vertex< Tv, Te >& u) {
+    Vertex<Tv, Te>* LpAstar< Tv, Te >::minPred(const Vertex< Tv, Te >& u) {
   double minVal = DSL_DBL_MAX;
   Vertex<Tv, Te>* v = 0;
   for (auto& ei : u.in) {
@@ -535,7 +441,7 @@ template < class Tv, class Te >
 
 
 template < class Tv, class Te >
-Vertex< Tv, Te >* LpAstar< Tv, Te >::MinSucc(double* minRhs,
+Vertex< Tv, Te >* LpAstar< Tv, Te >::minSucc(double* minRhs,
                                             const Vertex< Tv, Te >& s) {
   double minVal = DSL_DBL_MAX;
   Vertex< Tv, Te >* minSucc = NULL;
@@ -549,20 +455,10 @@ Vertex< Tv, Te >* LpAstar< Tv, Te >::MinSucc(double* minRhs,
 
     double val = edge->cost + s_->g;
 
-    /*    if (goalBias) {
-      if (val < minVal || (val == minVal && minSucc &&
-                           cost.Real(s_->data, goal->data) <
-                               cost.Real(minSucc->data, goal->data))) {
-        minVal = val;
-        minSucc = s_;
-      }
-    } else {
-    */
-      if (val < minVal) {
-        minVal = val;
-        minSucc = s_;
-      }
-      // }
+    if (val < minVal) {
+      minVal = val;
+      minSucc = s_;
+    }
   }
   if (minRhs)
     *minRhs = minVal;
@@ -571,11 +467,11 @@ Vertex< Tv, Te >* LpAstar< Tv, Te >::MinSucc(double* minRhs,
 
 
 template < class Tv, class Te >
-double LpAstar< Tv, Te >::GoalSetHeur(const Vertex< Tv, Te >& s) {
+double LpAstar< Tv, Te >::goalSetHeur(const Vertex< Tv, Te >& s) {
   double hmin = DSL_DBL_MAX;
-  for (auto &gi : goalSet) {
+  for (auto &gi : goal_set) {
     Vertex< Tv, Te >* g = gi.second;
-    double h = cost.Heur(s.data, g->data);
+    double h = cost.heur(s.data, g->data);
     if (h < hmin)
       hmin = h;
   }
@@ -583,14 +479,14 @@ double LpAstar< Tv, Te >::GoalSetHeur(const Vertex< Tv, Te >& s) {
 }
 
 template < class Tv, class Te >
-double* LpAstar< Tv, Te >::CalculateExtKey(double* key, Vertex< Tv, Te >& s) {
-  double m = DSL_MIN(s.g, s.rhs);
+double* LpAstar< Tv, Te >::calculateExtKey(double* key, Vertex< Tv, Te >& s) {
+  double m = std::min(s.g, s.rhs);
   if (m == DSL_DBL_MAX) {
     key[0] = DSL_DBL_MAX;
     key[1] = DSL_DBL_MAX;
   } else {
     assert(start);
-    key[0] = m + GoalSetHeur(s);
+    key[0] = m + goalSetHeur(s);
     key[1] = m;
   }
 
@@ -598,60 +494,58 @@ double* LpAstar< Tv, Te >::CalculateExtKey(double* key, Vertex< Tv, Te >& s) {
 }
 
 template < class Tv, class Te >
-double* LpAstar< Tv, Te >::CalculateKey(Vertex< Tv, Te >& s) {
-  return CalculateExtKey(s.key, s);
+double* LpAstar< Tv, Te >::calculateKey(Vertex< Tv, Te >& s) {
+  return calculateExtKey(s.key, s);
 }
 
 template < class Tv, class Te >
-void LpAstar< Tv, Te >::Insert(Vertex< Tv, Te >& s) {
-  InsertExt(s, CalculateExtKey(s.key, s));
+void LpAstar< Tv, Te >::insert(Vertex< Tv, Te >& s) {
+  insertExt(s, calculateExtKey(s.key, s));
 }
 
 template < class Tv, class Te >
-void LpAstar< Tv, Te >::InsertExt(Vertex< Tv, Te >& s, double* key) {
-  s.openListNode = fibheap_insert(openList, (void*)key, &s);
-  s.t = Vertex< Tv, Te >::OPEN;
+void LpAstar< Tv, Te >::insertExt(Vertex< Tv, Te >& s, double* key) {
+  s.open_list_node = fibheap_insert(open_list, (void*)key, &s);
+  s.t = Vertex< Tv, Te >::Label::kOpen;
 }
 
 template < class Tv, class Te >
-void LpAstar< Tv, Te >::Update(Vertex< Tv, Te >& s) {
+void LpAstar< Tv, Te >::update(Vertex< Tv, Te >& s) {
 
   double key[2];
-  // assert(s.t == Vertex<Tv, Te>::OPEN);
-  CalculateExtKey(key, s);
+  calculateExtKey(key, s);
 
   if (fibkey_compare(key, s.key) > 0) {
-    fibheap_delete_node(openList, s.openListNode);
-    s.openListNode = fibheap_insert(openList, key, &s);
+    fibheap_delete_node(open_list, s.open_list_node);
+    s.open_list_node = fibheap_insert(open_list, key, &s);
   } else if (!fibkey_compare(key, s.key)) {
     return;
   } else {
-    fibheap_replace_key(openList, s.openListNode, key);
+    fibheap_replace_key(open_list, s.open_list_node, key);
   }
   // copy back to s's own key
-  // s->openListNode->key = s->key;
   s.key[0] = key[0];
   s.key[1] = key[1];
 }
 
 template < class Tv, class Te >
-void LpAstar< Tv, Te >::Remove(Vertex< Tv, Te >& s) {
-  if (s.t == Vertex< Tv, Te >::CLOSED)
+void LpAstar< Tv, Te >::remove(Vertex< Tv, Te >& s) {
+  if (s.t == Vertex< Tv, Te >::Label::kClosed)
     return;
 
-  s.t = Vertex< Tv, Te >::CLOSED;
-  if (s.openListNode)
-    fibheap_delete_node(openList, s.openListNode);
+  s.t = Vertex< Tv, Te >::Label::kClosed;
+  if (s.open_list_node)
+    fibheap_delete_node(open_list, s.open_list_node);
 }
 
 template < class Tv, class Te >
-Vertex< Tv, Te >* LpAstar< Tv, Te >::Top() {
-  return (Vertex< Tv, Te >*)fibheap_min(openList);
+Vertex< Tv, Te >* LpAstar< Tv, Te >::top() {
+  return (Vertex< Tv, Te >*)fibheap_min(open_list);
 }
 
 template < class Tv, class Te >
-double* LpAstar< Tv, Te >::TopKey() {
-  Vertex< Tv, Te >* s = Top();
+double* LpAstar< Tv, Te >::topKey() {
+  Vertex< Tv, Te >* s = top();
   if (!s)
     return NULL;
   return s->key;

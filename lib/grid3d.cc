@@ -9,8 +9,8 @@ Grid3d::Grid3d(int length,
                double sx,
                double sy,
                double sz,
-               double costScale,
-               double maxCost)
+               double cost_scale,
+               double max_cost)
     : Grid< Eigen::Vector3d, double >(Eigen::Vector3d(0, 0, 0),
               Eigen::Vector3d(sx * length, sy * width, sz * height),
               Eigen::Vector3i(length, width, height)) {
@@ -19,19 +19,16 @@ Grid3d::Grid3d(int length,
       for (int k = 0; k < height; ++k) {
         int id = k * length * width + j * length + i;
         double cost =
-            map[id] * costScale; // cell cost = height/occupany/traversability
+            map[id] * cost_scale; // cell cost = height/occupany/traversability
         assert(cost >= 0);
         // add this as a cell only if cost is less than a given max cost
-        // this is useful if maxCost defines map cells that are untreversable,
+        // this is useful if max_cost defines map cells that are untreversable,
         // so
         // they shouldn't be added to the list of cells
-        if (cost < maxCost) {
-          cells[id] = new Cell< Eigen::Vector3d, double >(id,
-                                                   Eigen::Vector3d((i + 0.5) * sx, (j + 0.5) * sy, (k + 0.5) * sz),
-                                                   cost);
-              //              Eigen::Vector3d((i + 0.5) * sx, (j + 0.5) * sy, (k + 0.5) * sz),
-              //              Eigen::Vector3d(sx / 2, sy / 2, sz / 2),
-              //              cost);
+        if (cost < max_cost) {
+          cells[id] = new Cell3d(id,
+                                Eigen::Vector3d((i + 0.5) * sx, (j + 0.5) * sy, (k + 0.5) * sz),
+                                cost);
         }
       }
     }

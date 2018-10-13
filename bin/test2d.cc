@@ -42,17 +42,17 @@ int main(int argc, char** argv)
   // GridCost<Vector2d, double> cost;
   Grid2dConnectivity connectivity(grid);
   GridSearch<Vector2d, double, Vector2d> search(grid, connectivity, cost);
-  GridPath<Vector2d, double, Vector2d> path, optPath;
+  GridPath<Vector2d, double, Vector2d> path, opt_path;
 
-  search.SetStart(Vector2d(1, height/2));
-  search.AddGoal(Vector2d(width - 2, height/2));
+  search.setStart(Vector2d(1, height/2));
+  search.addGoal(Vector2d(width - 2, height/2));
 
   std::cout  << "Added start and goal" << std::endl;
 
   // plan
   struct timeval timer;
   timer_start(&timer);
-  search.Plan(path);
+  search.plan(path);
   long time = timer_us(&timer);
   printf("plan path time= %ld\n", time);
   printf("path: count=%lu len=%f\n", path.cells.size(), path.cost);
@@ -60,7 +60,7 @@ int main(int argc, char** argv)
   // print results
   vector<Cell<Vector2d, double> >::iterator it;
   for (it = path.cells.begin(); it != path.cells.end(); ++it) {
-    int id = grid.Id(it->c);
+    int id = grid.computeId(it->c);
     mapPath[id] = 2;
   }
   printf("\n");
@@ -79,17 +79,17 @@ int main(int argc, char** argv)
   getchar();
 
   // follow path until (28,18)
-  search.SetStart(Vector2d(28,18));
+  search.setStart(Vector2d(28,18));
 
   // simulate closing the narrow passage
   if (1) {
     // by increasing the cost drastically
-    search.SetCost(Vector2d(29,18), 1000);
-    search.SetCost(Vector2d(30,18), 1000);
-    search.SetCost(Vector2d(31,18), 1000);
+    search.setCost(Vector2d(29,18), 1000);
+    search.setCost(Vector2d(30,18), 1000);
+    search.setCost(Vector2d(31,18), 1000);
   } else {
     // another way: by simply removing the passage
-    search.RemoveCell(Vector2d(30,18));
+    search.removeCell(Vector2d(30,18));
   }
 
   // this is just for display
@@ -98,7 +98,7 @@ int main(int argc, char** argv)
 
   // replan
   timer_start(&timer);
-  search.Plan(path);
+  search.plan(path);
   time = timer_us(&timer);
   printf("replan path time= %ld us\n", time);
   printf("path: count=%lu len=%f\n", path.cells.size(), path.cost);
@@ -106,10 +106,10 @@ int main(int argc, char** argv)
 
 
   // bypass the old vertex
-  //  gdsl.AddEdge(29,18,31,18);
+  //  gdsl.addEdge(29,18,31,18);
   // // replan
  // timer_start(&timer);
- // gdsl.Plan(path);
+ // gdsl.plan(path);
  // time = timer_ns(&timer);
  // printf("replan path time= %ld\n", time);
  // printf("path: count=%d len=%f\n", path.count, path.cost);
@@ -119,20 +119,20 @@ int main(int argc, char** argv)
   // optimize path (experimental)
 
   timer_start(&timer);
-  connectivity.OptPath(path, optPath);
+  connectivity.straightPath(path, opt_path);
   time = timer_us(&timer);
   printf("opt path time= %ld us\n", time);
-  printf("optPath: count=%lu len=%f\n", optPath.cells.size(), optPath.cost);
+  printf("opt_path: count=%lu len=%f\n", opt_path.cells.size(), opt_path.cost);
 
 
   for (it = path.cells.begin(); it != path.cells.end(); ++it) {
-    int id = grid.Id(it->c);
+    int id = grid.computeId(it->c);
     mapPath[id] = 2;
   }
   printf("\n");
 
-  for (it = optPath.cells.begin(); it != optPath.cells.end(); ++it) {
-    int id = grid.Id(it->c);
+  for (it = opt_path.cells.begin(); it != opt_path.cells.end(); ++it) {
+    int id = grid.computeId(it->c);
     mapPath[id] = 3;
   }
 

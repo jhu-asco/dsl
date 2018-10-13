@@ -6,8 +6,7 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_SEARCH_H
-#define DSL_SEARCH_H
+#pragma once
 
 #include <functional>
 #include "graph.h"
@@ -76,7 +75,7 @@
  *    number of heap accesses and edge iterations;
  *  - a fibonacci heap for faster O(1) key decrease
  *  - a "Focussed D*" type of heap extraction is used which
- *      was discovered to be more effective than the current D*-Lite Top()
+ *      was discovered to be more effective than the current D*-Lite top()
  *      by empirical results this modification results in more than 30% speedup
  *      in time processing (for more complex, i.e. maze-like environments),
  *      results in reduced number of total explored states,
@@ -91,12 +90,12 @@
  *   - 0. Create a graph
  *   - 1. Create a cost interface
  *   - 2. Initialize the search using Search(graph, cost)
- *   - 3. Set start vertex using SetStart()
- *   - 4. Set goal vertex using SetGoal()
- *   - 5. Find the optimal path Plan()
+ *   - 3. Set start vertex using setStart()
+ *   - 4. Set goal vertex using addGoal()
+ *   - 5. find the optimal path plan()
  *   - 6. follow the generated path until some changes in the graph are observed
- *   - 7. ChangeCost() -- for every changed cost
- *   - 8. SetStart() -- to set the current position
+ *   - 7. changeCost() -- for every changed cost
+ *   - 8. setStart() -- to set the current position
  *   - 9. goto 5 to replan path
  *
  *
@@ -106,7 +105,7 @@
  *  Copyright (C) 2004, 2015 Marin Kobilarov
  * \subsection Keywords
  * D*, D*-Lite, D-star, "D star", "A*", "D* Lite", "Heuristic Search", "grid
- *planning"
+ *planning", "Life-long Planning A*"
  */
 
 namespace dsl {
@@ -119,36 +118,36 @@ public:
 
   using ExpandCallback = std::function<bool(Vertex< Tv, Te >& from, bool fwd)>;
 
-   virtual ~Search() {};
+   virtual ~Search() = default;
 
   /**
    * Plan an initial path from start to goal, or if any cost
    * changes are detected since it was last called (any
-   * calls to ChangeCost()) then it replans.
-   * Internally calls Plan()
+   * calls to changeCost()) then it replans.
+   * Internally calls plan()
    * The generated path is set in the provided vector
    * @param path the optimal path
    * @return total cost
    */
-   virtual double Plan(std::vector< Edge< Tv, Te >* >& path) = 0;
+   virtual double plan(std::vector< Edge< Tv, Te >* >& path) = 0;
 
   /**
    * Plan an initial path from start to goal, or if any cost
    * changes are detected since it was last called (any
-   * calls to ChangeCost()) then it replans.
+   * calls to changeCost()) then it replans.
    * The generated path can be obtained by following the next
    * pointers from start vertex until goal vertex is reached
    * This function is implemented by the specific method used
    * @return total number of vertices along the path
    */
-   virtual int Plan() = 0;
+   virtual int plan() = 0;
 
   /**
    * Set start state
    * This function is implemented by the specific method used
    * @param v start vertex
    */
-  virtual void SetStart(const Vertex< Tv, Te >& v) = 0;
+  virtual void setStart(const Vertex< Tv, Te >& v) = 0;
 
   /**
    * Set goal state
@@ -156,24 +155,24 @@ public:
    * This function is implemented by the specific method used
    * @param v goal vertex
    */
-  virtual void AddGoal(Vertex< Tv, Te >& v) = 0;
+  virtual void addGoal(Vertex< Tv, Te >& v) = 0;
 
-  virtual void ChangeCost(Edge< Tv, Te >& edge, double cost) = 0;
+  virtual void changeCost(Edge< Tv, Te >& edge, double cost) = 0;
 
-  virtual void ChangeCost(Vertex< Tv, Te >& vertex, double cost, bool in) = 0;
+  virtual void changeCost(Vertex< Tv, Te >& vertex, double cost, bool in) = 0;
 
   // function invoked for every new expanded node during the exploration
   virtual void setExpandCallback(ExpandCallback expand_callback) = 0;
 
-  virtual void Remove(Vertex< Tv, Te >& v) = 0;
+  virtual void remove(Vertex< Tv, Te >& v) = 0;
 
-  virtual bool InGoalSet(const Vertex< Tv, Te >& v) const = 0;
+  virtual bool inGoalSet(const Vertex< Tv, Te >& v) const = 0;
 
-  virtual bool Eq(double a, double b) const = 0;
+  virtual bool nearEqual(double a, double b) const = 0;
 
-  virtual Vertex< Tv, Te >* MinSucc(double* minRhs, const Vertex< Tv, Te >& v) = 0;
+  virtual Vertex< Tv, Te >* minSucc(double* minRhs, const Vertex< Tv, Te >& v) = 0;
 
-  virtual void UpdateVertex(Vertex< Tv, Te >& u) = 0;
+  virtual void updateVertex(Vertex< Tv, Te >& u) = 0;
 
   // optional pointer to the last start state (only applicable to D*)
   // Since D* replans for a new start, it uses this to updates it heuristic
@@ -181,5 +180,3 @@ public:
 
 };
 }
-
-#endif

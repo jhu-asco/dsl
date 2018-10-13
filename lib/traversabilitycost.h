@@ -23,16 +23,16 @@ namespace dsl {
       class TraversabilityCost : public GridCost< PointType, DataType > {
 public:
 
-  using TypedCell = Cell<PointType, DataType>;
+  using CellType = Cell<PointType, DataType>;
     
-  double Real(const TypedCell& a, const TypedCell& b) const {
+  double real(const CellType& a, const CellType& b) const {
     // default real cost is euclidean distance + average cell cost multiplied by
     // Euclidean distance
     //return (a.c - b.c).norm();
     return (1 + (a.data + b.data) / 2) * (a.c - b.c).norm();
   }
 
-  double Heur(const TypedCell& a, const TypedCell& b) const {
+  double heur(const CellType& a, const CellType& b) const {
     /*
     double dx = std::abs(a.c[0] - b.c[0]);
     double dy = std::abs(a.c[1] - b.c[1]);

@@ -21,9 +21,9 @@ using Eigen::Matrix3d;
 using std::vector;
 
 CarGrid::CarGrid(const Map<bool, 3> &cmap,
-                 const Vector3d& cs) 
+                 const Vector3d& cs)
     : Grid< Vector3d, Matrix3d >(cmap.xlb, cmap.xub, cs),
-      cmap(cmap) {  
+      cmap(cmap) {
   for (int k = 0; k < gs[0]; ++k) {
     for (int c = 0; c < gs[1]; ++c) {
       for (int r = 0; r < gs[2]; ++r) {
@@ -31,7 +31,7 @@ CarGrid::CarGrid(const Map<bool, 3> &cmap,
         Vector3d x = xlb + Vector3d((k + 0.5) * cs[0], (c + 0.5) * cs[1], (r + 0.5) * cs[2]);
           int id = r*gs[0]*gs[1] + c*gs[0] + k;
 
-        bool occ = cmap.Get(x, false);
+        bool occ = cmap.data(x, false);
         if (!occ) {
           cells[id] = new SE2Cell(id, x);
 
@@ -46,14 +46,14 @@ CarGrid::CarGrid(const Map<bool, 3> &cmap,
 void CarGrid::MakeMap(const Map<bool, 2> &map, Map<bool, 3> &cmap) {
   assert(map.gs[0] == cmap.gs[1]);
   assert(map.gs[1] == cmap.gs[2]);
-  
+
   for (int i = 0; i < cmap.gs[0]; ++i) {
     for (int j = 0; j < cmap.gs[1]; ++j) {
       for (int k = 0; k < cmap.gs[2]; ++k) {
         int id2 = j + cmap.gs[1]*k; //2d index ito map
         assert(id2 < map.nc);
         int id3 = i + cmap.gs[0]*j + cmap.gs[0]*cmap.gs[1]*k; // 3d index into cmap
-        assert(id3 < cmap.nc);              
+        assert(id3 < cmap.nc);
         cmap.cells[id3] = map.cells[id2];
       }
     }
@@ -64,7 +64,7 @@ void CarGrid::Slice(const Map<bool, 3> &cmap, double a, Map<bool, 2> &map) const
   assert(map.gs[0] == cmap.gs[1]);
   assert(map.gs[1] == cmap.gs[2]);
 
-  int ia = cmap.Index(a, 0);
+  int ia = cmap.index(a, 0);
   for (int ix = 0; ix < cmap.gs[1]; ++ix) {
     for (int iy = 0; iy < cmap.gs[2]; ++iy) {
       // index into workspace
@@ -75,7 +75,7 @@ void CarGrid::Slice(const Map<bool, 3> &cmap, double a, Map<bool, 2> &map) const
       assert(id3 < cmap.nc);
       map.cells[id2] = cmap.cells[id3];
     }
-  }    
+  }
 }
 
 
@@ -84,7 +84,7 @@ void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3>
   assert(map.gs[1] == cmap.gs[2]);
 
   vector<Vector2d> points;
-  geom.Raster(map.cs, points);
+  geom.raster(map.cs, points);
 
   Matrix2d R;
 
@@ -97,15 +97,15 @@ void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3>
     double st = sin(theta);
     R(0,0) = ct; R(0,1) = -st;
     R(1,0) = st; R(1,1) = ct;
-    
+
     // dilated map
     //    bool dmap[cmap.gs[1]*cmap.gs[2]];
     //    DilateMap(geom, theta,
-    //              cmap.cs[1], cmap.cs[2], cmap.gs[1], cmap.gs[2], 
+    //              cmap.cs[1], cmap.cs[2], cmap.gs[1], cmap.gs[2],
     //              map.cells, dmap);
     for (int ix = 0; ix < cmap.gs[1]; ++ix) {
       double x = (ix + 0.5)*cmap.cs[1] + cmap.xlb[1];
-      
+
       for (int iy = 0; iy < cmap.gs[2]; ++iy) {
         // index into workspace
         int id2 = ix + iy*cmap.gs[1];
@@ -122,10 +122,10 @@ void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3>
         Vector2d p0(x,y); // position of car origin
         for (auto&& dp : points) {
           Vector2d p = p0 + R*dp; // point on the car
-          cmap.Set(Vector3d(theta, p[0], p[1]), true);
+          cmap.setData(Vector3d(theta, p[0], p[1]), true);
         }
       }
-    }    
+    }
   }
 }
 
@@ -142,24 +142,24 @@ void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3>
     // dilated map
     bool dmap[cmap.gs[1]*cmap.gs[2]];
     DilateMap(geom, theta,
-              cmap.cs[1], cmap.cs[2], cmap.gs[1], cmap.gs[2], 
+              cmap.cs[1], cmap.cs[2], cmap.gs[1], cmap.gs[2],
               map.cells, dmap);
     for (int ix = 0; ix < cmap.gs[1]; ++ix) {
       for (int iy = 0; iy < cmap.gs[2]; ++iy) {
         cmap.cells[ia + ix*cmap.gs[0] + iy*cmap.gs[0]*cmap.gs[1]] = dmap[ix + iy*cmap.gs[1]];
       }
-    }    
+    }
   }
 }
 */
 
  void CarGrid::DilateMap(const CarGeom& geom, double theta,
-                         double sx, double sy, int gx, int gy, 
+                         double sx, double sy, int gx, int gy,
                          const bool* data, bool* data_dil) {
-   
+
    Matrix2x4d verts2d_rotd_pix;
   getRotdVertsInPixWrtOrg(verts2d_rotd_pix, geom.l, geom.b, geom.ox, geom.oy, sx, sy, theta);
-  
+
   // round of the pixel values of the vertices above such that the rectange
   // formed by the rounded off
   //  vertices surrounds the rotated rectange

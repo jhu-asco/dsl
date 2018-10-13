@@ -107,7 +107,7 @@ int main(int argc, char** argv)
   double bp=1; //backward_penalty
   CarConnectivity connectivity(*pgrid,bp, only_fwd, 1);
   GridSearch<3, Matrix3d> search(*pgrid, connectivity, cost, expand_at_start);
-  cout << "Created a graph with " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
+  cout << "Created a graph with " << search.vertexCount() << " vertices and " << search.edgeCount() << " edges. " << endl;
   printf("And the graph construction time= %ld  us\n", (long int)time);
   cout <<"Grid info:"<<endl;
   cout <<"\tcs:"<<pgrid->cs.transpose()<<endl;
@@ -119,14 +119,14 @@ int main(int argc, char** argv)
   cout << "Planning a path..." << endl;
   SE2Path path, path2, path3;
   long time = timer_us(&timer);
-  search.SetStart(start);
-  search.SetGoal(goal);
+  search.setStart(start);
+  search.setGoal(goal);
   timer_start(&timer);
-  search.Plan(path);
+  search.plan(path);
   time = timer_us(&timer);
   printf("plan path time= %ld  us\n", time);
   printf("path: edges=%lu len=%f\n", path.cells.size(), path.cost);
-  cout << "After planning the graph now has " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
+  cout << "After planning the graph now has " << search.vertexCount() << " vertices and " << search.edgeCount() << " edges. " << endl;
 
   //   Print and save result for case 1
   int scale=3; //scale original image for clarity
@@ -156,14 +156,14 @@ int main(int argc, char** argv)
   //Re-planning the planned path when the initial position is moved to a halfway point
   cout << "Re-planning the planned path when the initial position is moved to a halfway point" << endl;
   Vector3d cell_mid = path.cells[path.cells.size()/2].c;  // follow path until middle
-  search.SetStart(cell_mid);
+  search.setStart(cell_mid);
 
   timer_start(&timer);
-  search.Plan(path2);
+  search.plan(path2);
   time = timer_us(&timer);
   printf("re-planning path time= %ld  us\n", time);
   printf("path: edges=%lu len=%f\n", path.cells.size(), path2.cost);
-  cout << "After re-planning the graph now has " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
+  cout << "After re-planning the graph now has " << search.vertexCount() << " vertices and " << search.edgeCount() << " edges. " << endl;
 
   //   Print and save result for case 2
   scaleMap<char>(mapPath, chmap,width,height,scale);
@@ -192,7 +192,7 @@ int main(int argc, char** argv)
   cout << "Re-planning the planned path when the initial position is moved to a halfway point and a narrow path along prev path closed off" << endl;
 
   //  cell_mid = path.cells[path.cells.size()/2].c;  // follow path until middle
-  search.SetStart(cell_mid);
+  search.setStart(cell_mid);
 
   for(int r=150; r<160;r++){
     for(int c=176;c<195;c++){
@@ -200,8 +200,8 @@ int main(int argc, char** argv)
       chmap[idx]=2; //for displaying where we block the path
       for (double a = pgrid->xlb[0]+pgrid->cs[0]/2; a < pgrid->xub[0]; a += pgrid->cs[0]){
         Vector3d x(a, (c+0.5)*pgrid->cs[1], (r+0.5)*pgrid->cs[2]);
-        // search.RemoveCell(x);
-        search.SetCost(x, 1000);
+        // search.removeCell(x);
+        search.setCost(x, 1000);
       }
     }
   }
@@ -212,18 +212,18 @@ int main(int argc, char** argv)
       chmap[idx]=2;//for displaying where we block the path
       for (double a = pgrid->xlb[0]+pgrid->cs[0]/2; a < pgrid->xub[0]; a += pgrid->cs[0]){
         Vector3d x(a,(c+0.5)*pgrid->cs[1],(r+0.5)*pgrid->cs[2]);
-        // search.RemoveCell(x);
-        search.SetCost(x, 1000);
+        // search.removeCell(x);
+        search.setCost(x, 1000);
       }
     }
   }
   
   timer_start(&timer);
-  search.Plan(path3);
+  search.plan(path3);
   time = timer_us(&timer);
   printf("re-planning path time= %ld  us\n", time);
   printf("path: edges=%lu len=%f\n", path3.cells.size(), path3.cost);
-  cout << "After re-planning with narrow path closing the graph now has " << search.Vertices() << " vertices and " << search.Edges() << " edges. " << endl;
+  cout << "After re-planning with narrow path closing the graph now has " << search.vertexCount() << " vertices and " << search.edgeCount() << " edges. " << endl;
 
   //   Print and save result for case 3
   scaleMap<char>(mapPath, chmap,width,height,scale);

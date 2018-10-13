@@ -6,18 +6,17 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_CARGRID_H
-#define DSL_CARGRID_H
+#pragma once
 
-#include "grid.h"
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 #include <vector>
+#include "grid.h"
 #include "map.h"
 
 namespace dsl {
 
-  typedef Cell< Eigen::Vector3d, Eigen::Matrix3d > SE2Cell;
+using SE2Cell = Cell< Eigen::Vector3d, Eigen::Matrix3d >;
 
 // geometry of the car
 struct CarGeom {
@@ -26,12 +25,12 @@ struct CarGeom {
   double b;  ///< dim of the rectangle bounding the car along the y direction
 
   //  Eigen::Vector2d o;
-  
+
   double ox; ///< x position of the center of the origin of the car wrt to the
   /// center of bounding rectangle
   double oy; ///< y position of the center of the origin of the car wrt to the
 
-  void Raster(const Eigen::Vector2d &cs, std::vector<Eigen::Vector2d> &points) const {
+  void raster(const Eigen::Vector2d &cs, std::vector<Eigen::Vector2d> &points) const {
     points.clear();
     for (double x = 0; x <= l; x += cs[0])
       for (double y = 0; y <= b; y += cs[1])
@@ -53,23 +52,21 @@ class CarGrid : public Grid< Eigen::Vector3d, Eigen::Matrix3d > {
 public:
   CarGrid(const Map<bool, 3> &cmap,
           const Eigen::Vector3d& cs);
-  
+
   const Map<bool, 3>& cmap; ///< configuration-space map
-  
+
   static void MakeMap(const Map<bool, 2> &map, Map<bool, 3> &cmap);
-  
+
   static void MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3> &cmap);
-  
+
   static void DilateMap(const CarGeom& geom, double theta,
-                        double sx, double sy, int gx, int gy, 
+                        double sx, double sy, int gx, int gy,
                         const bool* data, bool* data_dil);
 
 
   void Slice(const Map<bool, 3> &cmap, double a, Map<bool, 2> &map) const;
 
-  
+
     //  std::vector<Eigen::Vector2d> raster;
 };
 }
-
-#endif

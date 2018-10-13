@@ -6,8 +6,7 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_GRAPH_H
-#define DSL_GRAPH_H
+#pragma once
 
 #include "vertex.h"
 #include "edge.h"
@@ -30,16 +29,14 @@ struct Graph {
   /**
    *   Initialize an empty graph
    */
-  Graph();
-
-  virtual ~Graph();
+  Graph() = default;
 
   /**
    * Add vertex. Vertex is added to map of vertices.
    * No other graph elements are modified.
    * @param v vertex
    */
-  void AddVertex(Vertex< Tv, Te >& v);
+  void addVertex(Vertex< Tv, Te >& v);
 
   /**
    * Remove vertex v. Incoming and outgoing edges
@@ -50,7 +47,7 @@ struct Graph {
    * @param del delete/free all removed data? (false by default), since
    *        often the data is a pointer to an externally created object
    */
-  void RemoveVertex(Vertex< Tv, Te >& v, bool re = true, bool del = false);
+  void removeVertex(Vertex< Tv, Te >& v, bool re = true, bool del = false);
 
   /**
    * Add edge. If the from/to vertices
@@ -59,7 +56,7 @@ struct Graph {
    * list of edges
    * @param e edge
    */
-  void AddEdge(Edge< Tv, Te >& e);
+  void addEdge(Edge< Tv, Te >& e);
 
   /**
    * Remove edge.
@@ -77,116 +74,108 @@ struct Graph {
    *            we care more about speed rather than memory; and these will be
    *            deleted when the graph object is deleted anyways)
    */
-  void RemoveEdge(Edge< Tv, Te >& e, bool update = true, bool del = false);
+  void removeEdge(Edge< Tv, Te >& e, bool update = true, bool del = false);
 
   /**
    * Checks if a vertex exists
    * @param v the vertex
    * @return true if present in the graph
    */
-  bool Exists(const Vertex< Tv, Te >& v) const;
+  bool exists(const Vertex< Tv, Te >& v) const;
 
   std::map< int, Edge< Tv, Te >* > edges;      ///< all edges
   std::map< int, Vertex< Tv, Te >* > vertices; ///< all vertices
 
-  Search< Tv, Te >*
-      search = 0; ///< search operating on this graph, this is necessary
-  /// since in D*, we can remove/add edges to the graph,
-  /// or change their costs, and the search will be
-  /// updated accordingly though this field, so that next
-  /// time it is run it will replan quickly
+  // search operating on this graph, this is necessary
+  // since in D*, we can remove/add edges to the graph,
+  // or change their costs, and the search will be
+  // updated accordingly though this field, so that next
+  // time it is run it will replan quickly
+  Search< Tv, Te >* search = 0;
 };
 
-template < class Tv, class Te >
-Graph< Tv, Te >::Graph()
-  : search(0) {}
 
 template < class Tv, class Te >
-Graph< Tv, Te >::~Graph() {}
-
-template < class Tv, class Te >
-void Graph< Tv, Te >::AddVertex(Vertex< Tv, Te >& v) {
+void Graph< Tv, Te >::addVertex(Vertex< Tv, Te >& v) {
   vertices[v.id] = &v;
 }
 
 template < class Tv, class Te >
-void Graph< Tv, Te >::RemoveVertex(Vertex< Tv, Te >& v, bool re, bool del) {
+void Graph< Tv, Te >::removeVertex(Vertex< Tv, Te >& v, bool re, bool del) {
   if (re) {
     typename std::map< int, Edge< Tv, Te >* >::iterator i;
     // remove all incoming edges
     for (i = v.in.begin(); i != v.in.end(); ++i)
-      RemoveEdge(*i->second, true, del);
+      removeEdge(*i->second, true, del);
     // remove all outgoing edges
     for (i = v.out.begin(); i != v.out.end(); ++i)
-      RemoveEdge(*i->second, true, del);
+      removeEdge(*i->second, true, del);
   }
 
   // remove from list of vertices
   vertices.erase(v.id);
 
   if (search && search->last())
-    search->Remove(v);
+    search->remove(v);
 
   if (del)
     delete &v;
 }
 
 template < class Tv, class Te >
-void Graph< Tv, Te >::AddEdge(Edge< Tv, Te >& e) {
+void Graph< Tv, Te >::addEdge(Edge< Tv, Te >& edge) {
   // attach to start node
-  if (e.from)
-    e.from->out[e.id] = &e;
+  if (edge.from)
+    edge.from->out[edge.id] = &edge;
   // attach to end node
-  if (e.to)
-    e.to->in[e.id] = &e;
+  if (edge.to)
+    edge.to->in[edge.id] = &edge;
   // add to list of graph edges
-  edges[e.id] = &e;
+  edges[edge.id] = &edge;
 
   // if there's an active search
   if (search && search->last()) {
-    double cost = e.cost;
-    e.cost = DSL_DBL_MAX;
-    search->ChangeCost(e, cost);
+    double cost = edge.cost;
+    edge.cost = DSL_DBL_MAX;
+    search->changeCost(edge, cost);
   }
 }
 
 template < class Tv, class Te >
-void Graph< Tv, Te >::RemoveEdge(Edge< Tv, Te >& e, bool update, bool del) {
+void Graph< Tv, Te >::removeEdge(Edge< Tv, Te >& edge, bool update, bool del) {
   // if there's an active search
   if (update && search && search->last()) {
-    Vertex< Tv, Te >* u = e.from;
-    Vertex< Tv, Te >* v = e.to;
+    Vertex< Tv, Te >* u = edge.from;
+    Vertex< Tv, Te >* v = edge.to;
 
-    double cost = e.cost;
-    e.costChange = DSL_DBL_MAX - cost;
-    e.cost = DSL_DBL_MAX;
+    double cost = edge.cost;
+    edge.cost_change = DSL_DBL_MAX - cost;
+    edge.cost = DSL_DBL_MAX;
 
     // update the start vertex
-    if (u && u->openListNode && v && v->openListNode) {
-      if (search->Eq(u->rhs, cost + v->g) && !search->InGoalSet(*u)) {
-        search->MinSucc(&u->rhs, *u);
+    if (u && u->open_list_node && v && v->open_list_node) {
+      if (search->nearEqual(u->rhs, cost + v->g) && !search->inGoalSet(*u)) {
+        search->minSucc(&u->rhs, *u);
       }
-      search->UpdateVertex(*u);
+      search->updateVertex(*u);
     }
   }
 
   // remove from list of edges
-  edges.erase(e.id);
+  edges.erase(edge.id);
   // remove from start node
-  if (e.from)
-    e.from->out.erase(e.id);
+  if (edge.from)
+    edge.from->out.erase(edge.id);
   // remove from end node
-  if (e.to)
-    e.to->in.erase(e.id);
+  if (edge.to)
+    edge.to->in.erase(edge.id);
 
   if (del)
-    delete &e;
+    delete &edge;
 }
 
 template < class Tv, class Te >
-bool Graph< Tv, Te >::Exists(const Vertex< Tv, Te >& v) const {
-  return (vertices.find(v.id) != vertices.end());
+bool Graph< Tv, Te >::exists(const Vertex< Tv, Te >& vertex) const {
+  return (vertices.find(vertex.id) != vertices.end());
 }
 }
-
-#endif

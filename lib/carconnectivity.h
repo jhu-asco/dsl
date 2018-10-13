@@ -6,12 +6,11 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_CARCONNECTIVITY_H
-#define DSL_CARCONNECTIVITY_H
+#pragma once
 
+#include <vector>
 #include "gridconnectivity.h"
 #include "cargrid.h"
-#include <vector>
 #include "carcost.h"
 #include "map.h"
 
@@ -40,8 +39,8 @@ public:
   CarConnectivity(const CarGrid& grid,
                   const std::vector<Eigen::Vector3d>& vs,
                   double dt = .25);
-  
-  
+
+
   /**
    * Initialize cargrid connectivity
    * @param grid The car grid
@@ -58,7 +57,7 @@ public:
                   double kmax = 0.577,
                   int kseg = 4,
                   bool onlyfwd = false);
-  
+
   /**
    * Use a set of primitive motions, i.e. arcs with body fixed forward
    * velocities (-v,v) and
@@ -76,17 +75,17 @@ public:
    * @param onlyfwd If true, then only +ve forward velocity is used
    * @return true on success
    */
-  bool SetPrimitives(double dt,
+  bool setPrimitives(double dt,
                      double vx,
                      double kmax,
                      int kseg = 4,
                      bool onlyfwd = false);
-  
+
   bool operator()(const SE2Cell& from,
                   std::vector< std::tuple<SE2Cell*, SE2Path, double> >& paths,
                   bool fwd = true) const override;
 
-  bool Free(const Eigen::Matrix3d &g) const override { return true; }
+  bool free(const Eigen::Matrix3d &g) const override { return true; }
 
   /**
    * Generate a path (a sequence of points) from initialize state in SE(2)
@@ -97,7 +96,7 @@ public:
    * @param v body fixed velocity (vx,vy,w)
    * @return true on success, false if obststructed by obstacle
    */
-  bool Flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
+  bool flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
             const Eigen::Matrix3d& g0,
             const Eigen::Vector3d& v) const;
 
@@ -111,5 +110,3 @@ public:
   CarCost cost;
 };
 }
-
-#endif

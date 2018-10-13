@@ -6,8 +6,7 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_GRIDCOST_H
-#define DSL_GRIDCOST_H
+#pragma once
 
 #include "cost.h"
 #include "gridpath.h"
@@ -24,19 +23,18 @@ class GridCost : public Cost< Cell<PointType, DataType> > {
 public:
 
   using GridVertexData = Cell<PointType, DataType>;
-    
-  double Real(const GridVertexData& a, const GridVertexData& b) const {
-    // default real cost is euclidean distance + average cell cost multiplied by
-    // Euclidean distance
+
+  double real(const GridVertexData& a, const GridVertexData& b) const {
+    // default real cost is euclidean distance
     return (a.c - b.c).norm();
+    //  another version adds a term for the average cell cost multiplied by
+    // Euclidean distance, as specified below:
     // return (1 + (a.cost + b.cost) / 2) * (a.c - b.c).norm();
   }
 
-  double Heur(const GridVertexData& a, const GridVertexData& b) const {
+  double heur(const GridVertexData& a, const GridVertexData& b) const {
     // default Heuristic cost is the Euclidean distance
     return (a.c - b.c).norm();
   }
 };
 }
-
-#endif

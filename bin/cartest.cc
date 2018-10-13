@@ -86,11 +86,11 @@ int main(int argc, char** argv)
 
     cmapName = mapName;
     replaceExt(cmapName, string("cmap"));
-    dsl::Map<bool,3>::Save(*cmap, cmapName.c_str());
+    dsl::Map<bool,3>::save(*cmap, cmapName.c_str());
     std::cout << "Saved cmap " << cmapName << " with xlb=" << cmap->xlb.transpose() << " xub=" << cmap->xub.transpose() << " gs=" << cmap->gs.transpose() << std::endl;
 
   } else {
-    cmap = dsl::Map<bool,3>::Load(cmapName.c_str());
+    cmap = dsl::Map<bool,3>::load(cmapName.c_str());
     std::cout << "Loaded map with xlb=" << cmap->xlb.transpose() << " xub=" << cmap->xub.transpose() << " gs=" << cmap->gs.transpose() << std::endl;
   }
 
@@ -112,7 +112,7 @@ int main(int argc, char** argv)
   params.GetDouble("kmax", kmax);
   params.GetInt("kseg", kseg);
   params.GetBool("onlyfwd", onlyfwd);
-  connectivity.SetPrimitives(dt, vx, kmax, kseg, onlyfwd);
+  connectivity.setPrimitives(dt, vx, kmax, kseg, onlyfwd);
 
   cout << "Creating a graph..." << endl;
   // create planner
@@ -130,15 +130,15 @@ int main(int argc, char** argv)
   long time = timer_us(&timer);
   printf("graph construction time= %ld  us\n", time);
 
-  search.SetStart(start);
-  search.AddGoal(goal);
+  search.setStart(start);
+  search.addGoal(goal);
 
   cout << "Created a graph with " << search.GetGraph().vertices.size() << " vertices and " << search.GetGraph().edges.size() << " edges." << endl;
 
   cout << "Planning a path..." << endl;
   // plan
   timer_start(&timer);
-  search.Plan(path);
+  search.plan(path);
   time = timer_us(&timer);
   printf("plan path time= %ld  us\n", time);
   printf("path: edges=%lu len=%f\n", path.cells.size(), path.cost);

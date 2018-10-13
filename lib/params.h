@@ -37,15 +37,15 @@ class Params
 
   virtual ~Params();
 
-  void Load(const char *fileName);
-  void Load(FILE *file);
-  void Load(std::iostream &io);
+  void load(const char *fileName);
+  void load(FILE *file);
+  void load(std::iostream &io);
 
-  void Save(const char *fileName) const;
-  void Save(FILE* file) const;
-  void Save(std::iostream &io) const;
+  void save(const char *fileName) const;
+  void save(FILE* file) const;
+  void save(std::iostream &io) const;
 
-  bool Exists(const char *name) const { return valueMap.find(std::string(name)) != valueMap.end(); }
+  bool exists(const char *name) const { return valueMap.find(std::string(name)) != valueMap.end(); }
 
   void SetInt(const char *name, int v);
   bool GetInt(const char *name, int &v) const;

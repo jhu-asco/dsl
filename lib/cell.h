@@ -6,8 +6,7 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_CELL_H
-#define DSL_CELL_H
+#pragma once
 
 namespace dsl {
 
@@ -21,36 +20,18 @@ struct Cell {
 
 public:
  Cell(int id, const PointType& c) : id(id), c(c) {}
-  
+
   /**
-   * Initialize a cell using its center and cost
-   * @param c center
-   * @param data data
+   * Initialize a cell using its id, center and data
    */
  Cell(int id, const PointType& c, const DataType &data)
  : id(id), c(c), data(data) {}
 
-  Cell(const Cell< PointType, DataType >& cell)
-  : id(cell.id), c(cell.c), data(cell.data) {}
+  Cell(const Cell< PointType, DataType >& cell) = default;
 
-  /**
-   * Is a point x inside the cell
-   * @param x point
-   * @return true if inside
-  bool Inside(const PointType& x) {
-    for (int i = 0; i < x.size(); ++i)
-      if (x[i] < c[i] - r[i] || x[i] > c[i] + r[i])
-        return false;
-    return true;
-  }
-   */
+  int id = -1; ///< cell id initialized to some invalid negative index
 
-  int id = -1;
-  
   PointType c; ///< center of cell
-  //  PointType r; ///< half-distance of each cell side
-
-  //  double cost; ///< cost of cell (typically this is 0 if unoccupied)
 
   DataType data; ///< generic data stored in the cell (e.g. could store the actual
   /// position of a system which might not coincide with the center of
@@ -58,5 +39,3 @@ public:
   /// data)
 };
 }
-
-#endif

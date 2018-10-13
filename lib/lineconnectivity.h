@@ -6,8 +6,7 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_LINECONNECTIVITY_H
-#define DSL_LINECONNECTIVITY_H
+#pragma once
 
 #include "gridconnectivity.h"
 #include "grid.h"
@@ -28,7 +27,7 @@ template < class PointType, class DataType = EmptyData>
     class LineConnectivity : public GridConnectivity< PointType, DataType, PointType> {
 public:
 
-using TypedCell = Cell<PointType, DataType>;
+using CellType = Cell<PointType, DataType>;
 
   /**
    * Initialize connectivity using a grid
@@ -46,28 +45,29 @@ using TypedCell = Cell<PointType, DataType>;
                    const std::vector<PointType>& lines,
                    const std::vector< double >& costs);
 
-  virtual bool Free(const DataType &cost) const override { return cost < 0.5; }
+  // the data stored in each cell is just the occupancy probability
+  // if the occupancy probability is less than 0.5 we return free
+  bool free(const DataType &cost) const override { return cost < 0.5; }
 
-  virtual bool operator()(const Cell<PointType, DataType>& from,
-                          std::vector< std::tuple<Cell<PointType, DataType>*, PointType, double> >& paths,
-                          bool fwd = true) const;
+  bool operator()(const Cell<PointType, DataType>& from,
+                  std::vector< std::tuple<Cell<PointType, DataType>*, PointType, double> >& paths,
+                  bool fwd = true) const override;
 
   /**
    * Experimental path "straightening" function
    * @param path original path
-   * @param optPath optimized path
+   * @param opt_path optimized path
    * @param freeCost (anything above freeCost is considered an obstacle through
    * the path cannoth pass)
    * @param traceStep step with which to trace the path during optimization
    * (should be comparable to the cell size, by defaut is -1 which means the
    * internally the cell size is used)
    */
-  void OptPath(const GridPath< PointType, DataType, PointType >& path,
-               GridPath< PointType, DataType, PointType >& optPath,
+  void straightPath(const GridPath< PointType, DataType, PointType >& path,
+               GridPath< PointType, DataType, PointType >& opt_path,
                double freeCost = 1e-3,
                double traceStep = -1.0) const;
 
-   
 
   /**
    * Experimental path "smoothing" function
@@ -76,7 +76,7 @@ using TypedCell = Cell<PointType, DataType>;
    * @param traceStep step with which to trace the path during optimization
    * (should be comparable to the cell size, by defaut is 0.1)
    */
-  void SplinePath(const GridPath< PointType, DataType, PointType >& path,
+  void splinePath(const GridPath< PointType, DataType, PointType >& path,
                   std::vector< PointType >& splinePath,
                   // GridPath<n,CellData> &splineCells,
                   double traceStep = 0.1) const;
@@ -109,17 +109,17 @@ template < class PointType, class DataType >
     else
       x -= lines[i];
 
-    if (!grid.Valid(x))
+    if (!grid.valid(x))
       continue;
 
-    TypedCell *cell = grid.Get(x, false);
+    CellType *cell = grid.data(x, false);
     if (!cell)
       continue;
 
-    if (!Free(cell->data)) // if obstacle
+    if (!free(cell->data)) // if obstacle
       continue;
 
-    paths.push_back(std::make_tuple(cell, lines[i], costs[i]));    
+    paths.push_back(std::make_tuple(cell, lines[i], costs[i]));
   }
   return true;
 }
@@ -127,19 +127,19 @@ template < class PointType, class DataType >
 
 
 template < class PointType, class DataType >
-    void LineConnectivity< PointType, DataType>::OptPath(
+    void LineConnectivity< PointType, DataType>::straightPath(
         const GridPath< PointType, DataType, PointType >& path,
-        GridPath< PointType, DataType, PointType >& optPath,
+        GridPath< PointType, DataType, PointType >& opt_path,
         double freeCost,
         double traceStep) const {
   double len = 0;
 
-  optPath.cells.clear();
-  optPath.cost = 0;
+  opt_path.cells.clear();
+  opt_path.cost = 0;
 
   if (path.cells.size() == 2) {
-    optPath.cells = path.cells;
-    optPath.cost = path.cost;
+    opt_path.cells = path.cells;
+    opt_path.cost = path.cost;
     return;
   }
   auto it0 = path.cells.begin();
@@ -152,7 +152,7 @@ template < class PointType, class DataType >
   double dn = dx0.norm();
   dx0 /= dn;
 
-  optPath.cells.push_back(path.cells[0]);
+  opt_path.cells.push_back(path.cells[0]);
 
   if (traceStep <= 0)
     traceStep = grid.cs.norm();
@@ -169,10 +169,10 @@ template < class PointType, class DataType >
       dn = (x0 - x2).norm();
       for (double d = traceStep; d < dn; d += traceStep) {
         PointType x = x0 + dx1 * d;
-        int id = grid.Id(x);
+        int id = grid.computeId(x);
         assert(id >= 0 && id < grid.nc);
-        if (!grid.cells[id] || !Free(grid.cells[id]->data)) {
-          optPath.cells.push_back(*it1);
+        if (!grid.cells[id] || !free(grid.cells[id]->data)) {
+          opt_path.cells.push_back(*it1);
           x0 = x1;
           break;
         }
@@ -183,12 +183,12 @@ template < class PointType, class DataType >
     }
   }
 
-  optPath.cells.push_back(path.cells.back());
+  opt_path.cells.push_back(path.cells.back());
 }
 
 
 template < class PointType, class DataType >
-    void LineConnectivity< PointType, DataType >::SplinePath(const GridPath< PointType, DataType, PointType>& path,
+    void LineConnectivity< PointType, DataType >::splinePath(const GridPath< PointType, DataType, PointType>& path,
                                                              std::vector< PointType >& splinePath,
                                                              double traceStep) const {
   std::vector< double > steps(path.cells.size());
@@ -207,8 +207,6 @@ template < class PointType, class DataType >
   }
   int count = (path.cells.size() - 1) / traceStep;
   splinePath.resize(count);
-  // splineCells.cells.resize(count);
-  // splineCells.cost = 0;
 
   for (int i = 0; i < count; i++) {
     PointType pti;
@@ -217,17 +215,15 @@ template < class PointType, class DataType >
     }
     splinePath[i] = pti;
 
-    // std::cout << i*traceStep << std::endl;
-    // std::cout << pti.transpose() << std::endl;
     //  TODO(comment this out)
-    Cell<PointType, DataType>* cell = grid.Get(splinePath[i]);
+    Cell<PointType, DataType>* cell = grid.data(splinePath[i]);
     if(!cell)
     {
-      std::cout << "dsl::SplinePath: Cell does not exist" << std::endl;
+      std::cout << "dsl::splinePath: Cell does not exist" << std::endl;
       return;
     }
     /*
-    splineCells.cells[i] = *(grid.Get(splinePath[i]));
+    splineCells.cells[i] = *(grid.data(splinePath[i]));
     if(i > 0)
     {
       splineCells.cost +=
@@ -236,9 +232,4 @@ template < class PointType, class DataType >
     */
   }
 }
-
-
-
 }
-
-#endif

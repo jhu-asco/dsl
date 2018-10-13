@@ -6,8 +6,7 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_EDGE_H
-#define DSL_EDGE_H
+#pragma once
 
 #include <iostream>
 #include <iomanip>
@@ -29,7 +28,7 @@ struct Empty {};
 
 /**
  * A generic edge b/n two vertices. Contains an edge cost
- * as well as a costChange variable that could be used
+ * as well as a cost_change variable that could be used
  * for path planning/replanning algorithms such as D* (see Search)
  * Each vertex stores data of type Tv and each edge stores data of type Te,
  * edge data is optional and defaults to the simplest data type, i.e. a bool.
@@ -38,6 +37,9 @@ struct Empty {};
  */
 template < class Tv, class Te = Empty >
 struct Edge {
+
+  using VertexT = Vertex<Tv, Te>;
+
   /**
    * Initialize an edge using two vertices and a cost;
    * all parameters are optional since an edge does not
@@ -46,11 +48,10 @@ struct Edge {
    * @param to to vertex (optional)
    * @param cost cost (optional)
    */
-  Edge(Vertex< Tv, Te >* from = 0, Vertex< Tv, Te >* to = 0, double cost = 0)  :
-  id(s_id), from(from), to(to), cost(cost), costChange(DSL_DBL_MIN) {
+  Edge(VertexT* from = 0, VertexT* to = 0, double cost = 0)  :
+  id(s_id), from(from), to(to), cost(cost), cost_change(DSL_DBL_MIN) {
     ++s_id;
   }
-
 
   /**
    * Initialize an edge using its user data, two vertices and a cost;
@@ -62,28 +63,28 @@ struct Edge {
    * @param cost cost (optional)
    */
   Edge(const Te& data,
-       Vertex< Tv, Te >* from = 0,
-       Vertex< Tv, Te >* to = 0,
+       VertexT* from = 0,
+       VertexT* to = 0,
        double cost = 0) : id(s_id),
     data(data),
     from(from),
     to(to),
     cost(cost),
-    costChange(DSL_DBL_MIN) {
+    cost_change(DSL_DBL_MIN) {
     ++s_id;
   }
 
-  virtual ~Edge() {};
+  virtual ~Edge() = default;
 
   int id; ///< edge id (set internally at init)
 
   Te data; ///< edge data
 
-  Vertex< Tv, Te >* from; ///< from vertex
-  Vertex< Tv, Te >* to;   ///< to vertex
+  VertexT* from; ///< from vertex
+  VertexT* to;   ///< to vertex
 
   double cost;       ///< cost
-  double costChange; ///< change in cost (used internally)
+  double cost_change; ///< change in cost (used internally)
 
 private:
   static int s_id; ///< id counter
@@ -93,5 +94,3 @@ template<class Tv, class Te>
 int Edge<Tv, Te>::s_id = 0;
 
 }
-
-#endif
