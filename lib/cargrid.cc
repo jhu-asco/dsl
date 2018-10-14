@@ -27,7 +27,7 @@ CarGrid::CarGrid(const Map<bool, 3> &cmap,
   for (int k = 0; k < gs[0]; ++k) {
     for (int c = 0; c < gs[1]; ++c) {
       for (int r = 0; r < gs[2]; ++r) {
-        // centr of cell
+        // center of cell
         Vector3d x = xlb + Vector3d((k + 0.5) * cs[0], (c + 0.5) * cs[1], (r + 0.5) * cs[2]);
           int id = r*gs[0]*gs[1] + c*gs[0] + k;
 
@@ -35,7 +35,7 @@ CarGrid::CarGrid(const Map<bool, 3> &cmap,
         if (!occ) {
           cells[id] = new SE2Cell(id, x);
 
-          se2_q2g(cells[id]->data, cells[id]->centr);
+          se2_q2g(cells[id]->data, cells[id]->c);
         }
       }
     }

@@ -84,7 +84,7 @@ bool CarConnectivity::
                std::vector< std::tuple<SE2Cell*, SE2Path, double> >& paths,
                bool fwd) const {
   Matrix3d g0;
-  se2_q2g(g0, from.centr);
+  se2_q2g(g0, from.c);
 
   paths.clear();
   for (const auto& s : vs) {
@@ -95,7 +95,7 @@ bool CarConnectivity::
     }
     assert(std::get<0>(pathTuple));
 
-    // the path will now end inside the last cell but not exactly at the centr,
+    // the path will now end inside the last cell but not exactly at the center,
     // which is a good enough
     // approximation if the cells are small
     if (!std::get<1>(pathTuple).size())

@@ -26,15 +26,15 @@ public:
 
   double real(const GridVertexData& a, const GridVertexData& b) const {
     // default real cost is euclidean distance
-    return (a.centr - b.centr).norm();
+    return (a.c - b.c).norm();
     //  another version adds a term for the average cell cost multiplied by
     // Euclidean distance, as specified below:
-    // return (1 + (a.cost + b.cost) / 2) * (a.centr - b.centr).norm();
+    // return (1 + (a.cost + b.cost) / 2) * (a.c - b.c).norm();
   }
 
   double heur(const GridVertexData& a, const GridVertexData& b) const {
     // default Heuristic cost is the Euclidean distance
-    return (a.centr - b.centr).norm();
+    return (a.c - b.c).norm();
   }
 };
 }

@@ -19,22 +19,22 @@ template < class PointType, class DataType >
 struct Cell {
 
 public:
- Cell(int id, const PointType& c) : id(id), centr(centr) {}
+ Cell(int id, const PointType& c) : id(id), c(c) {}
 
   /**
-   * Initialize a cell using its id, centr and data
+   * Initialize a cell using its id, center and data
    */
  Cell(int id, const PointType& c, const DataType &data)
- : id(id), centr(centr), data(data) {}
+ : id(id), c(c), data(data) {}
 
   Cell(const Cell< PointType, DataType >& cell) = default;
 
   int id = -1; ///< cell id initialized to some invalid negative index
 
-  PointType centr; ///< centr of cell
+  PointType c; ///< center of cell
 
   DataType data; ///< generic data stored in the cell (e.g. could store the actual
-  /// position of a system which might not coincide with the centr of
+  /// position of a system which might not coincide with the center of
   /// the cell, but more generally can store extra algorithm-specific
   /// data)
 };

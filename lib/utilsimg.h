@@ -30,8 +30,8 @@ typedef Matrix< int, 2, 4 > Matrix2x4i;
  * @param verts2d_rotd_pix coordinates of the 4 corners(rb,rf,lf,lb) in order
  * @param l Dimension along the x axis of the car
  * @param b Dimension along the y axis of the car
- * @param ox x coordinate origin of the car with respect to the rectangle centr
- * @param oy y coordinate origin of the car with respect to the rectangle centr
+ * @param ox x coordinate origin of the car with respect to the rectangle center
+ * @param oy y coordinate origin of the car with respect to the rectangle center
  * @param sx Pixel width in meters in x direction(horizontal)
  * @param sy Pixel width in meters in y direction(vertical)
  * @param theta Angle by which the rectangle is rotated
