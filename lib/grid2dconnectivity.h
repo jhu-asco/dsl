@@ -16,7 +16,7 @@ namespace dsl {
 /**
  * Defines a simple connectivity between cells in a 2d grid.
  * The default implementation is the 8-cell Moore neighborhood connectivity.
- * The costs are the Euclidean distances b/n the cell centers.
+ * The costs are the Euclidean distances b/n the cell centrs.
  */
   class Grid2dConnectivity : public LineConnectivity< Eigen::Vector2d, double> {
   public:

@@ -60,7 +60,7 @@ int main(int argc, char** argv)
   // print results
   vector<Cell<Vector2d, double> >::iterator it;
   for (it = path.cells.begin(); it != path.cells.end(); ++it) {
-    int id = grid.computeId(it->c);
+    int id = grid.computeId(it->centr);
     mapPath[id] = 2;
   }
   printf("\n");
@@ -126,13 +126,13 @@ int main(int argc, char** argv)
 
 
   for (it = path.cells.begin(); it != path.cells.end(); ++it) {
-    int id = grid.computeId(it->c);
+    int id = grid.computeId(it->centr);
     mapPath[id] = 2;
   }
   printf("\n");
 
   for (it = opt_path.cells.begin(); it != opt_path.cells.end(); ++it) {
-    int id = grid.computeId(it->c);
+    int id = grid.computeId(it->centr);
     mapPath[id] = 3;
   }
 

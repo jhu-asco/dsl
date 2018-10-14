@@ -26,7 +26,7 @@
  *
  *  For example in 2D, the cell transition costs can be encoded as the euclidean
  *distance
- *  b/n the centers of the cells (i.e. each cell has 8 neighbors:
+ *  b/n the centrs of the cells (i.e. each cell has 8 neighbors:
  *  the neighbors at N,S,W,E have transition cost of 1, and the
  *  neighbors at NE, SE, NW, SW have transition costs of sqrt(2)
  *  These transition costs are added to the maximum of the values of
@@ -518,7 +518,7 @@ template <class PointType, class DataType, class ConnectionType>
     std::vector< CellType > cells;
     cells.push_back(path.cells.front());
     for (auto cit = path.cells.begin(); (cit + 1) != path.cells.end(); ++cit) {
-      if ((cit->c - (cit + 1)->c).norm() > 1e-10)
+      if ((cit->centr - (cit + 1)->centr).norm() > 1e-10)
         cells.push_back(*(cit + 1));
     }
     path.cells = cells;

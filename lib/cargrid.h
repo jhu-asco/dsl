@@ -26,9 +26,9 @@ struct CarGeom {
 
   //  Eigen::Vector2d o;
 
-  double ox; ///< x position of the center of the origin of the car wrt to the
-  /// center of bounding rectangle
-  double oy; ///< y position of the center of the origin of the car wrt to the
+  double ox; ///< x position of the centr of the origin of the car wrt to the
+  /// centr of bounding rectangle
+  double oy; ///< y position of the centr of the origin of the car wrt to the
 
   void raster(const Eigen::Vector2d &cs, std::vector<Eigen::Vector2d> &points) const {
     points.clear();
@@ -37,7 +37,7 @@ struct CarGeom {
         points.push_back(Eigen::Vector2d(x + ox, y + oy));
   }
 
-  /// center of bounding rectangle
+  /// centr of bounding rectangle
 };
 
 

@@ -43,7 +43,7 @@ int main(int argc, char** argv)
     cout << "\t\t\t path2.ppm is replanning with start position moved to halfway point"<<endl;
     cout << "\t\t\t path3.ppm is replanning with start position moved to halfway point with a narrow passage along prev path closed off"<<endl;
     cout << "\t\t For this example the width and heigh of each pixel is 0.1m and the geometry of car is follows" << endl;
-    cout << "\t\t Rectange of size 0.75(along x) and 0.43(along y) with the car origin being at 0.15m(along x) behind rect center" << endl;
+    cout << "\t\t Rectange of size 0.75(along x) and 0.43(along y) with the car origin being at 0.15m(along x) behind rect centr" << endl;
     return 0;
   }
 
@@ -52,7 +52,7 @@ int main(int argc, char** argv)
   double b=0.43;
   double ox = -0.15;
   double oy = 0.0;
-  cout<<"The car geometry is given as a rectange of size 0.75(along x) and 0.43(along y) \n \t with the car origin being at 0.15m(along x) behind rect center"<<endl;
+  cout<<"The car geometry is given as a rectange of size 0.75(along x) and 0.43(along y) \n \t with the car origin being at 0.15m(along x) behind rect centr"<<endl;
 
   //use geometry or not
   bool use_car_geom = to_bool(string(argv[2]));

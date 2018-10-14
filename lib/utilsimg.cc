@@ -19,16 +19,16 @@ void getRotdVertsInPixWrtOrg(Matrix2x4d& verts2d_rotd_pix,
                              double sy,
                              double theta) {
   Vector2d org_m(-ox, -oy);
-  Matrix2x4d verts_wrt_center;
-  verts_wrt_center.col(0) << -l / 2, -b / 2; // rb(right back)
-  verts_wrt_center.col(1) << l / 2, -b / 2;  // rf(right front)
-  verts_wrt_center.col(2) << l / 2, b / 2;   // lf(left front)
-  verts_wrt_center.col(3) << -l / 2, b / 2;  // lb(left back)
+  Matrix2x4d verts_wrt_centr;
+  verts_wrt_centr.col(0) << -l / 2, -b / 2; // rb(right back)
+  verts_wrt_centr.col(1) << l / 2, -b / 2;  // rf(right front)
+  verts_wrt_centr.col(2) << l / 2, b / 2;   // lf(left front)
+  verts_wrt_centr.col(3) << -l / 2, b / 2;  // lb(left back)
 
   // rotate vertices about origin and convert vertices and origin to pixel
   // coordinates
   Transform2d tfm2d = Rotation2Dd(theta) * Translation2d(org_m);
-  verts2d_rotd_pix = Scaling(1 / sx, 1 / sy) * (tfm2d * verts_wrt_center);
+  verts2d_rotd_pix = Scaling(1 / sx, 1 / sy) * (tfm2d * verts_wrt_centr);
 }
 
 }

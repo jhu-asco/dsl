@@ -103,7 +103,7 @@ template < class PointType, class DataType >
                                                              bool fwd) const {
   paths.clear();
   for (size_t i = 0; i < lines.size(); ++i) {
-    PointType x = from.c;
+    PointType x = from.centr;
     if (fwd)
       x += lines[i];
     else
@@ -145,8 +145,8 @@ template < class PointType, class DataType >
   auto it0 = path.cells.begin();
   auto it1 = it0 + 1;
 
-  PointType x0 = it0->c;
-  PointType x1 = it1->c;
+  PointType x0 = it0->centr;
+  PointType x1 = it1->centr;
 
   PointType dx0 = x1 - x0;
   double dn = dx0.norm();
@@ -158,8 +158,8 @@ template < class PointType, class DataType >
     traceStep = grid.cs.norm();
 
   for (; it1 != path.cells.end() - 1; ++it1) {
-    x1 = it1->c;
-    PointType x2 = (it1 + 1)->c;
+    x1 = it1->centr;
+    PointType x2 = (it1 + 1)->centr;
     PointType dx1 = x2 - x0;
     dn = dx1.norm();
     assert(dn > 1e-12);
