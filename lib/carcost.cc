@@ -9,14 +9,16 @@ CarCost::CarCost(double ac, double eps) : ac(ac), eps(eps) {
 }
 
 double CarCost::real(const SE2Cell& a, const SE2Cell& b) const {
-  double d1 = (a.c.tail< 2 >() - b.c.tail< 2 >()).norm(); // position distance
-  double d2 = fabs(fangle(a.c(0) - b.c(0))); // orientation distance
+  double d1 =
+      (a.center.tail< 2 >() - b.center.tail< 2 >()).norm(); // position distance
+  double d2 = fabs(fangle(a.center(0) - b.center(0))); // orientation distance
   return d1 + ac * d2;
 }
 
 double CarCost::heur(const SE2Cell& a, const SE2Cell& b) const {
-  double d1 = (a.c.tail< 2 >() - b.c.tail< 2 >()).norm(); // position distance
-  double d2 = fabs(fangle(a.c[0] - b.c[0])); // orientation distance
+  double d1 =
+      (a.center.tail< 2 >() - b.center.tail< 2 >()).norm(); // position distance
+  double d2 = fabs(fangle(a.center[0] - b.center[0])); // orientation distance
 
   return (1 - eps)*(d1 + ac * d2);
 }

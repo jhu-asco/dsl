@@ -79,16 +79,15 @@ bool CarConnectivity::flow(std::tuple< SE2Cell*, SE2Path, double>& pathTuple,
     return true;
 }
 
-bool CarConnectivity::
-    operator()(const SE2Cell& from,
-               std::vector< std::tuple<SE2Cell*, SE2Path, double> >& paths,
-               bool fwd) const {
+bool CarConnectivity::operator()(const SE2Cell& from,
+                                 std::vector< PrimitiveT >& paths,
+                                 bool fwd) const {
   Matrix3d g0;
-  se2_q2g(g0, from.c);
+  se2_q2g(g0, from.center);
 
   paths.clear();
   for (const auto& s : vs) {
-    std::tuple<SE2Cell*, SE2Path, double> pathTuple;
+    PrimitiveT pathTuple;
     // reverse time if fwd=false
     if (!flow(pathTuple, g0, (fwd ? dt : -dt) * s)) {
       continue;

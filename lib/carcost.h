@@ -6,7 +6,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#pragma once
+#ifndef DSL_CARCOST_H
+#define DSL_CARCOST_H
 
 #include <Eigen/Dense>
 #include "gridcost.h"
@@ -38,3 +39,5 @@ public:
   double eps = 1e-6; ///< heuristic cost is some quadratic norm on the coordinates multiplied by (1-eps)
 };
 }
+
+#endif

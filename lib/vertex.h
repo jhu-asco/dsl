@@ -17,30 +17,30 @@
 
 namespace dsl {
 
-template < class Tv, class Te >
+template < class VertexDataT, class EdgeDataT >
 class Graph;
 
-template < class Tv, class Te >
+template < class VertexDataT, class EdgeDataT >
 class Dstar;
 
-template < class Tv, class Te >
+template < class VertexDataT, class EdgeDataT >
 class LpAstar;
-
 
 /**
  *  Generic graph vertex containing a list of incoming and outgoing edges
  *  as well as information used for graph search algorithms.
- *  Each vertex stores data of type Tv and each edge store data of type Te,
+ *  Each vertex stores data of type VertexDataT and each edge store data of type
+ *EdgeDataT,
  *  edge data is optional and defaults to the simplest data type, i.e. a bool.
  *
  *  Author: Marin Kobilarov
  */
-template < class Tv, class Te = bool>
+template < class VertexDataT, class EdgeDataT = bool >
 struct Vertex {
-
   enum class Label {kNew, kOpen, kClosed};
 
-  using VertexT = Vertex< Tv, Te >;
+  using VertexT = Vertex< VertexDataT, EdgeDataT >;
+  using EdgeT = Edge< VertexDataT, EdgeDataT >;
 
   /**
    * Initialize the vertex
@@ -52,7 +52,7 @@ struct Vertex {
    * data
    * @param data data
    */
-  Vertex(const Tv& data);
+  Vertex(const VertexDataT& data);
 
   virtual ~Vertex() = default;
 
@@ -68,17 +68,17 @@ struct Vertex {
    * @param in whether to look among incoming or outgoing edges
    * @return the edge or 0 if none
    */
-  Edge< Tv, Te >* find(const VertexT& v, bool in) const;
+  EdgeT* find(const VertexT& v, bool in) const;
 
   int id; ///< vertex id (set internally)
 
-  Tv data; ///< vertex data
+  VertexDataT data; ///< vertex data
 
   bool succ_expanded; ///< is the vertex expanded
   bool pred_expanded; ///< is the vertex expanded
 
-  std::map< int, Edge< Tv, Te >* > in;  ///< map of incoming edges
-  std::map< int, Edge< Tv, Te >* > out; ///< map of outgoing edges
+  std::map< int, EdgeT* > in;  ///< map of incoming edges
+  std::map< int, EdgeT* > out; ///< map of outgoing edges
 
   VertexT* next; ///< next state in a path (used for tracing paths)
   VertexT* prev; ///< previous state in a path (used for tracing paths)
@@ -95,52 +95,51 @@ struct Vertex {
 private:
   static int s_id; ///< id counter
 
-  friend class Graph< Tv, Te >;
-  friend class Dstar< Tv, Te >;
-  friend class LpAstar< Tv, Te >;
-
+  friend class Graph< VertexDataT, EdgeDataT >;
+  friend class Dstar< VertexDataT, EdgeDataT >;
+  friend class LpAstar< VertexDataT, EdgeDataT >;
 };
 
-template < class Tv, class Te >
-int Vertex< Tv, Te >::s_id = 0;
+template < class VertexDataT, class EdgeDataT >
+int Vertex< VertexDataT, EdgeDataT >::s_id = 0;
 
-template < class Tv, class Te >
-Vertex< Tv, Te >::Vertex()
+template < class VertexDataT, class EdgeDataT >
+Vertex< VertexDataT, EdgeDataT >::Vertex()
   : id(s_id), succ_expanded(false), pred_expanded(false) {
   reset();
   ++s_id;
 }
 
-template < class Tv, class Te >
-Vertex< Tv, Te >::Vertex(const Tv& data)
+template < class VertexDataT, class EdgeDataT >
+Vertex< VertexDataT, EdgeDataT >::Vertex(const VertexDataT& data)
   : id(s_id), data(data), succ_expanded(false), pred_expanded(false) {
   reset();
   ++s_id;
 }
 
-template < class Tv, class Te >
-void Vertex< Tv, Te >::reset() {
+template < class VertexDataT, class EdgeDataT >
+void Vertex< VertexDataT, EdgeDataT >::reset() {
   next = 0;
   prev = 0;
   rhs = g = DSL_DBL_MAX;
-  t = Vertex< Tv, Te >::Label::kNew;
+  t = Vertex< VertexDataT, EdgeDataT >::Label::kNew;
   open_list_node = 0;
   key[0] = key[1] = DSL_DBL_MAX;
   r = 0;
 }
 
-template < class Tv, class Te >
-Edge< Tv, Te >* Vertex< Tv, Te >::find(const Vertex< Tv, Te >& v,
-                                       bool in) const {
+template < class VertexDataT, class EdgeDataT >
+Edge< VertexDataT, EdgeDataT >* Vertex< VertexDataT, EdgeDataT >::find(
+    const Vertex< VertexDataT, EdgeDataT >& v, bool in) const {
   if (in) {
     for (auto it = this->in.begin(); it != this->in.end(); ++it) {
-      Edge< Tv, Te >* e = it->second;
+      EdgeT* e = it->second;
       if (e->from == &v)
         return e;
     }
   } else {
     for (auto it = this->out.begin(); it != this->out.end(); ++it) {
-      Edge< Tv, Te >* e = it->second;
+      EdgeT* e = it->second;
       if (e->to == &v)
         return e;
     }

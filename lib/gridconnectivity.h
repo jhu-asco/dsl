@@ -13,11 +13,10 @@
 
 namespace dsl {
 
-  template < class PointType, class DataType, class ConnectionType>
+template < class PointT, class DataT, class ConnectionT >
 class GridConnectivity {
 public:
-
-  using CellType = Cell<PointType, DataType>;
+  using CellT = Cell< PointT, DataT >;
 
   /**
    * Connectivity operator providing primitive paths from a given vertex. This
@@ -28,11 +27,11 @@ public:
    * @param fwd true if generated forward in time
    * @return true on success
    */
-  virtual bool operator()(const CellType& from,
-                          std::vector< std::tuple<CellType*, ConnectionType, double> >& to_cells,
-                          bool fwd = true) const = 0;
+  virtual bool operator()(
+      const CellT& from,
+      std::vector< std::tuple< CellT*, ConnectionT, double > >& to_cells,
+      bool fwd = true) const = 0;
 
-  virtual bool free(const DataType &data) const = 0;
-
+  virtual bool free(const DataT& data) const = 0;
 };
 }

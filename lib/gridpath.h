@@ -25,12 +25,11 @@ namespace dsl {
  * e.g. a continuous trajectory corresponding to the discrete sequence of cells.
  *
  */
-template <class PointType, class DataType, class ConnectionType>
+template < class PointT, class DataT, class ConnectionT >
 struct GridPath {
+  std::vector< Cell< PointT, DataT > > cells; ///< list of cells along path
 
-  std::vector< Cell<PointType, DataType> > cells; ///< list of cells along path
-
-  std::vector< ConnectionType > connections; ///< list of connections
+  std::vector< ConnectionT > connections; ///< list of connections
 
   double cost = 0; ///< cost of path
 

@@ -36,27 +36,27 @@ int main(int argc, char** argv)
 
   // get start and goal
   Vector3d goal, start;
-  params.GetVector3d("start", start);
-  params.GetVector3d("goal", goal);
+  params.getVector3d("start", start);
+  params.getVector3d("goal", goal);
 
   // get map
   string mapName;
-  params.GetString("map", mapName);
+  params.getString("map", mapName);
 
   // get map
   string cmapName;
-  bool cmapValid = params.GetString("cmap", cmapName);
+  bool cmapValid = params.getString("cmap", cmapName);
 
   // occupancy cell size
   Vector3d ocs;
-  params.GetVector3d("ocs", ocs);
+  params.getVector3d("ocs", ocs);
 
   // grid cell size (normally larger than ocs)
   Vector3d gcs;
-  params.GetVector3d("gcs", gcs);
+  params.getVector3d("gcs", gcs);
 
   Vector4d whxy;
-  bool useGeom = params.GetVector4d("geom", whxy);
+  bool useGeom = params.getVector4d("geom", whxy);
 
   // load an occupancy map from ppm file
   dsl::Map<bool, 2> omap = load(mapName.c_str(), ocs.tail<2>());
@@ -98,7 +98,7 @@ int main(int argc, char** argv)
 
   // create cost and set custom angular cost mixing factor ac
   CarCost cost;
-  params.GetDouble("ac", cost.ac);
+  params.getDouble("ac", cost.ac);
 
   // load car connectivity and set custom parameters
   CarConnectivity connectivity(grid);
@@ -107,11 +107,11 @@ int main(int argc, char** argv)
   double kmax = 0.57;
   int kseg = 4;
   bool onlyfwd = false;
-  params.GetDouble("dt", dt);
-  params.GetDouble("vx", vx);
-  params.GetDouble("kmax", kmax);
-  params.GetInt("kseg", kseg);
-  params.GetBool("onlyfwd", onlyfwd);
+  params.getDouble("dt", dt);
+  params.getDouble("vx", vx);
+  params.getDouble("kmax", kmax);
+  params.getInt("kseg", kseg);
+  params.getBool("onlyfwd", onlyfwd);
   connectivity.setPrimitives(dt, vx, kmax, kseg, onlyfwd);
 
   cout << "Creating a graph..." << endl;
@@ -120,8 +120,7 @@ int main(int argc, char** argv)
   timer_start(&timer);
 
   bool initExpand = false;
-  params.GetBool("initExpand", initExpand);
-
+  params.getBool("initExpand", initExpand);
 
   GridSearch<Vector3d, Matrix3d, SE2Path> search(grid, connectivity, cost,
                                                  Method::kDstar, initExpand);
@@ -133,7 +132,9 @@ int main(int argc, char** argv)
   search.setStart(start);
   search.addGoal(goal);
 
-  cout << "Created a graph with " << search.GetGraph().vertices.size() << " vertices and " << search.GetGraph().edges.size() << " edges." << endl;
+  cout << "Created a graph with " << search.getGraph().vertices.size()
+       << " vertices and " << search.getGraph().edges.size() << " edges."
+       << endl;
 
   cout << "Planning a path..." << endl;
   // plan
@@ -143,7 +144,8 @@ int main(int argc, char** argv)
   printf("plan path time= %ld  us\n", time);
   printf("path: edges=%lu len=%f\n", path.cells.size(), path.cost);
 
-  cout << "graph has " << search.GetGraph().vertices.size() << " vertices and " << search.GetGraph().edges.size() << " edges." << endl;
+  cout << "graph has " << search.getGraph().vertices.size() << " vertices and "
+       << search.getGraph().edges.size() << " edges." << endl;
 
   // save it to image for viewing
   vector<Vector2d> path2d = ToVector2dPath(path);

@@ -18,23 +18,22 @@ namespace dsl {
  *
  * Author: Marin Kobilarov -- Copyright (C) 2004
  */
-  template < class PointType, class DataType >
-class GridCost : public Cost< Cell<PointType, DataType> > {
+template < class PointT, class DataT >
+class GridCost : public Cost< Cell< PointT, DataT > > {
 public:
+  using VertexDataT = Cell< PointT, DataT >;
 
-  using GridVertexData = Cell<PointType, DataType>;
-
-  double real(const GridVertexData& a, const GridVertexData& b) const {
+  double real(const VertexDataT& a, const VertexDataT& b) const {
     // default real cost is euclidean distance
-    return (a.c - b.c).norm();
+    return (a.center - b.center).norm();
     //  another version adds a term for the average cell cost multiplied by
     // Euclidean distance, as specified below:
-    // return (1 + (a.cost + b.cost) / 2) * (a.c - b.c).norm();
+    // return (1 + (a.cost + b.cost) / 2) * (a.center - b.center).norm();
   }
 
-  double heur(const GridVertexData& a, const GridVertexData& b) const {
+  double heur(const VertexDataT& a, const VertexDataT& b) const {
     // default Heuristic cost is the Euclidean distance
-    return (a.c - b.c).norm();
+    return (a.center - b.center).norm();
   }
 };
 }

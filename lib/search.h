@@ -112,11 +112,11 @@ namespace dsl {
 
 enum class Method { kDstar, kLpAstar};
 
-template < class Tv, class Te = Empty >
+template < class VertexDataT, class EdgeDataT = Empty >
 class Search {
 public:
-
-  using ExpandCallback = std::function<bool(Vertex< Tv, Te >& from, bool fwd)>;
+  using ExpandCallback =
+      std::function< bool(Vertex< VertexDataT, EdgeDataT >& from, bool fwd) >;
 
    virtual ~Search() = default;
 
@@ -129,7 +129,8 @@ public:
    * @param path the optimal path
    * @return total cost
    */
-   virtual double plan(std::vector< Edge< Tv, Te >* >& path) = 0;
+   virtual double
+       plan(std::vector< Edge< VertexDataT, EdgeDataT >* >& path) = 0;
 
   /**
    * Plan an initial path from start to goal, or if any cost
@@ -147,7 +148,7 @@ public:
    * This function is implemented by the specific method used
    * @param v start vertex
    */
-  virtual void setStart(const Vertex< Tv, Te >& v) = 0;
+   virtual void setStart(const Vertex< VertexDataT, EdgeDataT >& v) = 0;
 
   /**
    * Set goal state
@@ -155,28 +156,33 @@ public:
    * This function is implemented by the specific method used
    * @param v goal vertex
    */
-  virtual void addGoal(Vertex< Tv, Te >& v) = 0;
+   virtual void addGoal(Vertex< VertexDataT, EdgeDataT >& v) = 0;
 
-  virtual void changeCost(Edge< Tv, Te >& edge, double cost) = 0;
+   virtual void changeCost(Edge< VertexDataT, EdgeDataT >& edge,
+                           double cost) = 0;
 
-  virtual void changeCost(Vertex< Tv, Te >& vertex, double cost, bool in) = 0;
+   virtual void changeCost(Vertex< VertexDataT, EdgeDataT >& vertex,
+                           double cost,
+                           bool in) = 0;
 
   // function invoked for every new expanded node during the exploration
   virtual void setExpandCallback(ExpandCallback expand_callback) = 0;
 
-  virtual void remove(Vertex< Tv, Te >& v) = 0;
+  virtual void remove(Vertex< VertexDataT, EdgeDataT >& v) = 0;
 
-  virtual bool inGoalSet(const Vertex< Tv, Te >& v) const = 0;
+  virtual bool inGoalSet(const Vertex< VertexDataT, EdgeDataT >& v) const = 0;
 
   virtual bool nearEqual(double a, double b) const = 0;
 
-  virtual Vertex< Tv, Te >* minSucc(double* minRhs, const Vertex< Tv, Te >& v) = 0;
+  virtual Vertex< VertexDataT, EdgeDataT >*
+      minSucc(double* minRhs, const Vertex< VertexDataT, EdgeDataT >& v) = 0;
 
-  virtual void updateVertex(Vertex< Tv, Te >& u) = 0;
+  virtual void updateVertex(Vertex< VertexDataT, EdgeDataT >& u) = 0;
 
   // optional pointer to the last start state (only applicable to D*)
   // Since D* replans for a new start, it uses this to updates it heuristic
-  virtual Vertex< Tv, Te >* last() { return 0; }
-
+  virtual Vertex< VertexDataT, EdgeDataT >* last() {
+    return 0;
+  }
 };
 }

@@ -27,15 +27,15 @@ int main(int argc, char** argv)
 
   // get map
   string mapName;
-  params.GetString("map", mapName);
+  params.getString("map", mapName);
 
   // occupancy cell size
   Vector3d ocs;
-  params.GetVector3d("ocs", ocs);  
+  params.getVector3d("ocs", ocs);
 
   // grid cell size (normally larger than ocs)
   Vector3d gcs;
-  params.GetVector3d("gcs", gcs);  
+  params.getVector3d("gcs", gcs);
 
   // load an occupancy map from ppm file
   dsl::Map<bool, 2> omap = load(mapName.c_str(), ocs.tail<2>());

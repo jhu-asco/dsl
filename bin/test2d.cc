@@ -41,7 +41,8 @@ int main(int argc, char** argv)
   TraversabilityCost<Vector2d, double> cost;
   // GridCost<Vector2d, double> cost;
   Grid2dConnectivity connectivity(grid);
-  GridSearch<Vector2d, double, Vector2d> search(grid, connectivity, cost);
+  GridSearch< Vector2d, double, Vector2d > search(
+      grid, connectivity, cost, Method::kDstar);
   GridPath<Vector2d, double, Vector2d> path, opt_path;
 
   search.setStart(Vector2d(1, height/2));
@@ -60,7 +61,7 @@ int main(int argc, char** argv)
   // print results
   vector<Cell<Vector2d, double> >::iterator it;
   for (it = path.cells.begin(); it != path.cells.end(); ++it) {
-    int id = grid.computeId(it->c);
+    int id = grid.computeId(it->center);
     mapPath[id] = 2;
   }
   printf("\n");
@@ -126,13 +127,13 @@ int main(int argc, char** argv)
 
 
   for (it = path.cells.begin(); it != path.cells.end(); ++it) {
-    int id = grid.computeId(it->c);
+    int id = grid.computeId(it->center);
     mapPath[id] = 2;
   }
   printf("\n");
 
   for (it = opt_path.cells.begin(); it != opt_path.cells.end(); ++it) {
-    int id = grid.computeId(it->c);
+    int id = grid.computeId(it->center);
     mapPath[id] = 3;
   }
 

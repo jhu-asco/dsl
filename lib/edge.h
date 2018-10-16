@@ -20,7 +20,7 @@ namespace dsl {
 #define DSL_DBL_MAX std::numeric_limits< double >::max()
 #define DSL_DBL_MIN std::numeric_limits< double >::min()
 
-template < class Tv, class Te >
+template < class VertexDataT, class EdgeDataT >
 class Vertex;
 
 /// an empty object used as a default user-supplied edge data
@@ -30,15 +30,15 @@ struct Empty {};
  * A generic edge b/n two vertices. Contains an edge cost
  * as well as a cost_change variable that could be used
  * for path planning/replanning algorithms such as D* (see Search)
- * Each vertex stores data of type Tv and each edge stores data of type Te,
+ * Each vertex stores data of type VertexDataT and each edge stores data of type
+ *EdgeDataT,
  * edge data is optional and defaults to the simplest data type, i.e. a bool.
  *
  * Author: Marin Kobilarov
  */
-template < class Tv, class Te = Empty >
+template < class VertexDataT, class EdgeDataT = Empty >
 struct Edge {
-
-  using VertexT = Vertex<Tv, Te>;
+  using VertexT = Vertex< VertexDataT, EdgeDataT >;
 
   /**
    * Initialize an edge using two vertices and a cost;
@@ -62,15 +62,16 @@ struct Edge {
    * @param to to vertex (optional)
    * @param cost cost (optional)
    */
-  Edge(const Te& data,
+  Edge(const EdgeDataT& data,
        VertexT* from = 0,
        VertexT* to = 0,
-       double cost = 0) : id(s_id),
-    data(data),
-    from(from),
-    to(to),
-    cost(cost),
-    cost_change(DSL_DBL_MIN) {
+       double cost = 0)
+    : id(s_id),
+      data(data),
+      from(from),
+      to(to),
+      cost(cost),
+      cost_change(DSL_DBL_MIN) {
     ++s_id;
   }
 
@@ -78,7 +79,7 @@ struct Edge {
 
   int id; ///< edge id (set internally at init)
 
-  Te data; ///< edge data
+  EdgeDataT data; ///< edge data
 
   VertexT* from; ///< from vertex
   VertexT* to;   ///< to vertex
@@ -90,7 +91,6 @@ private:
   static int s_id; ///< id counter
 };
 
-template<class Tv, class Te>
-int Edge<Tv, Te>::s_id = 0;
-
+template < class VertexDataT, class EdgeDataT >
+int Edge< VertexDataT, EdgeDataT >::s_id = 0;
 }

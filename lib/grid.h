@@ -17,8 +17,8 @@ struct EmptyData {};
 
 /**
  * An n-dimenensional grid consisting of abstract "cells", or elements
- * identified by a set of coordinates of type PointType, each cell
- * containing data of type DataType.
+ * identified by a set of coordinates of type PointT, each cell
+ * containing data of type DataT.
  * A grid provides instant access to the elements by maintaining
  * an n-dimensional array of pointers to cells. Cells that are empty,
  * e.g. that are inside obstacles, correspond to null pointers.
@@ -26,11 +26,10 @@ struct EmptyData {};
  * Note that this data structure is only viable up to a few dimensions,
  * e.g. dim=5 or 6.
  */
-template < class PointType, class DataType = EmptyData>
- struct Grid {
-
- using Vectorni =  Eigen::Matrix< int, PointType::SizeAtCompileTime, 1 >;
- using CellType = Cell<PointType, DataType>;
+template < class PointT, class DataT = EmptyData >
+struct Grid {
+  using Vectorni = Eigen::Matrix< int, PointT::SizeAtCompileTime, 1 >;
+  using CellT = Cell< PointT, DataT >;
 
   /**
    * Initialize the grid using state lower bound, state upper bound, the number
@@ -39,8 +38,8 @@ template < class PointType, class DataType = EmptyData>
    * @param xub state upper bound
    * @param gs number of grid cells per each dimension
    */
-  Grid(const PointType& xlb, const PointType& xub, const Vectorni& gs)
-      : n(xlb.size()), xlb(xlb), xub(xub), gs(gs) {
+  Grid(const PointT& xlb, const PointT& xub, const Vectorni& gs)
+    : n(xlb.size()), xlb(xlb), xub(xub), gs(gs) {
     ds = xub - xlb;
     nc = 1;
     for (int i = 0; i < n; ++i) {
@@ -49,8 +48,8 @@ template < class PointType, class DataType = EmptyData>
       nc *= gs[i]; // total number of cells
       cs[i] = (xub[i] - xlb[i]) / gs[i];
     }
-    cells = new CellType*[nc];
-    memset(cells, 0, nc * sizeof(CellType*)); // initialize all of them nil
+    cells = new CellT* [nc];
+    memset(cells, 0, nc * sizeof(CellT*)); // initialize all of them nil
   }
 
     /**
@@ -60,8 +59,8 @@ template < class PointType, class DataType = EmptyData>
    * @param xub state upper bound
    * @param cs cell dimensions
    */
-  Grid(const PointType& xlb, const PointType& xub, const PointType& cs)
-      : n(xlb.size()), xlb(xlb), xub(xub), cs(cs) {
+  Grid(const PointT& xlb, const PointT& xub, const PointT& cs)
+    : n(xlb.size()), xlb(xlb), xub(xub), cs(cs) {
     ds = xub - xlb;
     nc = 1;
     for (int i = 0; i < n; ++i) {
@@ -71,13 +70,14 @@ template < class PointType, class DataType = EmptyData>
       nc *= gs[i]; // total number of cells
     }
 
-    cells = new CellType*[nc];
-    memset(cells, 0, nc * sizeof(CellType*)); // initialize all of them nil
+    cells = new CellT* [nc];
+    memset(cells, 0, nc * sizeof(CellT*)); // initialize all of them nil
   }
 
   Grid(const Grid &grid) : n(grid.n), xlb(grid.xlb), xub(grid.xub), ds(grid.ds), cs(grid.cs), gs(grid.gs), nc(grid.nc) {
-     cells = new CellType*[nc];
-     memcpy(cells, grid.cells, nc * sizeof(CellType*)); // initialize all of them nil
+    cells = new CellT* [nc];
+    memcpy(
+        cells, grid.cells, nc * sizeof(CellT*)); // initialize all of them nil
    }
 
   virtual ~Grid() {
@@ -89,7 +89,7 @@ template < class PointType, class DataType = EmptyData>
    * @param x point
    * @return true if within bounds
    */
-  virtual bool valid(const PointType& x, double eps = 1e-10) const {
+  virtual bool valid(const PointT& x, double eps = 1e-10) const {
     for (int i = 0; i < x.size(); ++i) {
       if (x[i] < xlb[i] + eps)
         return false;
@@ -104,7 +104,7 @@ template < class PointType, class DataType = EmptyData>
    * @param x point
    * @return a computed id
    */
-  int computeId(const PointType& x) const {
+  int computeId(const PointT& x) const {
     // unroll loop for n=1,2,3,4 for efficiency
     if (n==1)
       return index(x, 0);
@@ -138,7 +138,7 @@ template < class PointType, class DataType = EmptyData>
    * @param i coordinate index
    * @return index into cell array
    */
-  int index(const PointType& x, int i) const {
+  int index(const PointT& x, int i) const {
     return floor((x[i] - xlb[i]) / (xub[i] - xlb[i]) * gs[i]);
   }
 
@@ -150,7 +150,7 @@ template < class PointType, class DataType = EmptyData>
    * if checkValid=0 but dangerous)
    * @return pointer to a cell or 0 if cell does not exist
    */
-   CellType* data(const PointType& x, bool checkValid = true) const {
+  CellT* data(const PointT& x, bool checkValid = true) const {
     if (checkValid)
       if (!valid(x))
         return 0;
@@ -162,7 +162,7 @@ template < class PointType, class DataType = EmptyData>
    * @param id a non-negative id
    * @return pointer to a cell or 0 if cell does not exist
    */
-   CellType* data(int id) const {
+  CellT* data(int id) const {
     assert(id >= 0);
     if (id >= nc)
       return 0;
@@ -171,13 +171,13 @@ template < class PointType, class DataType = EmptyData>
 
   int n;      ///< grid dimension
 
-  PointType xlb; ///< state lower bound
-  PointType xub; ///< state upper bound
-  PointType ds;  ///< dimensions (ds=xub-xlb)
-  PointType cs;  ///< cell length size per dimension
+  PointT xlb;   ///< state lower bound
+  PointT xub;   ///< state upper bound
+  PointT ds;    ///< dimensions (ds=xub-xlb)
+  PointT cs;    ///< cell length size per dimension
   Vectorni gs;  ///< number of cells per dimension
 
   int nc = 0;        ///< number of cells in grid
-  CellType** cells = nullptr; ///< array of cell data
+  CellT** cells = nullptr; ///< array of cell data
 };
 }

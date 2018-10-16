@@ -28,6 +28,7 @@ using Vector1d = Eigen::Matrix<double, 1, 1>;
  */
 class CarConnectivity : public GridConnectivity< Eigen::Vector3d, Eigen::Matrix3d, SE2Path > {
 public:
+  using PrimitiveT = std::tuple< SE2Cell*, SE2Path, double >;
 
   /**
    * Initialize cargrid connectivity with primitives corresponding to
@@ -82,7 +83,7 @@ public:
                      bool onlyfwd = false);
 
   bool operator()(const SE2Cell& from,
-                  std::vector< std::tuple<SE2Cell*, SE2Path, double> >& paths,
+                  std::vector< PrimitiveT >& paths,
                   bool fwd = true) const override;
 
   bool free(const Eigen::Matrix3d &g) const override { return true; }

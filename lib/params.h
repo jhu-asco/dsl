@@ -47,73 +47,69 @@ class Params
 
   bool exists(const char *name) const { return valueMap.find(std::string(name)) != valueMap.end(); }
 
-  void SetInt(const char *name, int v);
-  bool GetInt(const char *name, int &v) const;
-  
-  void SetFloat(const char *name, float v);
-  bool GetFloat(const char *name, float &v) const;
+  void setInt(const char* name, int v);
+  bool getInt(const char* name, int& v) const;
 
-  void SetDouble(const char *name, double v);
-  bool GetDouble(const char *name, double &v) const;
+  void setFloat(const char* name, float v);
+  bool getFloat(const char* name, float& v) const;
 
-  void SetVectorXd(const char *name, const Eigen::VectorXd &v);
-  bool GetVectorXd(const char *name, Eigen::VectorXd &v) const;
+  void setDouble(const char* name, double v);
+  bool getDouble(const char* name, double& v) const;
 
-  void SetVector2d(const char *name, const Eigen::Vector2d &v);
-  bool GetVector2d(const char *name, Eigen::Vector2d &v) const;
+  void setVectorXd(const char* name, const Eigen::VectorXd& v);
+  bool getVectorXd(const char* name, Eigen::VectorXd& v) const;
 
-  void SetVector3d(const char *name, const Eigen::Vector3d &v);
-  bool GetVector3d(const char *name, Eigen::Vector3d &v) const;
+  void setVector2d(const char* name, const Eigen::Vector2d& v);
+  bool getVector2d(const char* name, Eigen::Vector2d& v) const;
 
-  void SetVector4d(const char *name, const Eigen::Vector4d &v);
-  bool GetVector4d(const char *name, Eigen::Vector4d &v) const;
+  void setVector3d(const char* name, const Eigen::Vector3d& v);
+  bool getVector3d(const char* name, Eigen::Vector3d& v) const;
 
-  void SetVector5d(const char *name, const Vector5d &v);
-  bool GetVector5d(const char *name, Vector5d &v) const;
+  void setVector4d(const char* name, const Eigen::Vector4d& v);
+  bool getVector4d(const char* name, Eigen::Vector4d& v) const;
 
-  void SetVector6d(const char *name, const Vector6d &v);
-  bool GetVector6d(const char *name, Vector6d &v) const;
+  void setVector5d(const char* name, const Vector5d& v);
+  bool getVector5d(const char* name, Vector5d& v) const;
 
-  void SetMatrix3d(const char *name, const Eigen::Matrix3d &m);
-  bool GetMatrix3d(const char *name, Eigen::Matrix3d &m) const;
+  void setVector6d(const char* name, const Vector6d& v);
+  bool getVector6d(const char* name, Vector6d& v) const;
 
-  void SetMatrix6d(const char *name, const Matrix6d &m);
-  bool GetMatrix6d(const char *name, Matrix6d &m) const;
+  void setMatrix3d(const char* name, const Eigen::Matrix3d& m);
+  bool getMatrix3d(const char* name, Eigen::Matrix3d& m) const;
 
-  void SetDoubleVec(const char *name, const std::vector<double> &v);
-  bool GetDoubleVec(const char *name, std::vector<double> &v) const;
+  void setMatrix6d(const char* name, const Matrix6d& m);
+  bool getMatrix6d(const char* name, Matrix6d& m) const;
 
-  void SetFloatArray(const char *name, int n, const float *v);
-  bool GetFloatArray(const char *name, int n, float *v) const;
+  void setDoubleVec(const char* name, const std::vector< double >& v);
+  bool getDoubleVec(const char* name, std::vector< double >& v) const;
 
-  void SetDoubleArray(const char *name, int n, const double *v);
-  bool GetDoubleArray(const char *name, int n, double *v) const;
-  
-  void SetString(const char *name, const std::string &v);
-  bool GetString(const char *name, std::string &v) const;
-  
-  void SetBool(const char *name, bool v);
-  bool GetBool(const char *name, bool &v) const;
+  void setFloatArray(const char* name, int n, const float* v);
+  bool getFloatArray(const char* name, int n, float* v) const;
 
-  void SetChar(const char *name, char v);
-  char GetChar(const char *name, char &v) const;
+  void setDoubleArray(const char* name, int n, const double* v);
+  bool getDoubleArray(const char* name, int n, double* v) const;
 
-  void Print(FILE *file = stdout) const;
-  void Print(std::iostream &io) const;
+  void setString(const char* name, const std::string& v);
+  bool getString(const char* name, std::string& v) const;
+
+  void setBool(const char* name, bool v);
+  bool getBool(const char* name, bool& v) const;
+
+  void setChar(const char* name, char v);
+  char getChar(const char* name, char& v) const;
+
+  void print(FILE* file = stdout) const;
+  void print(std::iostream& io) const;
 
  protected:
-
-
-  struct RemoveDelimiter
-  {
+   struct removeDelimiter {
     bool operator()(char c)
     {
       return (c =='\r' || c =='\t' || c == ' ' || c == '\n');
     }
   };
-  
 
-  void Parse(char *line);
+  void parse(char* line);
 
   std::map<std::string, std::string> valueMap;
   char buf[DSL_PARAMS_MBL];

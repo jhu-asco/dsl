@@ -28,24 +28,9 @@ static void process(const string& str, T& v) {
   }
 }
 
-
-/*
-static void Trim(string& str)
-{
-  string::size_type pos = str.find_last_not_of(' ');
-  if(pos != string::npos) {
-    str.erase(pos + 1);
-    pos = str.find_first_not_of(' ');
-    if(pos != string::npos) str.erase(0, pos);
-  }
-  else str.erase(str.begin(), str.end());
-}
-*/
-
-static void Tokenize(const string& str,
-                     vector<string>& tokens,
-                     const string& delimiters = " ")
-{
+static void tokenize(const string& str,
+                     vector< string >& tokens,
+                     const string& delimiters = " ") {
   // Skip delimiters at beginning.
   string::size_type lastPos = str.find_first_not_of(delimiters, 0);
   // find first "non-delimiter".
@@ -101,8 +86,7 @@ void Params::load(const char *fileName)
   fclose(file);
 }
 
-void Params::Parse(char *line)
-{
+void Params::parse(char* line) {
   line[strcspn(line, "\n\r\t")] = 0;    
   if (line[0] == '#' || strlen(line) <= 2)
     return;
@@ -123,10 +107,12 @@ void Params::Parse(char *line)
     value[strlen(value)-1] = 0;
 
   string svalue = string(value);
-  svalue.erase( std::remove_if( svalue.begin(), svalue.end(), RemoveDelimiter()), svalue.end()); 
+  svalue.erase(std::remove_if(svalue.begin(), svalue.end(), removeDelimiter()),
+               svalue.end());
 
   string sname = string(name);
-  sname.erase( std::remove_if( sname.begin(), sname.end(), RemoveDelimiter()), sname.end()); 
+  sname.erase(std::remove_if(sname.begin(), sname.end(), removeDelimiter()),
+              sname.end());
 
   cout << sname << " = " << svalue << endl;
   valueMap[sname] = svalue;
@@ -136,7 +122,7 @@ void Params::load(FILE *file)
 {
   char line[256];
   while(fgets(line, 256, file)) {
-    Parse(line);
+    parse(line);
   }
 }
 
@@ -144,7 +130,7 @@ void Params::load(iostream &io)
 {
   char line[256];
   while(io.getline(line, 256)) {
-    Parse(line);        
+    parse(line);
   }
 }
 
@@ -162,38 +148,33 @@ void Params::save(const char *fileName) const
 
 void Params::save(FILE *file) const
 {
-  Print(file);
+  print(file);
 }
 
 void Params::save(iostream &io) const
 {
-  Print(io);
+  print(io);
 }
 
-void Params::SetInt(const char *name, int value)
-{
+void Params::setInt(const char* name, int value) {
   memset(buf, 0, DSL_PARAMS_MBL);
   sprintf(buf, "%d", value);
   valueMap[name] = string(buf);
 }
 
-void Params::SetFloat(const char *name, float value)
-{
+void Params::setFloat(const char* name, float value) {
   memset(buf, 0, DSL_PARAMS_MBL);
   sprintf(buf, "%f", value);
   valueMap[name] = string(buf);
 }
 
-void Params::SetDouble(const char *name, double value)
-{
+void Params::setDouble(const char* name, double value) {
   memset(buf, 0, DSL_PARAMS_MBL);
   sprintf(buf, "%lf", value);
   valueMap[name] = string(buf);
 }
 
-
-void Params::SetVector2d(const char *name, const Vector2d &v)
-{
+void Params::setVector2d(const char* name, const Vector2d& v) {
   vector<double>::const_iterator it;
   stringstream s;
   unsigned int i = 0;
@@ -205,16 +186,16 @@ void Params::SetVector2d(const char *name, const Vector2d &v)
   valueMap[name] = s.str();
 }
 
-bool Params::GetVector2d(const char *name, Vector2d &v) const
-{
+bool Params::getVector2d(const char* name, Vector2d& v) const {
   std::map<string, string>::const_iterator i = valueMap.find(name);
   if (i == valueMap.end()) {
-    // cerr << "Error:\tParams::Get:\tparameter <" << name << "> not found!" << endl;
+    // cerr << "Error:\tParams::get:\tparameter <" << name << "> not found!" <<
+    // endl;
     return false;
   }
 
   vector<string> tokens;
-  Tokenize(i->second, tokens, ", ");
+  tokenize(i->second, tokens, ", ");
   vector<string>::iterator it;
   int vi = 0;
   for (it = tokens.begin(); it != tokens.end(); ++it) {
@@ -226,9 +207,7 @@ bool Params::GetVector2d(const char *name, Vector2d &v) const
   return true;
 }
 
-void Params::SetVector3d(const char *name, const Vector3d &v)
-{
-  vector<double>::const_iterator it;
+void Params::setVector3d(const char* name, const Vector3d& v) {
   stringstream s;
   unsigned int i = 0;
   for (int i = 0; i < v.size(); ++i) {
@@ -239,16 +218,16 @@ void Params::SetVector3d(const char *name, const Vector3d &v)
   valueMap[name] = s.str();
 }
 
-bool Params::GetVector3d(const char *name, Vector3d &v) const
-{
+bool Params::getVector3d(const char* name, Vector3d& v) const {
   std::map<string, string>::const_iterator i = valueMap.find(name);
   if (i == valueMap.end()) {
-    // cerr << "Error:\tParams::Get:\tparameter <" << name << "> not found!" << endl;
+    // cerr << "Error:\tParams::get:\tparameter <" << name << "> not found!" <<
+    // endl;
     return false;
   }
 
   vector<string> tokens;
-  Tokenize(i->second, tokens, ", ");
+  tokenize(i->second, tokens, ", ");
   vector<string>::iterator it;
   int vi = 0;
   for (it = tokens.begin(); it != tokens.end(); ++it) {
@@ -259,9 +238,7 @@ bool Params::GetVector3d(const char *name, Vector3d &v) const
   return true;
 }
 
-void Params::SetVector4d(const char *name, const Vector4d &v)
-{
-  vector<double>::const_iterator it;
+void Params::setVector4d(const char* name, const Vector4d& v) {
   stringstream s;
   unsigned int i = 0;
   for (int i = 0; i < v.size(); ++i) {
@@ -272,17 +249,16 @@ void Params::SetVector4d(const char *name, const Vector4d &v)
   valueMap[name] = s.str();
 }
 
-
-bool Params::GetVector4d(const char *name, Vector4d &v) const
-{
+bool Params::getVector4d(const char* name, Vector4d& v) const {
   std::map<string, string>::const_iterator i = valueMap.find(name);
   if (i == valueMap.end()) {
-    // cerr << "Error:\tParams::Get:\tparameter <" << name << "> not found!" << endl;
+    // cerr << "Error:\tParams::get:\tparameter <" << name << "> not found!" <<
+    // endl;
     return false;
   }
 
   vector<string> tokens;
-  Tokenize(i->second, tokens, ", ");
+  tokenize(i->second, tokens, ", ");
   vector<string>::iterator it;
   int vi = 0;
   for (it = tokens.begin(); it != tokens.end(); ++it) {
@@ -293,9 +269,7 @@ bool Params::GetVector4d(const char *name, Vector4d &v) const
   return true;
 }
 
-void Params::SetVector5d(const char *name, const Vector5d &v)
-{
-  vector<double>::const_iterator it;
+void Params::setVector5d(const char* name, const Vector5d& v) {
   stringstream s;
   unsigned int i = 0;
   for (int i = 0; i < v.size(); ++i) {
@@ -306,17 +280,16 @@ void Params::SetVector5d(const char *name, const Vector5d &v)
   valueMap[name] = s.str();
 }
 
-
-bool Params::GetVector5d(const char *name, Vector5d &v) const
-{
+bool Params::getVector5d(const char* name, Vector5d& v) const {
   std::map<string, string>::const_iterator i = valueMap.find(name);
   if (i == valueMap.end()) {
-    // cerr << "Error:\tParams::Get:\tparameter <" << name << "> not found!" << endl;
+    // cerr << "Error:\tParams::get:\tparameter <" << name << "> not found!" <<
+    // endl;
     return false;
   }
 
   vector<string> tokens;
-  Tokenize(i->second, tokens, ", ");
+  tokenize(i->second, tokens, ", ");
   vector<string>::iterator it;
   int vi = 0;
   for (it = tokens.begin(); it != tokens.end(); ++it) {
@@ -327,10 +300,7 @@ bool Params::GetVector5d(const char *name, Vector5d &v) const
   return true;
 }
 
-
-void Params::SetVector6d(const char *name, const Vector6d &v)
-{
-  vector<double>::const_iterator it;
+void Params::setVector6d(const char* name, const Vector6d& v) {
   stringstream s;
   unsigned int i = 0;
   for (int i = 0; i < v.size(); ++i) {
@@ -341,20 +311,20 @@ void Params::SetVector6d(const char *name, const Vector6d &v)
   valueMap[name] = s.str();
 }
 
-
-bool Params::GetVector6d(const char *name, Vector6d &v) const
-{
+bool Params::getVector6d(const char* name, Vector6d& v) const {
   std::map<string, string>::const_iterator i = valueMap.find(name);
   if (i == valueMap.end()) {
-    // cerr << "Error:\tParams::Get:\tparameter <" << name << "> not found!" << endl;
+    // cerr << "Error:\tParams::get:\tparameter <" << name << "> not found!" <<
+    // endl;
     return false;
   }
 
   vector<string> tokens;
-  Tokenize(i->second, tokens, ", ");
+  tokenize(i->second, tokens, ", ");
 
   if (tokens.size() != 6) {
-    cout << "[E] Params::GetMatrix6d: expecting 6 doubles, got: " << tokens.size() << endl;
+    cout << "[E] Params::getMatrix6d: expecting 6 doubles, got: "
+         << tokens.size() << endl;
     return false;
   }
 
@@ -368,10 +338,7 @@ bool Params::GetVector6d(const char *name, Vector6d &v) const
   return true;
 }
 
-
-void Params::SetMatrix6d(const char *name, const Matrix6d &m)
-{
-  vector<double>::const_iterator it;
+void Params::setMatrix6d(const char* name, const Matrix6d& m) {
   stringstream s;
   for (int i = 0; i < m.rows(); ++i) {
     for (int j = 0; j < m.cols(); ++j) {
@@ -383,20 +350,20 @@ void Params::SetMatrix6d(const char *name, const Matrix6d &m)
   valueMap[name] = s.str();
 }
 
-
-bool Params::GetMatrix6d(const char *name, Matrix6d &m) const
-{
+bool Params::getMatrix6d(const char* name, Matrix6d& m) const {
   std::map<string, string>::const_iterator si = valueMap.find(name);
   if (si == valueMap.end()) {
-    // cerr << "Error:\tParams::Get:\tparameter <" << name << "> not found!" << endl;
+    // cerr << "Error:\tParams::get:\tparameter <" << name << "> not found!" <<
+    // endl;
     return false;
   }
 
   vector<string> tokens;
-  Tokenize(si->second, tokens, ", ");
+  tokenize(si->second, tokens, ", ");
 
   if (tokens.size() != 36) {
-    cout << "[E] Params::GetMatrix6d: expecting 36 doubles, got: " << tokens.size() << endl;
+    cout << "[E] Params::getMatrix6d: expecting 36 doubles, got: "
+         << tokens.size() << endl;
     return false;
   }
 
@@ -414,10 +381,7 @@ bool Params::GetMatrix6d(const char *name, Matrix6d &m) const
   return true;
 }
 
-
-void Params::SetVectorXd(const char *name, const VectorXd &v)
-{
-  vector<double>::const_iterator it;
+void Params::setVectorXd(const char* name, const VectorXd& v) {
   stringstream s;
   unsigned int i = 0;
   for (int i = 0; i < v.size(); ++i) {
@@ -428,21 +392,22 @@ void Params::SetVectorXd(const char *name, const VectorXd &v)
   valueMap[name] = s.str();
 }
 
-bool Params::GetVectorXd(const char *name, VectorXd &v) const
-{
+bool Params::getVectorXd(const char* name, VectorXd& v) const {
   std::map<string, string>::const_iterator i = valueMap.find(name);
   if (i == valueMap.end()) {
-    // cerr << "Error:\tParams::Get:\tparameter <" << name << "> not found!" << endl;
+    // cerr << "Error:\tParams::get:\tparameter <" << name << "> not found!" <<
+    // endl;
     return false;
   }
 
   vector<string> tokens;
-  Tokenize(i->second, tokens, ", ");
+  tokenize(i->second, tokens, ", ");
   vector<string>::iterator it;
   int vi = 0;
   for (it = tokens.begin(); it != tokens.end(); ++it) {
     if (vi >= v.size()) {
-      cout << "[E] Params::GetVectorXd: mismatched size in element " << name << " with expected v.size=" << v.size() << endl;
+      cout << "[E] Params::getVectorXd: mismatched size in element " << name
+           << " with expected v.size=" << v.size() << endl;
       return false;
     }
     string str = *it;
@@ -452,10 +417,7 @@ bool Params::GetVectorXd(const char *name, VectorXd &v) const
   return true;
 }
 
-
-
-void Params::SetDoubleVec(const char *name, const vector<double> &v)
-{
+void Params::setDoubleVec(const char* name, const vector< double >& v) {
   vector<double>::const_iterator it;
   stringstream s;
   unsigned int i = 0;
@@ -468,8 +430,7 @@ void Params::SetDoubleVec(const char *name, const vector<double> &v)
   valueMap[name] = s.str();
 }
 
-void Params::SetDoubleArray(const char *name, int n, const double *v)
-{
+void Params::setDoubleArray(const char* name, int n, const double* v) {
   stringstream s;
   for (int i = 0; i < n; ++i) {
     s << v[i];
@@ -479,8 +440,7 @@ void Params::SetDoubleArray(const char *name, int n, const double *v)
   valueMap[name] = s.str();
 }
 
-void Params::SetFloatArray(const char *name, int n, const float *v)
-{
+void Params::setFloatArray(const char* name, int n, const float* v) {
   stringstream s;
   for (int i = 0; i < n; ++i) {
     s << v[i];
@@ -490,45 +450,38 @@ void Params::SetFloatArray(const char *name, int n, const float *v)
   valueMap[name] = s.str();
 }
 
-
-
-void Params::SetBool(const char *name, bool value)
-{
+void Params::setBool(const char* name, bool value) {
   memset(buf, 0, DSL_PARAMS_MBL);
   sprintf(buf, "%ud", value);
   valueMap[name] = string(buf);
 }
 
-void Params::SetChar(const char *name, char value)
-{
+void Params::setChar(const char* name, char value) {
   memset(buf, 0, DSL_PARAMS_MBL);
   sprintf(buf, "%c", value);
   valueMap[name] = string(buf);
 }
 
-
-void Params::SetString(const char *name, const string &v)
-{
+void Params::setString(const char* name, const string& v) {
   valueMap[name] = v;
 }
 
-bool Params::GetInt(const char *name, int &v) const
-{
+bool Params::getInt(const char* name, int& v) const {
   std::map<string, string>::const_iterator i = valueMap.find(name);
   if (i == valueMap.end()) {
-    //    cerr << "Error:\tParams::Get:\tparameter <" << name << "> not found!" << endl;
+    //    cerr << "Error:\tParams::get:\tparameter <" << name << "> not found!"
+    //    << endl;
     return false;
   }
   v = atoi(i->second.c_str());
   return true;
 }
 
-
-bool Params::GetFloat(const char *name, float &v) const
-{
+bool Params::getFloat(const char* name, float& v) const {
   std::map<string, string>::const_iterator i = valueMap.find(name);
   if (i == valueMap.end()) {
-    //    cerr << "Error:\tParams::Get:\tparameter <" << name << "> not found!" << endl;
+    //    cerr << "Error:\tParams::get:\tparameter <" << name << "> not found!"
+    //    << endl;
     return false;
   }
   string str = i->second;
@@ -536,12 +489,11 @@ bool Params::GetFloat(const char *name, float &v) const
   return true;
 }
 
-
-bool Params::GetDouble(const char *name, double &v) const
-{
+bool Params::getDouble(const char* name, double& v) const {
   std::map<string, string>::const_iterator i = valueMap.find(name);
   if (i == valueMap.end()) {
-    // cerr << "Error:\tParams::Get:\tparameter <" << name << "> not found!" << endl;
+    // cerr << "Error:\tParams::get:\tparameter <" << name << "> not found!" <<
+    // endl;
     return false;
   }
   string str = i->second;
@@ -549,18 +501,16 @@ bool Params::GetDouble(const char *name, double &v) const
   return true;
 }
 
-
-
-bool Params::GetDoubleVec(const char *name, vector<double> &vs) const
-{
+bool Params::getDoubleVec(const char* name, vector< double >& vs) const {
   std::map<string, string>::const_iterator i = valueMap.find(name);
   if (i == valueMap.end()) {
-    // cerr << "Error:\tParams::Get:\tparameter <" << name << "> not found!" << endl;
+    // cerr << "Error:\tParams::get:\tparameter <" << name << "> not found!" <<
+    // endl;
     return false;
   }
 
   vector<string> tokens;
-  Tokenize(i->second, tokens, ",");
+  tokenize(i->second, tokens, ",");
   vector<string>::iterator it;
   for (it = tokens.begin(); it != tokens.end(); ++it) {
     string str = *it;
@@ -571,17 +521,16 @@ bool Params::GetDoubleVec(const char *name, vector<double> &vs) const
   return true;
 }
 
-
-bool Params::GetDoubleArray(const char *name, int n, double *vs) const
-{
+bool Params::getDoubleArray(const char* name, int n, double* vs) const {
   std::map<string, string>::const_iterator mi = valueMap.find(name);
   if (mi == valueMap.end()) {
-    // cerr << "Error:\tParams::Get:\tparameter <" << name << "> not found!" << endl;
+    // cerr << "Error:\tParams::get:\tparameter <" << name << "> not found!" <<
+    // endl;
     return false;
   }
 
   vector<string> tokens;
-  Tokenize(mi->second, tokens, ",");
+  tokenize(mi->second, tokens, ",");
   vector<string>::iterator it;
   int i = 0;
   for (it = tokens.begin(); it != tokens.end(), i < n; ++it, ++i) {    
@@ -593,16 +542,16 @@ bool Params::GetDoubleArray(const char *name, int n, double *vs) const
   return true;
 }
 
-bool Params::GetFloatArray(const char *name, int n, float *vs) const
-{
+bool Params::getFloatArray(const char* name, int n, float* vs) const {
   std::map<string, string>::const_iterator mi = valueMap.find(name);
   if (mi == valueMap.end()) {
-    // cerr << "Error:\tParams::Get:\tparameter <" << name << "> not found!" << endl;
+    // cerr << "Error:\tParams::get:\tparameter <" << name << "> not found!" <<
+    // endl;
     return false;
   }
 
   vector<string> tokens;
-  Tokenize(mi->second, tokens, ",");
+  tokenize(mi->second, tokens, ",");
   vector<string>::iterator it;
   int i = 0;
   for (it = tokens.begin(); it != tokens.end(), i < n; ++it, ++i) {    
@@ -614,52 +563,47 @@ bool Params::GetFloatArray(const char *name, int n, float *vs) const
   return true;
 }
 
-
-bool Params::GetBool(const char *name, bool &v) const
-{
+bool Params::getBool(const char* name, bool& v) const {
   std::map<string, string>::const_iterator i = valueMap.find(name);
   if (i == valueMap.end()) {
-    //    cerr << "Error:\tParams::Get:\tparameter <" << name << "> not found!" << endl;
+    //    cerr << "Error:\tParams::get:\tparameter <" << name << "> not found!"
+    //    << endl;
     return false;
   }
   v = atoi(i->second.c_str());
   return true;
 }
 
-char Params::GetChar(const char *name, char &v) const
-{
+char Params::getChar(const char* name, char& v) const {
   std::map<string, string>::const_iterator i = valueMap.find(name);
   if (i == valueMap.end()) {
-    //    cerr << "Error:\tParams::Get:\tparameter <" << name << "> not found!" << endl;
+    //    cerr << "Error:\tParams::get:\tparameter <" << name << "> not found!"
+    //    << endl;
     return false;
   }
   v = i->second[0];
   return true;
 }
 
-
-bool Params::GetString(const char *name, string &v) const
-{
+bool Params::getString(const char* name, string& v) const {
   std::map<string, string>::const_iterator i = valueMap.find(name);
   if (i == valueMap.end()) {
-    //    cerr << "Error:\tParams::Get:\tparameter <" << name << "> not found!" << endl;
+    //    cerr << "Error:\tParams::get:\tparameter <" << name << "> not found!"
+    //    << endl;
     return false;
   }
   v = i->second;
   return true;
 }
 
-
-void Params::Print(FILE *file) const
-{
+void Params::print(FILE* file) const {
   fprintf(file, "# Params: count=%d\n\n", (int)valueMap.size());
   std::map<string, string>::const_iterator i;
   for (i = valueMap.begin(); i != valueMap.end(); ++i)
     fprintf(file, "%s=%s\n", i->first.c_str(), i->second.c_str());
 }
 
-void Params::Print(iostream &io) const
-{
+void Params::print(iostream& io) const {
   io << "# Params: count=" << valueMap.size() << "\n" << endl;
   std::map<string, string>::const_iterator i;
   for (i = valueMap.begin(); i != valueMap.end(); ++i)

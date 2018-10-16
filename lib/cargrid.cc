@@ -35,7 +35,7 @@ CarGrid::CarGrid(const Map<bool, 3> &cmap,
         if (!occ) {
           cells[id] = new SE2Cell(id, x);
 
-          se2_q2g(cells[id]->data, cells[id]->c);
+          se2_q2g(cells[id]->data, cells[id]->center);
         }
       }
     }
