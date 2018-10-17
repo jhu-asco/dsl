@@ -6,8 +6,7 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_TRAVERSABILITYCOST_H
-#define DSL_TRAVERSABILITYCOST_H
+#pragma once
 
 #include "gridcost.h"
 
@@ -32,18 +31,18 @@ public:
   }
 
   double heur(const CellT& a, const CellT& b) const {
+    // default Heuristic cost is the Euclidean distance
+    // return (1 + (a.data + b.data) / 2) * (a.center - b.center).norm();
+    return .99 * (a.center - b.center).norm();
+    // another option is the min of x and y distances
+    /*
     double dx = std::abs(a.center[0] - b.center[0]);
     double dy = std::abs(a.center[1] - b.center[1]);
     if (dx > dy)
       return dx;
     else
       return dy;
-
-    // default Heuristic cost is the Euclidean distance
-    // return (1 + (a.data + b.data) / 2) * (a.center - b.center).norm();
-    return .99 * (a.center - b.center).norm();
+    */
   }
 };
 }
-
-#endif
