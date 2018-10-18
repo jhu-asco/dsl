@@ -28,7 +28,7 @@ Grid2d::Grid2d(int width,
 }
 
 Grid2d::~Grid2d() {
-  for (int i = 0; i < nc; ++i) {
+  for (int i = 0; i < size; ++i) {
     delete values[i];
   }
 }

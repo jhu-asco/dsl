@@ -27,6 +27,8 @@ template < class PointT, class ValueT >
 struct IndexedArray {
   using Vectorni = Eigen::Matrix< int, PointT::SizeAtCompileTime, 1 >;
 
+  IndexedArray() = delete;
+
   /**
    * Initialize the IndexedArray using state lower bound, state upper bound, the
    * number
@@ -38,20 +40,20 @@ struct IndexedArray {
   IndexedArray(const PointT& xlb, const PointT& xub, const Vectorni& gs)
     : n(xlb.size()), xlb(xlb), xub(xub), gs(gs) {
     ds = xub - xlb;
-    nc = 1;
+    size = 1;
     for (int i = 0; i < n; ++i) {
       assert(xlb[i] <= xub[i]);
       assert(gs[i] > 0);
-      nc *= gs[i]; // total number of values
+      size *= gs[i]; // total number of values
       mcgs[i] = (i == 0 ? gs[0] : mcgs[i - 1] * gs[i]);
       cs[i] = (xub[i] - xlb[i]) / gs[i];
       gs_div_ds[i] = 1.0 / cs[i];
     }
-    values = new ValueT[nc];
+    values = new ValueT[size];
 
     // assume ValueT is of primitive type or is a pointer
     assert(sizeof(ValueT) <= 8);
-    memset(values, 0, nc * sizeof(ValueT)); // initialize all of them nil
+    memset(values, 0, size * sizeof(ValueT)); // initialize all of them nil
   }
 
   /**
@@ -64,20 +66,20 @@ struct IndexedArray {
   IndexedArray(const PointT& xlb, const PointT& xub, const PointT& cs)
     : n(xlb.size()), xlb(xlb), xub(xub), cs(cs) {
     ds = xub - xlb;
-    nc = 1;
+    size = 1;
     for (int i = 0; i < n; ++i) {
       assert(xlb[i] < xub[i]);
       assert(cs[i] > 0);
       gs[i] = floor((xub[i] - xlb[i]) / cs[i]);
       mcgs[i] = (i == 0 ? gs[0] : mcgs[i - 1] * gs[i]);
-      nc *= gs[i]; // total number of values
+      size *= gs[i]; // total number of values
       gs_div_ds[i] = gs[i] / ds[i];
     }
-    values = new ValueT[nc];
+    values = new ValueT[size];
 
     // here we assume ValueT is of primitive type or is a pointer
     assert(sizeof(ValueT) <= 8);
-    memset(values, 0, nc * sizeof(ValueT)); // initialize all of them nil
+    memset(values, 0, size * sizeof(ValueT)); // initialize all of them nil
   }
 
   IndexedArray(const IndexedArray& array)
@@ -87,9 +89,11 @@ struct IndexedArray {
       ds(array.ds),
       cs(array.cs),
       gs(array.gs),
-      nc(array.nc) {
-    values = new ValueT[nc];
-    memcpy(values, array.values, nc * sizeof(ValueT));
+      mcgs(array.mcgs),
+      gs_div_ds(array.gs_div_ds),
+      size(array.size) {
+    values = new ValueT[size];
+    memcpy(values, array.values, size * sizeof(ValueT));
   }
 
   virtual ~IndexedArray() {
@@ -172,10 +176,10 @@ struct IndexedArray {
         return;
 
     int id = computeId(x);
-    // if (id<0 || id>=nc)
+    // if (id<0 || id>=size)
     //  std::cout << "id=" << id << " x=" << x.transpose() << " xlb=" <<
     //  xlb.transpose() << " xub=" << xub.transpose() << std::endl;
-    assert(id >= 0 && id < nc);
+    assert(id >= 0 && id < size);
     values[id] = data;
   }
 
@@ -200,7 +204,7 @@ struct IndexedArray {
    */
   ValueT data(int id) const {
     assert(id >= 0);
-    if (id >= nc)
+    if (id >= size)
       return 0;
     return values[id];
   }
@@ -216,7 +220,7 @@ struct IndexedArray {
   PointT mcgs;      ///< multiplicative cumulative gs
   PointT gs_div_ds; ///< derived quantity gs/ds
 
-  int nc = 0;               ///< number of values in IndexedArray
+  int size = 0;             ///< number of values in IndexedArray
   ValueT* values = nullptr; ///< array of data
 };
 }

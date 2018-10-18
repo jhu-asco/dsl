@@ -29,7 +29,7 @@ static void save(const Map< T, n >& map, const char* filename) {
   for (int i = 0; i < map.gs.size(); ++i)
     fs.write((char*)&map.gs[i], sizeof(double));
 
-  fs.write((char*)map.values, map.nc * sizeof(T));
+  fs.write((char*)map.values, map.size * sizeof(T));
   fs.close();
 }
 
@@ -51,7 +51,7 @@ static Map< T, n >* load(const char* filename) {
     fs.read((char*)&gs[i], sizeof(double));
 
   Map< T, n >* map = new Map< T, n >(xlb, xub, gs);
-  fs.read((char*)map->values, map->nc * sizeof(T));
+  fs.read((char*)map->values, map->size * sizeof(T));
   fs.close();
   return map;
 }

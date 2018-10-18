@@ -173,7 +173,7 @@ void LineConnectivity< PointT, DataT >::straightPath(const PathT& path,
       for (double d = traceStep; d < dn; d += traceStep) {
         PointT x = x0 + dx1 * d;
         int id = grid.computeId(x);
-        assert(id >= 0 && id < grid.nc);
+        assert(id >= 0 && id < grid.size);
         if (!grid.values[id] || !free(grid.values[id]->data)) {
           opt_path.cells.push_back(*it1);
           x0 = x1;

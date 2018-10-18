@@ -37,7 +37,7 @@ Grid3d::Grid3d(int length,
 }
 
 Grid3d::~Grid3d() {
-  for (int i = 0; i < nc; ++i) {
+  for (int i = 0; i < size; ++i) {
     delete values[i];
   }
 }
