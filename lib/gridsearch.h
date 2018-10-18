@@ -456,16 +456,16 @@ bool GridSearch< PointT, DataT, ConnectionT >::removeCell(const PointT& x) {
     return false;
   }
 
-  if (grid.cells[id]) {
-    delete grid.cells[id];
-    grid.cells[id] = 0;
+  if (grid.values[id]) {
+    delete grid.values[id];
+    grid.values[id] = 0;
   } else {
     return false;
   }
 
   /*
   TODO(marin): re-enable this functionality if it is needed
-  // if edges through cells are tracked, then go through them and remove them
+  // if edges through values are tracked, then go through them and remove them
   if (track_edges_through_cell) {
     typename map< int, vector< EdgeT* > >::iterator ceit =
         edges_through_cell.find(id);

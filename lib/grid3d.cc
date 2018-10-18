@@ -26,11 +26,18 @@ Grid3d::Grid3d(int length,
         // so
         // they shouldn't be added to the list of cells
         if (cost < max_cost) {
-          cells[id] = new Cell3d(id,
-                                Eigen::Vector3d((i + 0.5) * sx, (j + 0.5) * sy, (k + 0.5) * sz),
-                                cost);
+          values[id] = new Cell3d(
+              id,
+              Eigen::Vector3d((i + 0.5) * sx, (j + 0.5) * sy, (k + 0.5) * sz),
+              cost);
         }
       }
     }
+  }
+}
+
+Grid3d::~Grid3d() {
+  for (int i = 0; i < nc; ++i) {
+    delete values[i];
   }
 }

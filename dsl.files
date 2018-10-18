@@ -76,6 +76,7 @@ lib/gridcost.h
 lib/gridpath.h
 lib/gridsearch.h
 lib/hsearch.h
+lib/indexed_array.h
 lib/lattice.h
 lib/latticesearch.h
 lib/libiberty.h

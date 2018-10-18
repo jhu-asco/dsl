@@ -41,8 +41,8 @@ Map<bool, 2> load(const char* filename, const Vector2d &cs) {
   fs.read(data, raster_size);
 
   int step = max_col > 255 ? 6 : 3;  
-  for (int i = 0; i < size; i++) 
-    map.cells[i] = (data[step * i] ? 1 : 0);
+  for (int i = 0; i < size; i++)
+    map.values[i] = (data[step * i] ? 1 : 0);
   free(data);
   fs.close();
   return map;
@@ -60,7 +60,7 @@ void save(const dsl::Map<bool, 2> &map, const char* filename, const std::vector<
 
   int ind = 0;
   for (int i = 0; i < width * height; i++, ind += 3) {
-    data[ind] = data[ind + 1] = data[ind + 2] = (char)(map.cells[i] * 100);
+    data[ind] = data[ind + 1] = data[ind + 2] = (char)(map.values[i] * 100);
   }
   assert(ind == 3*width*height);
 

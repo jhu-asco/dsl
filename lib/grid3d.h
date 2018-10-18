@@ -43,5 +43,7 @@ public:
          double sz,
          double cost_scale,
          double max_cost = 1);
+
+  virtual ~Grid3d();
 };
 }

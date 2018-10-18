@@ -33,9 +33,9 @@ CarGrid::CarGrid(const Map<bool, 3> &cmap,
 
         bool occ = cmap.data(x, false);
         if (!occ) {
-          cells[id] = new SE2Cell(id, x);
+          values[id] = new SE2Cell(id, x);
 
-          se2_q2g(cells[id]->data, cells[id]->center);
+          se2_q2g(values[id]->data, values[id]->center);
         }
       }
     }
@@ -54,7 +54,7 @@ void CarGrid::MakeMap(const Map<bool, 2> &map, Map<bool, 3> &cmap) {
         assert(id2 < map.nc);
         int id3 = i + cmap.gs[0]*j + cmap.gs[0]*cmap.gs[1]*k; // 3d index into cmap
         assert(id3 < cmap.nc);
-        cmap.cells[id3] = map.cells[id2];
+        cmap.values[id3] = map.values[id2];
       }
     }
   }
@@ -73,7 +73,7 @@ void CarGrid::Slice(const Map<bool, 3> &cmap, double a, Map<bool, 2> &map) const
         // index into configuration space
       int id3 = ia + ix*cmap.gs[0] + iy*cmap.gs[0]*cmap.gs[1];
       assert(id3 < cmap.nc);
-      map.cells[id2] = cmap.cells[id3];
+      map.values[id2] = cmap.values[id3];
     }
   }
 }
@@ -102,7 +102,7 @@ void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3>
     //    bool dmap[cmap.gs[1]*cmap.gs[2]];
     //    DilateMap(geom, theta,
     //              cmap.cs[1], cmap.cs[2], cmap.gs[1], cmap.gs[2],
-    //              map.cells, dmap);
+    //              map.values, dmap);
     for (int ix = 0; ix < cmap.gs[1]; ++ix) {
       double x = (ix + 0.5)*cmap.cs[1] + cmap.xlb[1];
 
@@ -111,7 +111,7 @@ void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3>
         int id2 = ix + iy*cmap.gs[1];
         assert(id2 < map.nc);
         // if free continue
-        if (!map.cells[id2])
+        if (!map.values[id2])
           continue;
 
         double y = (iy + 0.5)*cmap.cs[2] + cmap.xlb[2];
@@ -129,9 +129,9 @@ void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3>
   }
 }
 
-
 /*
-void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3> &cmap) {
+void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3>
+&cmap) {
   assert(map.gs[0] == cmap.gs[1]);
   assert(map.gs[1] == cmap.gs[2]);
 
@@ -143,10 +143,11 @@ void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3>
     bool dmap[cmap.gs[1]*cmap.gs[2]];
     DilateMap(geom, theta,
               cmap.cs[1], cmap.cs[2], cmap.gs[1], cmap.gs[2],
-              map.cells, dmap);
+              map.values, dmap);
     for (int ix = 0; ix < cmap.gs[1]; ++ix) {
       for (int iy = 0; iy < cmap.gs[2]; ++iy) {
-        cmap.cells[ia + ix*cmap.gs[0] + iy*cmap.gs[0]*cmap.gs[1]] = dmap[ix + iy*cmap.gs[1]];
+        cmap.values[ia + ix*cmap.gs[0] + iy*cmap.gs[0]*cmap.gs[1]] = dmap[ix +
+iy*cmap.gs[1]];
       }
     }
   }
