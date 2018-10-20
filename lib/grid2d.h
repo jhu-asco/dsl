@@ -36,7 +36,5 @@ public:
          double sx,
          double sy,
          double max_cost = 1);
-
-  virtual ~Grid2d();
 };
 }

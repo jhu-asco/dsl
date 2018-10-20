@@ -33,9 +33,9 @@ CarGrid::CarGrid(const Map<bool, 3> &cmap,
 
         bool occ = cmap.data(x, false);
         if (!occ) {
-          values[id] = new SE2Cell(id, x);
+          cells[id] = new SE2Cell(id, x);
 
-          se2_q2g(values[id]->data, values[id]->center);
+          se2_q2g(cells[id]->data, cells[id]->center);
         }
       }
     }
@@ -51,10 +51,10 @@ void CarGrid::MakeMap(const Map<bool, 2> &map, Map<bool, 3> &cmap) {
     for (int j = 0; j < cmap.gs[1]; ++j) {
       for (int k = 0; k < cmap.gs[2]; ++k) {
         int id2 = j + cmap.gs[1]*k; //2d index ito map
-        assert(id2 < map.size);
+        assert(id2 < map.nc);
         int id3 = i + cmap.gs[0]*j + cmap.gs[0]*cmap.gs[1]*k; // 3d index into cmap
-        assert(id3 < cmap.size);
-        cmap.values[id3] = map.values[id2];
+        assert(id3 < cmap.nc);
+        cmap.cells[id3] = map.cells[id2];
       }
     }
   }
@@ -69,11 +69,11 @@ void CarGrid::Slice(const Map<bool, 3> &cmap, double a, Map<bool, 2> &map) const
     for (int iy = 0; iy < cmap.gs[2]; ++iy) {
       // index into workspace
       int id2 = ix + iy*cmap.gs[1];
-      assert(id2 < map.size);
+      assert(id2 < map.nc);
         // index into configuration space
       int id3 = ia + ix*cmap.gs[0] + iy*cmap.gs[0]*cmap.gs[1];
-      assert(id3 < cmap.size);
-      map.values[id2] = cmap.values[id3];
+      assert(id3 < cmap.nc);
+      map.cells[id2] = cmap.cells[id3];
     }
   }
 }
@@ -102,16 +102,16 @@ void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3>
     //    bool dmap[cmap.gs[1]*cmap.gs[2]];
     //    DilateMap(geom, theta,
     //              cmap.cs[1], cmap.cs[2], cmap.gs[1], cmap.gs[2],
-    //              map.values, dmap);
+    //              map.cells, dmap);
     for (int ix = 0; ix < cmap.gs[1]; ++ix) {
       double x = (ix + 0.5)*cmap.cs[1] + cmap.xlb[1];
 
       for (int iy = 0; iy < cmap.gs[2]; ++iy) {
         // index into workspace
         int id2 = ix + iy*cmap.gs[1];
-        assert(id2 < map.size);
+        assert(id2 < map.nc);
         // if free continue
-        if (!map.values[id2])
+        if (!map.cells[id2])
           continue;
 
         double y = (iy + 0.5)*cmap.cs[2] + cmap.xlb[2];
@@ -143,10 +143,10 @@ void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3>
     bool dmap[cmap.gs[1]*cmap.gs[2]];
     DilateMap(geom, theta,
               cmap.cs[1], cmap.cs[2], cmap.gs[1], cmap.gs[2],
-              map.values, dmap);
+              map.cells, dmap);
     for (int ix = 0; ix < cmap.gs[1]; ++ix) {
       for (int iy = 0; iy < cmap.gs[2]; ++iy) {
-        cmap.values[ia + ix*cmap.gs[0] + iy*cmap.gs[0]*cmap.gs[1]] = dmap[ix +
+        cmap.cells[ia + ix*cmap.gs[0] + iy*cmap.gs[0]*cmap.gs[1]] = dmap[ix +
 iy*cmap.gs[1]];
       }
     }

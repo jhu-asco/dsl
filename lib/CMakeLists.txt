@@ -34,8 +34,6 @@ INSTALL(FILES fibheap.h
               utilsimg.h
               cell.h
               grid.h
-              indexed_array.h
-              map.h
               gridcost.h
               gridconnectivity.h
               gridpath.h

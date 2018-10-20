@@ -86,11 +86,11 @@ int main(int argc, char** argv)
 
     cmapName = mapName;
     replaceExt(cmapName, string("cmap"));
-    save(*cmap, cmapName.c_str());
+    dsl::Map< bool, 3 >::save(*cmap, cmapName.c_str());
     std::cout << "Saved cmap " << cmapName << " with xlb=" << cmap->xlb.transpose() << " xub=" << cmap->xub.transpose() << " gs=" << cmap->gs.transpose() << std::endl;
 
   } else {
-    cmap = load< bool, 3 >(cmapName.c_str());
+    cmap = dsl::Map< bool, 3 >::load(cmapName.c_str());
     std::cout << "Loaded map with xlb=" << cmap->xlb.transpose() << " xub=" << cmap->xub.transpose() << " gs=" << cmap->gs.transpose() << std::endl;
   }
 

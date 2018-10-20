@@ -226,11 +226,11 @@ GridSearch< PointT, DataT, ConnectionT >::GridSearch(
       [this](VertexT& from, bool fwd) { return this->expand(from, fwd); };
   search->setExpandCallback(expand_callback);
 
-  vertex_map = new VertexT* [grid.size];
-  memset(vertex_map, 0, grid.size * sizeof(VertexT*));
+  vertex_map = new VertexT* [grid.nc];
+  memset(vertex_map, 0, grid.nc * sizeof(VertexT*));
 
   if (expand) {
-    for (int i = 0; i < grid.size; ++i) {
+    for (int i = 0; i < grid.nc; ++i) {
       const CellT* cell = grid.data(i);
       if (cell) {
         vertex_map[i] = new VertexT(*cell);
@@ -239,7 +239,7 @@ GridSearch< PointT, DataT, ConnectionT >::GridSearch(
     }
 
     // expand the successors of each vertex
-    for (int i = 0; i < grid.size; ++i) {
+    for (int i = 0; i < grid.nc; ++i) {
       const CellT* cell = grid.data(i);
       if (cell) {
         VertexT* from = vertex_map[i];
@@ -416,7 +416,7 @@ bool GridSearch< PointT, DataT, ConnectionT >::addGoal(const PointT& x) {
   }
 
   int id = grid.computeId(x);
-  assert(id >= 0 && id < grid.size);
+  assert(id >= 0 && id < grid.nc);
 
   const CellT* cell = grid.data(id);
   if (!cell) {
@@ -441,7 +441,7 @@ bool GridSearch< PointT, DataT, ConnectionT >::addGoal(const PointT& x) {
 template < class PointT, class DataT, class ConnectionT >
 bool GridSearch< PointT, DataT, ConnectionT >::removeCell(const PointT& x) {
   int id = grid.computeId(x);
-  if (id < 0 || id >= grid.size) {
+  if (id < 0 || id >= grid.nc) {
     std::cout << "[W] GridSearch::removeCell: id=" << id << " out of bounds!" << std::endl;
     return false;
   }
@@ -456,16 +456,16 @@ bool GridSearch< PointT, DataT, ConnectionT >::removeCell(const PointT& x) {
     return false;
   }
 
-  if (grid.values[id]) {
-    delete grid.values[id];
-    grid.values[id] = 0;
+  if (grid.cells[id]) {
+    delete grid.cells[id];
+    grid.cells[id] = 0;
   } else {
     return false;
   }
 
   /*
   TODO(marin): re-enable this functionality if it is needed
-  // if edges through values are tracked, then go through them and remove them
+  // if edges through cells are tracked, then go through them and remove them
   if (track_edges_through_cell) {
     typename map< int, vector< EdgeT* > >::iterator ceit =
         edges_through_cell.find(id);
@@ -532,7 +532,7 @@ template < class PointT, class DataT, class ConnectionT >
 double
     GridSearch< PointT, DataT, ConnectionT >::getCost(const PointT& x) const {
   int id = grid.computeId(x);
-  if (id < 0 || id >= grid.size) {
+  if (id < 0 || id >= grid.nc) {
     return 0;
   }
 
@@ -549,7 +549,7 @@ template < class PointT, class DataT, class ConnectionT >
 bool GridSearch< PointT, DataT, ConnectionT >::setCost(const PointT& x,
                                                        double cost) {
   int id = grid.computeId(x);
-  if (id < 0 || id >= grid.size) {
+  if (id < 0 || id >= grid.nc) {
     return false;
   }
 
@@ -597,7 +597,7 @@ template < class PointT, class DataT, class ConnectionT >
 Vertex< Cell< PointT, DataT >, ConnectionT >*
     GridSearch< PointT, DataT, ConnectionT >::getVertex(const PointT& x) const {
   int id = grid.computeId(x);
-  if (id < 0 || id >= grid.size) {
+  if (id < 0 || id >= grid.nc) {
     return 0;
   }
   return vertex_map[id];

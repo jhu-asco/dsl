@@ -13,11 +13,11 @@
 namespace dsl {
 
 /**
- * An n-dimenensional IndexedArray consisting of abstract "values", or elements
+ * An n-dimenensional IndexedArray consisting of abstract "cells", or elements
  * identified by a set of coordinates of type PointT, each cell
  * containing data of type DataT.
  * A IndexedArray provides instant access to the elements by maintaining
- * an n-dimensional array of pointers to values. values that are empty,
+ * an n-dimensional array of pointers to cells. cells that are empty,
  * e.g. that are inside obstacles, correspond to null pointers.
  *
  * Note that this data structure is only viable up to a few dimensions,
@@ -26,39 +26,40 @@ namespace dsl {
 template < class PointT, class ValueT >
 struct IndexedArray {
   using Vectorni = Eigen::Matrix< int, PointT::SizeAtCompileTime, 1 >;
+  using Vectornd = Eigen::Matrix< double, PointT::SizeAtCompileTime, 1 >;
 
   IndexedArray() = delete;
 
   /**
    * Initialize the IndexedArray using state lower bound, state upper bound, the
    * number
-   * of IndexedArray values
+   * of IndexedArray cells
    * @param xlb state lower bound
    * @param xub state upper bound
-   * @param gs number of IndexedArray values per each dimension
+   * @param gs number of IndexedArray cells per each dimension
    */
   IndexedArray(const PointT& xlb, const PointT& xub, const Vectorni& gs)
     : n(xlb.size()), xlb(xlb), xub(xub), gs(gs) {
     ds = xub - xlb;
-    size = 1;
+    nc = 1;
     for (int i = 0; i < n; ++i) {
       assert(xlb[i] <= xub[i]);
       assert(gs[i] > 0);
-      size *= gs[i]; // total number of values
+      nc *= gs[i]; // total number of cells
       mcgs[i] = (i == 0 ? gs[0] : mcgs[i - 1] * gs[i]);
       cs[i] = (xub[i] - xlb[i]) / gs[i];
       gs_div_ds[i] = 1.0 / cs[i];
     }
-    values = new ValueT[size];
+    cells = new ValueT[nc];
 
     // assume ValueT is of primitive type or is a pointer
     assert(sizeof(ValueT) <= 8);
-    memset(values, 0, size * sizeof(ValueT)); // initialize all of them nil
+    memset(cells, 0, nc * sizeof(ValueT)); // initialize all of them nil
   }
 
   /**
  * Initialize the map using state lower bound, state upper bound, the number
- * of map values
+ * of map cells
  * @param xlb state lower bound
  * @param xub state upper bound
  * @param cs cell dimensions
@@ -66,20 +67,21 @@ struct IndexedArray {
   IndexedArray(const PointT& xlb, const PointT& xub, const PointT& cs)
     : n(xlb.size()), xlb(xlb), xub(xub), cs(cs) {
     ds = xub - xlb;
-    size = 1;
+    nc = 1;
     for (int i = 0; i < n; ++i) {
       assert(xlb[i] < xub[i]);
       assert(cs[i] > 0);
       gs[i] = floor((xub[i] - xlb[i]) / cs[i]);
+      assert(gs[i] > 0);
       mcgs[i] = (i == 0 ? gs[0] : mcgs[i - 1] * gs[i]);
-      size *= gs[i]; // total number of values
+      nc *= gs[i]; // total number of cells
       gs_div_ds[i] = gs[i] / ds[i];
     }
-    values = new ValueT[size];
+    cells = new ValueT[nc];
 
     // here we assume ValueT is of primitive type or is a pointer
     assert(sizeof(ValueT) <= 8);
-    memset(values, 0, size * sizeof(ValueT)); // initialize all of them nil
+    memset(cells, 0, nc * sizeof(ValueT)); // initialize all of them nil
   }
 
   IndexedArray(const IndexedArray& array)
@@ -89,15 +91,13 @@ struct IndexedArray {
       ds(array.ds),
       cs(array.cs),
       gs(array.gs),
-      mcgs(array.mcgs),
-      gs_div_ds(array.gs_div_ds),
-      size(array.size) {
-    values = new ValueT[size];
-    memcpy(values, array.values, size * sizeof(ValueT));
+      nc(array.nc) {
+    cells = new ValueT[nc];
+    memcpy(cells, array.cells, nc * sizeof(ValueT));
   }
 
   virtual ~IndexedArray() {
-    delete[] values;
+    delete[] cells;
   }
 
   /**
@@ -138,7 +138,7 @@ struct IndexedArray {
 
     int id = 0;
     for (int i = 0; i < x.size(); ++i) {
-      id += mcgs[i] * index(x, i);
+      id += (i == 0) ? index(x, i) : mcgs[i - 1] * index(x, i);
     }
     return id;
   }
@@ -176,11 +176,11 @@ struct IndexedArray {
         return;
 
     int id = computeId(x);
-    // if (id<0 || id>=size)
+    // if (id<0 || id>=nc)
     //  std::cout << "id=" << id << " x=" << x.transpose() << " xlb=" <<
     //  xlb.transpose() << " xub=" << xub.transpose() << std::endl;
-    assert(id >= 0 && id < size);
-    values[id] = data;
+    assert(id >= 0 && id < nc);
+    cells[id] = data;
   }
 
   /**
@@ -204,9 +204,9 @@ struct IndexedArray {
    */
   ValueT data(int id) const {
     assert(id >= 0);
-    if (id >= size)
+    if (id >= nc)
       return 0;
-    return values[id];
+    return cells[id];
   }
 
   int n; ///< IndexedArray dimension
@@ -215,12 +215,12 @@ struct IndexedArray {
   PointT xub;  ///< state upper bound
   PointT ds;   ///< dimensions (ds=xub-xlb)
   PointT cs;   ///< cell length size per dimension
-  Vectorni gs; ///< number of values per dimension
+  Vectorni gs; ///< number of cells per dimension
 
   PointT mcgs;      ///< multiplicative cumulative gs
   PointT gs_div_ds; ///< derived quantity gs/ds
 
-  int size = 0;             ///< number of values in IndexedArray
-  ValueT* values = nullptr; ///< array of data
+  int nc = 0;              ///< number of cells in IndexedArray
+  ValueT* cells = nullptr; ///< array of data
 };
 }
