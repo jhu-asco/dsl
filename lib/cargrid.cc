@@ -51,9 +51,9 @@ void CarGrid::MakeMap(const Map2b &map, Map3b &cmap) {
     for (int j = 0; j < cmap.gs[1]; ++j) {
       for (int k = 0; k < cmap.gs[2]; ++k) {
         int id2 = j + cmap.gs[1]*k; //2d index ito map
-        assert(id2 < map.nc);
+        assert(id2 < map.size);
         int id3 = i + cmap.gs[0]*j + cmap.gs[0]*cmap.gs[1]*k; // 3d index into cmap
-        assert(id3 < cmap.nc);
+        assert(id3 < cmap.size);
         cmap.values[id3] = map.values[id2];
       }
     }
@@ -69,10 +69,10 @@ void CarGrid::Slice(const Map3b &cmap, double a, Map2b &map) const {
     for (int iy = 0; iy < cmap.gs[2]; ++iy) {
       // index into workspace
       int id2 = ix + iy*cmap.gs[1];
-      assert(id2 < map.nc);
+      assert(id2 < map.size);
         // index into configuration space
       int id3 = ia + ix*cmap.gs[0] + iy*cmap.gs[0]*cmap.gs[1];
-      assert(id3 < cmap.nc);
+      assert(id3 < cmap.size);
       map.values[id2] = cmap.values[id3];
     }
   }
@@ -104,7 +104,7 @@ void CarGrid::MakeMap(const CarGeom& geom, const Map2b &map, Map3b &cmap) {
       for (int iy = 0; iy < cmap.gs[2]; ++iy) {
         // index into workspace
         int id2 = ix + iy*cmap.gs[1];
-        assert(id2 < map.nc);
+        assert(id2 < map.size);
         // if free continue
         if (!map.values[id2])
           continue;

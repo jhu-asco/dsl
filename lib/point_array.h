@@ -38,7 +38,7 @@ public:
 
   /**
    * Initialize the array using state lower bound, state upper bound, the number
-   * of array values%
+   * of array values
    * @param xlb state lower bound
    * @param xub state upper bound
    * @param gs number of array values per each dimension
@@ -46,20 +46,20 @@ public:
   PointArray(const PointT& xlb, const PointT& xub, const Vectorni& gs)
     : xlb(xlb), xub(xub), gs(gs) {
     ds = xub - xlb;
-    nc = 1;
+    size = 1;
     for (int i = 0; i < n; ++i) {
       assert(xlb[i] <= xub[i]);
       assert(gs[i] > 0);
       mcgs[i] = (i == 0 ? gs[0] : mcgs[i - 1] * gs[i]);
       cs[i] = (xub[i] - xlb[i]) / gs[i];
       gs_div_ds[i] = gs[i] / ds[i];
-      nc *= gs[i]; // total number of values
+      size *= gs[i]; // total number of values
     }
 
     assert(sizeof(ValueT) <= 8);
 
-    values = new ValueT[nc];
-    memset(values, 0, nc * sizeof(ValueT)); // initialize all of them to nil
+    values = new ValueT[size];
+    memset(values, 0, size * sizeof(ValueT)); // initialize all of them to nil
   }
 
   /**
@@ -72,22 +72,22 @@ public:
   PointArray(const PointT& xlb, const PointT& xub, const PointT& cs)
     : xlb(xlb), xub(xub), cs(cs) {
     ds = xub - xlb;
-    nc = 1;
+    size = 1;
     for (int i = 0; i < n; ++i) {
       assert(xlb[i] <= xub[i]);
       assert(cs[i] > 0);
       gs[i] = floor((xub[i] - xlb[i]) / cs[i]);
       assert(gs[i] > 0);
       mcgs[i] = (i == 0 ? gs[0] : mcgs[i - 1] * gs[i]);
-      nc *= gs[i]; // total number of values
+      size *= gs[i]; // total number of values
       gs_div_ds[i] = gs[i] / ds[i];
     }
 
     // here we assume ValueT is of primitive type or is a pointer
     assert(sizeof(ValueT) <= 8);
 
-    values = new ValueT[nc];
-    memset(values, 0, nc * sizeof(ValueT)); // initialize all of them to nil
+    values = new ValueT[size];
+    memset(values, 0, size * sizeof(ValueT)); // initialize all of them to nil
   }
 
   PointArray(const PointArray& array)
@@ -98,9 +98,9 @@ public:
       cs(array.cs),
       mcgs(array.mcgs),
       gs_div_ds(array.gs_div_ds),
-      nc(array.nc) {
-    values = new ValueT[nc];
-    memcpy(values, array.values, nc * sizeof(ValueT));
+      size(array.size) {
+    values = new ValueT[size];
+    memcpy(values, array.values, size * sizeof(ValueT));
   }
 
   virtual ~PointArray() {
@@ -181,7 +181,7 @@ public:
 
     int id = computeId(x);
     assert(id >= 0);
-    if (id >= nc)
+    if (id >= size)
       return empty;
     return values[id];
   }
@@ -199,11 +199,11 @@ public:
         return;
 
     int id = computeId(x);
-    if (id < 0 || id >= nc)
+    if (id < 0 || id >= size)
       std::cout << "id=" << id << " x=" << x.transpose()
                 << " xlb=" << xlb.transpose() << " xub=" << xub.transpose()
                 << std::endl;
-    assert(id >= 0 && id < nc);
+    assert(id >= 0 && id < size);
     values[id] = data;
   }
 
@@ -214,7 +214,7 @@ public:
    */
   ValueT data(int id) const {
     assert(id >= 0);
-    if (id >= nc)
+    if (id >= size)
       return 0;
     return values[id];
   }
@@ -226,7 +226,7 @@ public:
    */
   void setData(int id, const ValueT& data) {
     assert(id >= 0);
-    if (id >= nc)
+    if (id >= size)
       return;
     values[id] = data;
   }
@@ -244,7 +244,7 @@ public:
     for (int i = 0; i < array.gs.size(); ++i)
       fs.write((char*)&array.gs[i], index_size);
 
-    fs.write((char*)array.values, array.nc * sizeof(ValueT));
+    fs.write((char*)array.values, array.size * sizeof(ValueT));
     fs.close();
   }
 
@@ -264,7 +264,7 @@ public:
       fs.read((char*)&gs[i], index_size);
 
     PointArray< PointT, ValueT >* array = new PointArray(xlb, xub, gs);
-    fs.read((char*)array->values, array->nc * sizeof(ValueT));
+    fs.read((char*)array->values, array->size * sizeof(ValueT));
     fs.close();
     return array;
   }
@@ -277,7 +277,7 @@ public:
   PointT mcgs;      ///< multiplicative cumulative gs
   PointT gs_div_ds; ///< derived quantity gs/ds
 
-  int nc = 0;               ///< total maximum number of values
+  int size = 0;             ///< total maximum number of values
   ValueT* values = nullptr; ///< array of values
 
   ValueT empty = 0; ///< empty data
