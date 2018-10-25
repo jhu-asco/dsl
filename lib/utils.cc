@@ -42,7 +42,7 @@ Map2b fromPPM(const char* filename, const Vector2d &cs) {
 
   int step = max_col > 255 ? 6 : 3;
   for (int i = 0; i < size; i++)
-    map.cells[i] = (data[step * i] ? 1 : 0);
+    map.values[i] = (data[step * i] ? 1 : 0);
   free(data);
   fs.close();
   return map;
@@ -60,7 +60,7 @@ void toPPM(const dsl::Map2b &map, const char* filename, const std::vector<Vector
 
   int ind = 0;
   for (int i = 0; i < width * height; i++, ind += 3) {
-    data[ind] = data[ind + 1] = data[ind + 2] = (char)(map.cells[i] * 100);
+    data[ind] = data[ind + 1] = data[ind + 2] = (char)(map.values[i] * 100);
   }
   assert(ind == 3*width*height);
 

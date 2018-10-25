@@ -22,11 +22,11 @@ Grid3d::Grid3d(int length,
             map[id] * cost_scale; // cell cost = height/occupany/traversability
         assert(cost >= 0);
         // add this as a cell only if cost is less than a given max cost
-        // this is useful if max_cost defines map cells that are untreversable,
+        // this is useful if max_cost defines map values that are untreversable,
         // so
-        // they shouldn't be added to the list of cells
+        // they shouldn't be added to the list of values
         if (cost < max_cost) {
-          cells[id] = new Cell3d(
+          values[id] = new Cell3d(
               id,
               Eigen::Vector3d((i + 0.5) * sx, (j + 0.5) * sy, (k + 0.5) * sz),
               cost);

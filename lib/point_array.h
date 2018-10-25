@@ -38,10 +38,10 @@ public:
 
   /**
    * Initialize the array using state lower bound, state upper bound, the number
-   * of array cells
+   * of array values%
    * @param xlb state lower bound
    * @param xub state upper bound
-   * @param gs number of array cells per each dimension
+   * @param gs number of array values per each dimension
    */
   PointArray(const PointT& xlb, const PointT& xub, const Vectorni& gs)
     : xlb(xlb), xub(xub), gs(gs) {
@@ -53,18 +53,18 @@ public:
       mcgs[i] = (i == 0 ? gs[0] : mcgs[i - 1] * gs[i]);
       cs[i] = (xub[i] - xlb[i]) / gs[i];
       gs_div_ds[i] = gs[i] / ds[i];
-      nc *= gs[i]; // total number of cells
+      nc *= gs[i]; // total number of values
     }
 
     assert(sizeof(ValueT) <= 8);
 
-    cells = new ValueT[nc];
-    memset(cells, 0, nc * sizeof(ValueT)); // initialize all of them to nil
+    values = new ValueT[nc];
+    memset(values, 0, nc * sizeof(ValueT)); // initialize all of them to nil
   }
 
   /**
    * Initialize the array using state lower bound, state upper bound, the number
-   * of array cells
+   * of array values
    * @param xlb state lower bound
    * @param xub state upper bound
    * @param cs cell dimensions
@@ -86,8 +86,8 @@ public:
     // here we assume ValueT is of primitive type or is a pointer
     assert(sizeof(ValueT) <= 8);
 
-    cells = new ValueT[nc];
-    memset(cells, 0, nc * sizeof(ValueT)); // initialize all of them to nil
+    values = new ValueT[nc];
+    memset(values, 0, nc * sizeof(ValueT)); // initialize all of them to nil
   }
 
   PointArray(const PointArray& array)
@@ -99,12 +99,12 @@ public:
       mcgs(array.mcgs),
       gs_div_ds(array.gs_div_ds),
       nc(array.nc) {
-    cells = new ValueT[nc];
-    memcpy(cells, array.cells, nc * sizeof(ValueT));
+    values = new ValueT[nc];
+    memcpy(values, array.values, nc * sizeof(ValueT));
   }
 
   virtual ~PointArray() {
-    delete[] cells;
+    delete[] values;
   }
 
   /**
@@ -183,7 +183,7 @@ public:
     assert(id >= 0);
     if (id >= nc)
       return empty;
-    return cells[id];
+    return values[id];
   }
 
   /**
@@ -204,7 +204,7 @@ public:
                 << " xlb=" << xlb.transpose() << " xub=" << xub.transpose()
                 << std::endl;
     assert(id >= 0 && id < nc);
-    cells[id] = data;
+    values[id] = data;
   }
 
   /**
@@ -216,7 +216,7 @@ public:
     assert(id >= 0);
     if (id >= nc)
       return 0;
-    return cells[id];
+    return values[id];
   }
 
   /**
@@ -228,7 +228,7 @@ public:
     assert(id >= 0);
     if (id >= nc)
       return;
-    cells[id] = data;
+    values[id] = data;
   }
 
   static void save(const PointArray< PointT, ValueT >& array, const char* filename) {
@@ -244,7 +244,7 @@ public:
     for (int i = 0; i < array.gs.size(); ++i)
       fs.write((char*)&array.gs[i], index_size);
 
-    fs.write((char*)array.cells, array.nc * sizeof(ValueT));
+    fs.write((char*)array.values, array.nc * sizeof(ValueT));
     fs.close();
   }
 
@@ -264,7 +264,7 @@ public:
       fs.read((char*)&gs[i], index_size);
 
     PointArray< PointT, ValueT >* array = new PointArray(xlb, xub, gs);
-    fs.read((char*)array->cells, array->nc * sizeof(ValueT));
+    fs.read((char*)array->values, array->nc * sizeof(ValueT));
     fs.close();
     return array;
   }
@@ -272,14 +272,13 @@ public:
   PointT xlb; ///< state lower bound
   PointT xub; ///< state upper bound
   PointT ds;  ///< dimensions (ds=xub-xlb)
-  Vectorni gs;  ///< number of cells per dimension
+  Vectorni gs;      ///< number of values per dimension
   PointT cs;  ///< cell length size per dimension
   PointT mcgs;      ///< multiplicative cumulative gs
   PointT gs_div_ds; ///< derived quantity gs/ds
 
-
-  int nc = 0;         ///< total maximum number of cells
-  ValueT* cells = nullptr; ///< array of cells
+  int nc = 0;               ///< total maximum number of values
+  ValueT* values = nullptr; ///< array of values
 
   ValueT empty = 0; ///< empty data
 };

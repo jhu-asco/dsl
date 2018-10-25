@@ -33,9 +33,9 @@ CarGrid::CarGrid(const Map3b &cmap,
 
         bool occ = cmap.data(x, false);
         if (!occ) {
-          cells[id] = new SE2Cell(id, x);
+          values[id] = new SE2Cell(id, x);
 
-          se2_q2g(cells[id]->data, cells[id]->center);
+          se2_q2g(values[id]->data, values[id]->center);
         }
       }
     }
@@ -54,7 +54,7 @@ void CarGrid::MakeMap(const Map2b &map, Map3b &cmap) {
         assert(id2 < map.nc);
         int id3 = i + cmap.gs[0]*j + cmap.gs[0]*cmap.gs[1]*k; // 3d index into cmap
         assert(id3 < cmap.nc);
-        cmap.cells[id3] = map.cells[id2];
+        cmap.values[id3] = map.values[id2];
       }
     }
   }
@@ -73,7 +73,7 @@ void CarGrid::Slice(const Map3b &cmap, double a, Map2b &map) const {
         // index into configuration space
       int id3 = ia + ix*cmap.gs[0] + iy*cmap.gs[0]*cmap.gs[1];
       assert(id3 < cmap.nc);
-      map.cells[id2] = cmap.cells[id3];
+      map.values[id2] = cmap.values[id3];
     }
   }
 }
@@ -106,7 +106,7 @@ void CarGrid::MakeMap(const CarGeom& geom, const Map2b &map, Map3b &cmap) {
         int id2 = ix + iy*cmap.gs[1];
         assert(id2 < map.nc);
         // if free continue
-        if (!map.cells[id2])
+        if (!map.values[id2])
           continue;
 
         double y = (iy + 0.5)*cmap.cs[2] + cmap.xlb[2];

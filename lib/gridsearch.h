@@ -456,9 +456,9 @@ bool GridSearch< PointT, DataT, ConnectionT >::removeCell(const PointT& x) {
     return false;
   }
 
-  if (grid.cells[id]) {
-    delete grid.cells[id];
-    grid.cells[id] = 0;
+  if (grid.values[id]) {
+    delete grid.values[id];
+    grid.values[id] = 0;
   } else {
     return false;
   }
