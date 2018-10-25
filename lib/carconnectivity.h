@@ -12,7 +12,6 @@
 #include "gridconnectivity.h"
 #include "cargrid.h"
 #include "carcost.h"
-#include "map.h"
 
 namespace dsl {
 

@@ -20,9 +20,9 @@ using Eigen::Matrix3d;
 
 using std::vector;
 
-CarGrid::CarGrid(const Map<bool, 3> &cmap,
+CarGrid::CarGrid(const Map3b &cmap,
                  const Vector3d& cs)
-    : Grid< Vector3d, Matrix3d >(cmap.xlb, cmap.xub, cs),
+    : SE2Grid(cmap.xlb, cmap.xub, cs),
       cmap(cmap) {
   for (int k = 0; k < gs[0]; ++k) {
     for (int c = 0; c < gs[1]; ++c) {
@@ -43,7 +43,7 @@ CarGrid::CarGrid(const Map<bool, 3> &cmap,
 }
 
 
-void CarGrid::MakeMap(const Map<bool, 2> &map, Map<bool, 3> &cmap) {
+void CarGrid::MakeMap(const Map2b &map, Map3b &cmap) {
   assert(map.gs[0] == cmap.gs[1]);
   assert(map.gs[1] == cmap.gs[2]);
 
@@ -60,7 +60,7 @@ void CarGrid::MakeMap(const Map<bool, 2> &map, Map<bool, 3> &cmap) {
   }
 }
 
-void CarGrid::Slice(const Map<bool, 3> &cmap, double a, Map<bool, 2> &map) const {
+void CarGrid::Slice(const Map3b &cmap, double a, Map2b &map) const {
   assert(map.gs[0] == cmap.gs[1]);
   assert(map.gs[1] == cmap.gs[2]);
 
@@ -79,7 +79,7 @@ void CarGrid::Slice(const Map<bool, 3> &cmap, double a, Map<bool, 2> &map) const
 }
 
 
-void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3> &cmap) {
+void CarGrid::MakeMap(const CarGeom& geom, const Map2b &map, Map3b &cmap) {
   assert(map.gs[0] == cmap.gs[1]);
   assert(map.gs[1] == cmap.gs[2]);
 
@@ -98,11 +98,6 @@ void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3>
     R(0,0) = ct; R(0,1) = -st;
     R(1,0) = st; R(1,1) = ct;
 
-    // dilated map
-    //    bool dmap[cmap.gs[1]*cmap.gs[2]];
-    //    DilateMap(geom, theta,
-    //              cmap.cs[1], cmap.cs[2], cmap.gs[1], cmap.gs[2],
-    //              map.cells, dmap);
     for (int ix = 0; ix < cmap.gs[1]; ++ix) {
       double x = (ix + 0.5)*cmap.cs[1] + cmap.xlb[1];
 
@@ -116,9 +111,6 @@ void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3>
 
         double y = (iy + 0.5)*cmap.cs[2] + cmap.xlb[2];
 
-        // index into configuration space
-        //        int id3 = ia + ix*cmap.gs[0] + iy*cmap.gs[0]*cmap.gs[1];
-
         Vector2d p0(x,y); // position of car origin
         for (auto&& dp : points) {
           Vector2d p = p0 + R*dp; // point on the car
@@ -129,81 +121,4 @@ void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3>
   }
 }
 
-/*
-void CarGrid::MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3>
-&cmap) {
-  assert(map.gs[0] == cmap.gs[1]);
-  assert(map.gs[1] == cmap.gs[2]);
-
-  for (int ia = 0; ia < cmap.gs[0]; ++ia) {
-    // create a dilated map for a particular angle
-    double theta = cmap.xlb[0] + (ia + 0.5) * cmap.cs[0];
-
-    // dilated map
-    bool dmap[cmap.gs[1]*cmap.gs[2]];
-    DilateMap(geom, theta,
-              cmap.cs[1], cmap.cs[2], cmap.gs[1], cmap.gs[2],
-              map.cells, dmap);
-    for (int ix = 0; ix < cmap.gs[1]; ++ix) {
-      for (int iy = 0; iy < cmap.gs[2]; ++iy) {
-        cmap.cells[ia + ix*cmap.gs[0] + iy*cmap.gs[0]*cmap.gs[1]] = dmap[ix +
-iy*cmap.gs[1]];
-      }
-    }
-  }
-}
-*/
-
- void CarGrid::DilateMap(const CarGeom& geom, double theta,
-                         double sx, double sy, int gx, int gy,
-                         const bool* data, bool* data_dil) {
-
-   Matrix2x4d verts2d_rotd_pix;
-  getRotdVertsInPixWrtOrg(verts2d_rotd_pix, geom.l, geom.b, geom.ox, geom.oy, sx, sy, theta);
-
-  // round of the pixel values of the vertices above such that the rectange
-  // formed by the rounded off
-  //  vertices surrounds the rotated rectange
-  Vector2i org2i_rotd_pix(0,0); // because it's wrt org itself and rounding doesn't matter
-  Matrix2x4i verts2i_rotd_pix;
-  for (int i = 0; i < 2; i++)
-    for (int j = 0; j < 4; j++)
-      verts2i_rotd_pix(i, j) = verts2d_rotd_pix(i, j) > 0 ?
-          ceil(verts2d_rotd_pix(i, j)) :
-          floor(verts2d_rotd_pix(i, j));
-
-  // Size of kernel is given by the horizontal rectange that bounds the rounded
-  // off rectange above
-  Vector2i verts2i_rotd_pix_min = verts2i_rotd_pix.rowwise().minCoeff();
-  Vector2i verts2i_rotd_pix_max = verts2i_rotd_pix.rowwise().maxCoeff();
-  Vector2i size2i_k = verts2i_rotd_pix_max - verts2i_rotd_pix_min;
-
-  // Shift everything such that verts2i_rotd_pix_min is the [0,0] pixel of the
-  // kernel
-  Matrix2x4i verts2i_rotd_pospix =
-      verts2i_rotd_pix.colwise() - verts2i_rotd_pix_min;
-  Vector2i org2i_rotd_pospix = org2i_rotd_pix - verts2i_rotd_pix_min;
-
-  // create dilation kernel by filling the inside of the rotated rectanges with
-  // zero
-  int w_k = size2i_k(0);
-  int h_k = size2i_k(1);
-  bool data_k[w_k * h_k];
-  fillQuad<bool>(data_k,
-           size2i_k(0),
-           size2i_k(1),
-           verts2i_rotd_pospix.cast< double >(),
-           1.0);
-
-  // Dilate
-  dilate<bool>(data_dil,
-         data,
-         gx,
-         gy,
-         data_k,
-         size2i_k(0),
-         size2i_k(1),
-         org2i_rotd_pospix(0),
-         org2i_rotd_pospix(1));
- }
 }

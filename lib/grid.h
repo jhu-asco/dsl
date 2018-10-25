@@ -9,25 +9,16 @@
 #pragma once
 
 #include "cell.h"
-#include <Eigen/Dense>
-#include "map.h"
+#include "point_array.h"
 
 namespace dsl {
 
 struct EmptyData {};
 
-/**
- * An n-dimenensional grid consisting of abstract "cells", or elements
- * identified by a set of coordinates of type PointT, each cell
- * containing data of type DataT.
- * A grid provides instant access to the elements by maintaining
- * an n-dimensional array of pointers to cells. Cells that are empty,
- * e.g. that are inside obstacles, correspond to null pointers.
- *
- * Note that this data structure is only viable up to a few dimensions,
- * e.g. dim=5 or 6.
- */
-
 template < class PointT, class DataT = EmptyData >
-using Grid = Map< Cell< PointT, DataT >*, PointT::SizeAtCompileTime >;
+  using Grid = PointArray< PointT, Cell< PointT, DataT >*>;
+
+using Map2b = PointArray< Eigen::Vector2d, bool>;
+using Map3b = PointArray< Eigen::Vector3d, bool>;
+
 }

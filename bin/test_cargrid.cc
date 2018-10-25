@@ -38,17 +38,17 @@ int main(int argc, char** argv)
   params.getVector3d("gcs", gcs);
 
   // load an occupancy map from ppm file
-  dsl::Map<bool, 2> omap = load(mapName.c_str(), ocs.tail<2>());
+  dsl::Map2b omap = fromPPM(mapName.c_str(), ocs.tail<2>());
 
   // a map that we'll use for display
-  dsl::Map<bool, 2> dmap = omap;
+  dsl::Map2b dmap = omap;
 
   // dimensions are determined from occupancy map
   Vector3d xlb(-M_PI + gcs[0]/2, omap.xlb[0], omap.xlb[1]);
   Vector3d xub(M_PI + gcs[0]/2, omap.xub[0], omap.xub[1]);
 
   // configuration-space map
-  dsl::Map<bool, 3> cmap(xlb, xub, ocs);
+  dsl::Map3b cmap(xlb, xub, ocs);
   
   //CarGrid::MakeMap(omap, cmap);
   /* for non-point geometry comment this out */
@@ -61,13 +61,13 @@ int main(int argc, char** argv)
   
   CarGrid grid(cmap, gcs);
 
-  dsl::Map<bool, 2> smap = dmap;
+  dsl::Map2b smap = dmap;
 
   grid.Slice(cmap, -M_PI+0.05, smap);
   
   // save it to image for viewing
-  save(dmap, "path1.ppm");
-  save(smap, "slice0.ppm");
+  toPPM(dmap, "path1.ppm");
+  toPPM(smap, "slice0.ppm");
 
   //  save(dmap, "path1.ppm");
 

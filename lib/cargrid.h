@@ -12,11 +12,11 @@
 #include <Eigen/Geometry>
 #include <vector>
 #include "grid.h"
-#include "map.h"
 
 namespace dsl {
 
 using SE2Cell = Cell< Eigen::Vector3d, Eigen::Matrix3d >;
+using SE2Grid = Grid< Eigen::Vector3d, Eigen::Matrix3d >;
 
 // geometry of the car
 struct CarGeom {
@@ -48,23 +48,23 @@ struct CarGeom {
  *
  * Authors: Marin Kobilarov, Subhransu Mishra
  */
-class CarGrid : public Grid< Eigen::Vector3d, Eigen::Matrix3d > {
+class CarGrid : public SE2Grid {
 public:
-  CarGrid(const Map<bool, 3> &cmap,
+  CarGrid(const Map3b &cmap,
           const Eigen::Vector3d& cs);
 
-  const Map<bool, 3>& cmap; ///< configuration-space map
+  const Map3b& cmap; ///< configuration-space map
 
-  static void MakeMap(const Map<bool, 2> &map, Map<bool, 3> &cmap);
+  static void MakeMap(const Map2b &map, Map3b &cmap);
 
-  static void MakeMap(const CarGeom& geom, const Map<bool, 2> &map, Map<bool, 3> &cmap);
+  static void MakeMap(const CarGeom& geom, const Map2b &map, Map3b &cmap);
 
   static void DilateMap(const CarGeom& geom, double theta,
                         double sx, double sy, int gx, int gy,
                         const bool* data, bool* data_dil);
 
 
-  void Slice(const Map<bool, 3> &cmap, double a, Map<bool, 2> &map) const;
+  void Slice(const Map3b &cmap, double a, Map2b &map) const;
 
 
     //  std::vector<Eigen::Vector2d> raster;

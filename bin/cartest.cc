@@ -59,22 +59,21 @@ int main(int argc, char** argv)
   bool useGeom = params.getVector4d("geom", whxy);
 
   // load an occupancy map from ppm file
-  dsl::Map<bool, 2> omap = load(mapName.c_str(), ocs.tail<2>());
+  dsl::Map2b omap = fromPPM(mapName.c_str(), ocs.tail<2>());
 
   // a map that we'll use for display
-  dsl::Map<bool, 2> dmap = omap;
+  dsl::Map2b dmap = omap;
 
   // dimensions are determined from occupancy map
   Vector3d xlb(-M_PI + gcs[0]/2, omap.xlb[0], omap.xlb[1]);
   Vector3d xub(M_PI + gcs[0]/2, omap.xub[0], omap.xub[1]);
 
   // configuration-space map
-  dsl::Map<bool, 3> *cmap = 0;
+  dsl::Map3b *cmap = 0;
 
-  //  CarGrid::MakeMap(omap, cmap);
   // for non-point geometry comment this out
   if (!cmapValid) {
-    cmap = new dsl::Map<bool, 3>(xlb, xub, ocs);
+    cmap = new dsl::Map3b(xlb, xub, ocs);
     std::cout << "Making cmap... " << std::endl;
 
     if (useGeom) {
@@ -86,11 +85,11 @@ int main(int argc, char** argv)
 
     cmapName = mapName;
     replaceExt(cmapName, string("cmap"));
-    dsl::Map< bool, 3 >::save(*cmap, cmapName.c_str());
+    Map3b::save(*cmap, cmapName.c_str());
     std::cout << "Saved cmap " << cmapName << " with xlb=" << cmap->xlb.transpose() << " xub=" << cmap->xub.transpose() << " gs=" << cmap->gs.transpose() << std::endl;
 
   } else {
-    cmap = dsl::Map< bool, 3 >::load(cmapName.c_str());
+    cmap = Map3b::load(cmapName.c_str());
     std::cout << "Loaded map with xlb=" << cmap->xlb.transpose() << " xub=" << cmap->xub.transpose() << " gs=" << cmap->gs.transpose() << std::endl;
   }
 
@@ -149,7 +148,7 @@ int main(int argc, char** argv)
 
   // save it to image for viewing
   vector<Vector2d> path2d = ToVector2dPath(path);
-  save(dmap, "path1.ppm", &path2d);
+  toPPM(dmap, "path1.ppm", &path2d);
 
   cout << "Map and path saved to path1.ppm" << endl;
 

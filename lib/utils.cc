@@ -18,7 +18,7 @@ namespace dsl {
 
 using namespace Eigen;
 
-Map<bool, 2> load(const char* filename, const Vector2d &cs) {
+Map2b fromPPM(const char* filename, const Vector2d &cs) {
   std::string header;
   int max_col = 0;
   
@@ -32,7 +32,7 @@ Map<bool, 2> load(const char* filename, const Vector2d &cs) {
   assert(width > 0);
   assert(height > 0);
 
-  dsl::Map<bool, 2> map(Vector2d(0,0), Vector2d(cs[0]*width, cs[1]*height), cs);
+  dsl::Map2b map(Vector2d(0,0), Vector2d(cs[0]*width, cs[1]*height), cs);
 
   int size = width*height;
   int raster_size = (max_col > 255 ? size*6 : size*3);
@@ -49,7 +49,7 @@ Map<bool, 2> load(const char* filename, const Vector2d &cs) {
 }
 
 
-void save(const dsl::Map<bool, 2> &map, const char* filename, const std::vector<Vector2d> *path) {
+void toPPM(const dsl::Map2b &map, const char* filename, const std::vector<Vector2d> *path) {
   const int &width = map.gs[0];
   const int &height = map.gs[1];
   
@@ -77,7 +77,7 @@ void save(const dsl::Map<bool, 2> &map, const char* filename, const std::vector<
 }
 
 
-void save_map(const char* map, int width, int height, const char* filename) {
+void toPPM(const char* map, int width, int height, const char* filename) {
   int i, ind;
   char data[width*height*3];
   //FILE* file = fopen(filename, "w");
@@ -98,7 +98,7 @@ void save_map(const char* map, int width, int height, const char* filename) {
   fs.close();
 }
 
-char* load_map(int &width, int &height, const char* filename) {
+char* fromPPM(int &width, int &height, const char* filename) {
   int i, size;
 
   char *map, *data;

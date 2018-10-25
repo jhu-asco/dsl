@@ -27,7 +27,7 @@ int main(int argc, char** argv)
   // load a map from ppm file
   assert(argc == 2);
   int width, height;
-  char* chmap = load_map(width, height, argv[1]);
+  char* chmap = fromPPM(width, height, argv[1]);
   char mapPath[width*height];
   double map[width*height];
   for (int i = 0; i < width*height; ++i)
@@ -74,7 +74,7 @@ int main(int argc, char** argv)
   fflush(stdout);
 
   // save it to image for viewing
-  save_map(mapPath, width, height, "path1.ppm");
+  toPPM(mapPath, width, height, "path1.ppm");
 
   cout << "Map and path saved to path1.ppm... Press Enter to simulated replanning after closing a passage." << endl;
   getchar();
@@ -146,7 +146,7 @@ int main(int argc, char** argv)
   }
 
   // save it to image for viewing
-  save_map(mapPath, width, height, "path2.ppm");
+  toPPM(mapPath, width, height, "path2.ppm");
   cout << "Map and path saved to path2.ppm... " << endl;
   free(chmap);
 

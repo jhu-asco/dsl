@@ -33,6 +33,7 @@ INSTALL(FILES fibheap.h
               utils.h
               utilsimg.h
               cell.h
+              point_array.h
               grid.h
               gridcost.h
               gridconnectivity.h
