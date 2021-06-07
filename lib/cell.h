@@ -6,8 +6,10 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_CELL_H
-#define DSL_CELL_H
+#ifndef DSL_LIB_CELL_H_
+#define DSL_LIB_CELL_H_
+
+#include <memory>
 
 namespace dsl {
 
@@ -16,10 +18,12 @@ namespace dsl {
  * The cell can also contain a generic data of type T, which by default is just
  * a point in the cell.
  */
-template < class PointType, class DataType >
+template < class PointType_, class DataType_ >
 struct Cell {
+  using PointType = PointType_;
+  using DataType = DataType_;
+  using Cptr = const Cell<PointType,DataType>*;
 
-public:
  Cell(int id, const PointType& c) : id(id), c(c) {}
   
   /**

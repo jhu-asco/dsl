@@ -6,17 +6,23 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_GRIDCONNECTIVITY_H
-#define DSL_GRIDCONNECTIVITY_H
+#ifndef DSL_LIB_GRIDCONNECTIVITY_H_
+#define DSL_LIB_GRIDCONNECTIVITY_H_
 
 #include "gridpath.h"
+#include "cell.h"
 #include <tuple>
+#include <memory>
+
 
 namespace dsl {
 
-  template < class PointType, class DataType, class ConnectionType>
+template < class PointType, class DataType, class ConnectionType>
 class GridConnectivity {
 public:
+    using TypedCell = Cell<PointType, DataType>;
+    using TypedCellCptr = typename TypedCell::Cptr;
+    using TypedCellConnectionCostTuple = std::tuple<TypedCellCptr, ConnectionType, double>;
   /**
    * Connectivity operator providing primitive paths from a given vertex. This
    * function should generate connections from the given vertex and store them
@@ -27,8 +33,8 @@ public:
    * @param fwd true if generated forward in time
    * @return true on success
    */
-  virtual bool operator()(const Cell<PointType, DataType>& from,
-                          std::vector< std::tuple<Cell<PointType, DataType>*, ConnectionType, double> >& toCells,
+  virtual bool operator()(const TypedCell& from,
+                          std::vector<TypedCellConnectionCostTuple>& paths,
                           bool fwd = true) const = 0;
 
   virtual bool Free(const DataType &data) const = 0;

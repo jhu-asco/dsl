@@ -6,19 +6,21 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef DSL_GRID3D_H
-#define DSL_GRID3D_H
+#ifndef DSL_LIB_GRID3D_H_
+#define DSL_LIB_GRID3D_H_
 
 #include "grid.h"
 
 namespace dsl {
 
+using XyzCostCell = Cell<Eigen::Vector3d, double>;
+using Grid3dBase = Grid<XyzCostCell::PointType, XyzCostCell>;
 /**
  * A 3d grid with coordinates (x,y,z)
  *
  * Author: Matt Sheckells
  */
-  class Grid3d : public Grid< Eigen::Vector3d, double > {
+  class Grid3d : public Grid3dBase {
 public:
   /**
    * Initialize the grid using a 3d configuration-space map

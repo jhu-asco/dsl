@@ -1,7 +1,10 @@
+PROTOBUF_GENERATE_CPP( PROTO_SRCS PROTO_HDRS grid_data.proto )
+
 add_library(dsl SHARED fibheap.c 
                        search.cc
                        utils.cc
                        utilsimg.cc
+                       gridutils.cc
                        grid2d.cc
                        grid3d.cc
                        cargrid.cc
@@ -9,8 +12,14 @@ add_library(dsl SHARED fibheap.c
                        grid3dconnectivity.cc
                        carconnectivity.cc
                        carcost.cc
+                       cargeom.cc
+                       terrainse2grid.cc
+                       terrainse2gridcost.cc
                        params.cc
+                       ppm_reader.cc
+                       ${PROTO_SRCS}
 )
+target_link_libraries(dsl ${LIBS})
 
 SET_TARGET_PROPERTIES(dsl
                       PROPERTIES
@@ -30,6 +39,7 @@ INSTALL(FILES fibheap.h
               search.h
               utils.h
               utilsimg.h
+              gridutils.h
               cell.h
               grid.h
               gridcost.h
@@ -37,9 +47,12 @@ INSTALL(FILES fibheap.h
               gridpath.h
               lineconnectivity.h
               carconnectivity.h
+              cargeom.h
               carcost.h
               cargrid.h
               carcost.h
+              terrainse2grid.h
+              terrainse2gridcost.h
               grid2d.h
               grid2dconnectivity.h
               grid3d.h
@@ -47,4 +60,6 @@ INSTALL(FILES fibheap.h
               gridsearch.h
               spline.h
               params.h
+              ppm_reader.h
+              ${PROTO_HDRS}
               DESTINATION include/dsl)              

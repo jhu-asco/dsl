@@ -128,24 +128,28 @@ void Params::Parse(char *line)
   string sname = string(name);
   sname.erase( std::remove_if( sname.begin(), sname.end(), RemoveDelimiter()), sname.end()); 
 
-  cout << sname << " = " << svalue << endl;
+  cout << "  "<< sname << " = " << svalue << endl;
   valueMap[sname] = svalue;
 }
 
 void Params::Load(FILE *file)
 {
   char line[256];
+  cout<<"Params read:"<<endl;
   while(fgets(line, 256, file)) {
     Parse(line);
   }
+  cout<<endl;
 }
 
 void Params::Load(iostream &io)
 {
   char line[256];
+  cout<<"Params read:"<<endl;
   while(io.getline(line, 256)) {
     Parse(line);        
   }
+  cout<<endl;
 }
 
 

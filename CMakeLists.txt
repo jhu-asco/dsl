@@ -3,7 +3,8 @@ project (dsl)
 #set(CMAKE_BUILD_TYPE Debug)
 include_directories(lib)
 
-ADD_DEFINITIONS(-g -O -Wall -W -Wno-unused-parameter -Wno-unused-variable -std=c++11)
+SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++11 -pthread")
+ADD_DEFINITIONS(-g -O -Wall -Werror -W -Wno-unused-parameter -Wno-unused-variable)
 
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Dynamic D* Lite Graph Search Library")
 SET(CPACK_PACKAGE_VENDOR "Marin Kobilarov")
@@ -20,6 +21,12 @@ SET(CPACK_PACKAGE_EXECUTABLES test2d "2D grid test search")
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
+find_package( Protobuf REQUIRED )
+include_directories(${PROTOBUF_INCLUDE_DIRS})
+set(LIBS ${LIBS} ${PROTOBUF_LIBRARIES})
+
+include_directories(third_party)
+
 # add a target to generate API documentation with Doxygen
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
@@ -31,10 +38,12 @@ if(DOXYGEN_FOUND)
   )
 endif(DOXYGEN_FOUND)
 
+include_directories( ${CMAKE_BINARY_DIR}/lib )
+
 add_subdirectory (lib) 
 add_subdirectory (bin) 
-#add_subdirectory (docs)
 
+#add_subdirectory (docs)
 
 INSTALL(FILES dsl.pc
         DESTINATION lib/pkgconfig)

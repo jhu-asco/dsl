@@ -9,7 +9,7 @@
 #include "utilsimg.h"
 
 namespace dsl {
-
+using namespace Eigen;
 void getRotdVertsInPixWrtOrg(Matrix2x4d& verts2d_rotd_pix,
                              double l,
                              double b,
